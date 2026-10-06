@@ -2,9 +2,9 @@
 
 | Prioridad | Trabajo | Estado |
 |---|---|---|
-| Alta | UI completa: inicio, creación, límites, mesa y 12 controladores | En curso |
-| Alta | Almacenamiento normal/privado, recuperación, borrado y bloqueo entre pestañas | Pendiente |
-| Alta | PWA: manifest, iconos, service worker, offline y actualización | Pendiente |
-| Alta | E2E Playwright (2 y 3 personas, todos los modos, privacidad) | Pendiente |
-| Media | Ampliar catálogo a 350/350/300 revisadas | Pendiente |
-| Media | Publicación en Vercel | Pendiente (requiere cuenta) |
+| Alta | Publicar en Vercel e indicar la URL | **Bloqueado**: requiere que la persona propietaria importe el repo en su cuenta (no hay acceso a Vercel desde este entorno) |
+| Alta | Prueba manual en iPhone físico (Safari, Añadir a pantalla de inicio, modo avión) | Pendiente de dispositivo |
+| Media | Pruebas automatizadas en WebKit | No disponible en este entorno (solo Chromium instalado); la CI puede añadir `npx playwright install webkit` |
+| Media | Verificar cabeceras CSP en la URL real de Vercel (ya probadas en `preview`) | Tras publicar |
+| Baja | Elegir nombre de marca definitivo (TRIO es provisional, centralizado en `APP_NAME`) | Decisión de negocio |
+| Baja | Panel editorial, paquetes premium y sincronización (Supabase) | Fuera de la primera versión; ver `docs/EVOLUCION.md` |

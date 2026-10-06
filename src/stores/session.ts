@@ -21,7 +21,7 @@ import {
 import { fromPersisted } from "@/storage/serialize";
 import { idbAvailable } from "@/storage/idb";
 import {
-  TAB_ID,
+  lockOwnerId,
   LOCK_HEARTBEAT_MS,
   acquireLock,
   onCoordination,
@@ -121,7 +121,7 @@ export const useSession = create<SessionStore>((set, get) => {
     created = true;
     const snapshot = next;
     saveChain = saveChain.then(async () => {
-      const res = await repo.save(snapshot, { create: isCreate, tabId: TAB_ID, now: now() });
+      const res = await repo.save(snapshot, { create: isCreate, tabId: lockOwnerId(), now: now() });
       if (res === "not_owner") set({ storageIssue: "lock_lost", lockedElsewhere: true });
       else if (res === "error") set({ storageIssue: "quota" });
     });

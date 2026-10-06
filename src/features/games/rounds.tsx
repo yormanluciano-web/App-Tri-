@@ -124,6 +124,7 @@ export function MostLikelyRound({ session, turn, activity }: { session: SessionS
   if (phase === "voting") {
     return (
       <PrivateRound<string>
+        key="voting"
         people={people}
         title="Votación privada"
         onCancel={() => setPhase("question")}
@@ -240,6 +241,7 @@ export function KnowMeRound({ session, turn, activity }: { session: SessionState
   if (phase === "reference") {
     return (
       <PrivateRound<string>
+        key="reference"
         people={[refPerson]}
         title="Respuesta de referencia"
         onCancel={() => setPhase("intro")}
@@ -254,6 +256,7 @@ export function KnowMeRound({ session, turn, activity }: { session: SessionState
   if (phase === "guesses") {
     return (
       <PrivateRound<string>
+        key="guesses"
         people={guessers}
         title="Adivinanzas"
         onCancel={() => setPhase("intro")}
@@ -374,6 +377,7 @@ export function SecretsRound({ session, turn, activity }: { session: SessionStat
   if (phase === "writing") {
     return (
       <PrivateRound<string>
+        key="writing"
         people={people}
         title="Secretos"
         onCancel={() => setPhase("warning")}
@@ -399,6 +403,7 @@ export function SecretsRound({ session, turn, activity }: { session: SessionStat
     const authors = people.filter((p) => authorIds.includes(p.id));
     return (
       <PrivateRound<boolean>
+        key="authorship"
         people={authors}
         title="Revelar autoría (opcional)"
         onCancel={() => setPhase("shuffled")}

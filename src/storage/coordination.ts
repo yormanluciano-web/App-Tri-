@@ -5,6 +5,24 @@ import { KEYS, markWiped, type LockRecord } from "./repository";
 /** Identificador de esta pestaña (solo en memoria). */
 export const TAB_ID = randomId("tab_");
 
+let ownerId: string | null = null;
+/**
+ * Identificador del dueño del bloqueo. Se conserva en sessionStorage (propio
+ * de la pestaña, sin datos personales) para que una recarga de la misma
+ * pestaña no se bloquee a sí misma. Solo se crea al jugar una sesión normal.
+ */
+export function lockOwnerId(): string {
+  if (ownerId) return ownerId;
+  try {
+    const existing = window.sessionStorage.getItem("trio:tab");
+    if (existing) return (ownerId = existing);
+    window.sessionStorage.setItem("trio:tab", TAB_ID);
+  } catch {
+    /* sin almacenamiento: id en memoria */
+  }
+  return (ownerId = TAB_ID);
+}
+
 export const LOCK_TTL_MS = 15_000;
 export const LOCK_HEARTBEAT_MS = 5_000;
 
@@ -73,8 +91,9 @@ export async function acquireLock(sessionId: string, opts: { force?: boolean; no
   try {
     const status = await kvTransaction(async (store, get) => {
       const lock = (await get(KEYS.lock)) as LockRecord | undefined;
-      if (!opts.force && lock && lock.tabId !== TAB_ID && lock.expiresAt > now) return "held_elsewhere" as const;
-      const rec: LockRecord = { tabId: TAB_ID, sessionId, expiresAt: now + LOCK_TTL_MS };
+      const me = lockOwnerId();
+      if (!opts.force && lock && lock.tabId !== me && lock.expiresAt > now) return "held_elsewhere" as const;
+      const rec: LockRecord = { tabId: me, sessionId, expiresAt: now + LOCK_TTL_MS };
       store.put(rec, KEYS.lock);
       return "acquired" as const;
     });
@@ -89,8 +108,9 @@ export async function renewLock(sessionId: string): Promise<boolean> {
   try {
     return await kvTransaction(async (store, get) => {
       const lock = (await get(KEYS.lock)) as LockRecord | undefined;
-      if (lock && lock.tabId !== TAB_ID && lock.expiresAt > Date.now()) return false;
-      store.put({ tabId: TAB_ID, sessionId, expiresAt: Date.now() + LOCK_TTL_MS } satisfies LockRecord, KEYS.lock);
+      const me = lockOwnerId();
+      if (lock && lock.tabId !== me && lock.expiresAt > Date.now()) return false;
+      store.put({ tabId: me, sessionId, expiresAt: Date.now() + LOCK_TTL_MS } satisfies LockRecord, KEYS.lock);
       return true;
     });
   } catch {
@@ -102,7 +122,7 @@ export async function releaseLock(): Promise<void> {
   try {
     await kvTransaction(async (store, get) => {
       const lock = (await get(KEYS.lock)) as LockRecord | undefined;
-      if (lock && lock.tabId === TAB_ID) store.delete(KEYS.lock);
+      if (lock && lock.tabId === lockOwnerId()) store.delete(KEYS.lock);
     });
   } catch {
     /* sin acceso */
