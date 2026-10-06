@@ -1,13 +1,13 @@
 import type { Activity, ContentPack } from "@/domain/models/activity";
-import { leveBase } from "./leve/base";
-import { picanteBase } from "./picante/base";
-import { perversoBase } from "./perverso/base";
+import { leveAll } from "./leve";
+import { picanteAll } from "./picante";
+import { perversoAll } from "./perverso";
 
 /** Versión del catálogo. Súbela al cambiar cartas; invalida autorizaciones restauradas. */
 export const CONTENT_VERSION = 1;
 
 /** Todas las actividades, incluidas las no publicables (para el validador). */
-export const ALL_ACTIVITIES: readonly Activity[] = [...leveBase, ...picanteBase, ...perversoBase];
+export const ALL_ACTIVITIES: readonly Activity[] = [...leveAll, ...picanteAll, ...perversoAll];
 
 /** Solo actividades activas y revisadas entran al selector de producción. */
 export const CATALOG: readonly Activity[] = ALL_ACTIVITIES.filter((a) => a.active && a.editorialStatus === "reviewed");
