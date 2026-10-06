@@ -1,0 +1,42 @@
+{
+  "name": "trio-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run content:validate && next build && node scripts/build-sw.mjs",
+    "preview": "node scripts/preview.mjs",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "content:validate": "tsx scripts/content-validate.ts",
+    "content:report": "tsx scripts/content-report.ts",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^4.6.5",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "fast-check": "^4.10.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
+  },
+  "description": "TRIO — Conexión a tu ritmo. PWA de juegos privados para 2 o 3 adultos.",
+  "engines": {
+    "node": ">=22 <23"
+  }
+}
