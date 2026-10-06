@@ -695,7 +695,7 @@ export function SurpriseRound({ session, turn, activity }: { session: SessionSta
       {plainCard ? (
         <ActionBar />
       ) : (
-        <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 grid grid-cols-1 gap-2 rounded-t-3xl px-4 pt-3">
+        <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-1 gap-2 rounded-t-3xl px-4 pt-3">
           <Button variant="secondary" onClick={pass}>
             Pasar la sorpresa
           </Button>

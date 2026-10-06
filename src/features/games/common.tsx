@@ -113,7 +113,7 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
   const pass = useSession((s) => s.pass);
   const change = useSession((s) => s.change);
   return (
-    <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 grid grid-cols-3 gap-2 rounded-t-3xl px-4 pt-3">
+    <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-3 gap-2 rounded-t-3xl px-4 pt-3">
       {extra}
       <Button variant="secondary" onClick={pass}>
         Pasar
