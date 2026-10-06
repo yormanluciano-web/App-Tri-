@@ -175,6 +175,56 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
   return { ok: errors.length === 0, errors, warnings };
 }
 
+export const EDITORIAL_FAMILIES = [
+  "Preguntas y rompehielos",
+  "Retos y desafíos",
+  "Conexión y confianza",
+  "Música y baile",
+  "Dinámicas de dos y tres",
+  "Elecciones",
+  "Confesiones y secretos",
+  "Conocimiento y más probable",
+  "Sorpresas",
+] as const;
+
+/** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
+export const EDITORIAL_TARGETS: Record<string, number[]> = {
+  leve: [85, 65, 45, 40, 30, 25, 15, 35, 10],
+  picante: [55, 65, 40, 30, 45, 30, 35, 30, 20],
+  perverso: [30, 55, 35, 20, 45, 30, 45, 20, 20],
+};
+
+/** Familia editorial de una actividad: cada carta cuenta una sola vez. */
+export function editorialFamily(a: Activity): (typeof EDITORIAL_FAMILIES)[number] {
+  if (a.formato === "votacion" || a.formato === "conocimiento") return "Conocimiento y más probable";
+  if (a.formato === "sorpresa") return "Sorpresas";
+  if (a.formato === "secreto") return "Confesiones y secretos";
+  switch (a.categoria) {
+    case "preguntas":
+    case "rompehielo":
+      return "Preguntas y rompehielos";
+    case "retos":
+    case "desafios":
+    case "masajes":
+      return "Retos y desafíos";
+    case "conexion":
+    case "confianza":
+      return "Conexión y confianza";
+    case "musica":
+    case "baile":
+      return "Música y baile";
+    case "pareja":
+    case "trio":
+      return "Dinámicas de dos y tres";
+    case "eleccion":
+      return "Elecciones";
+    case "secretos":
+      return "Confesiones y secretos";
+    case "sorpresa":
+      return "Sorpresas";
+  }
+}
+
 export interface CatalogReport {
   total: number;
   production: number;
@@ -185,6 +235,7 @@ export interface CatalogReport {
   bySessionSize: Record<string, Record<string, number>>;
   contact: Record<string, { contacto: number; sin_contacto: number }>;
   byStatus: Record<string, number>;
+  byFamily: Record<string, Record<string, number>>;
 }
 
 export function catalogReport(catalog: readonly Activity[]): CatalogReport {
@@ -200,6 +251,7 @@ export function catalogReport(catalog: readonly Activity[]): CatalogReport {
     bySessionSize: {},
     contact: {},
     byStatus: {},
+    byFamily: {},
   };
   for (const a of catalog) inc(report.byStatus, a.editorialStatus);
   for (const lvl of INTENSITIES) {
@@ -208,12 +260,14 @@ export function catalogReport(catalog: readonly Activity[]): CatalogReport {
     report.byFormat[lvl] = {};
     report.bySessionSize[lvl] = {};
     report.contact[lvl] = { contacto: 0, sin_contacto: 0 };
+    report.byFamily[lvl] = Object.fromEntries(EDITORIAL_FAMILIES.map((f) => [f, 0]));
   }
   for (const a of prod) {
     const l = a.intensidad;
     inc(report.byLevel, l);
     inc(report.byCategory[l], a.categoria);
     inc(report.byFormat[l], a.formato);
+    inc(report.byFamily[l], editorialFamily(a));
     for (const g of a.gameModes) inc(report.byGame[l], g);
     for (const n of a.sessionSizes) inc(report.bySessionSize[l], String(n));
     report.contact[l][isContactActivity(a) ? "contacto" : "sin_contacto"]++;
