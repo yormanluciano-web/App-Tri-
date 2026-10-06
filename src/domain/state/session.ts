@@ -478,3 +478,15 @@ export function unblock(state: SessionState, now: number): SessionState {
   if (state.status !== "blocked") return state;
   return withStatus({ ...state, notice: null }, "ready", now);
 }
+
+/** Desde el panel de Detener: vuelve a la pausa normal sin reanudar nada. */
+export function dismissStopPanel(state: SessionState): SessionState {
+  return state.stopped ? { ...state, stopped: false, version: state.version + 1 } : state;
+}
+
+/** Salir de la cadena: descarta las etapas restantes sin penalización. */
+export function exitChain(state: SessionState, now: number): SessionState {
+  if (!state.chain) return state;
+  const s = { ...tick(state, now), chain: null, version: state.version + 1 };
+  return s;
+}

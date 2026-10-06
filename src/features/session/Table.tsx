@@ -1,0 +1,628 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  CATEGORIES,
+  CATEGORY_LABEL,
+  GAME_DESCRIPTION,
+  GAME_LABEL,
+  INTENSITY_LABEL,
+  type Category,
+  type GameId,
+} from "@/domain/models/constants";
+import type { SessionState } from "@/domain/models/session";
+import { enabledBaseGames, nightPhase } from "@/domain/engine/orchestrator";
+import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression";
+import { getActivity } from "@/data/catalog";
+import { useSession } from "@/stores/session";
+import { applyUpdate } from "@/pwa/register";
+import { Button, Card, Chip, Dialog, LinkButton, Notice, Screen, Title } from "@/components/ui";
+import { ConsentRound, PrivateRound } from "./PrivateRound";
+import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
+import { peopleOf, RoleText, useNow } from "@/features/games/common";
+import {
+  DiceRound,
+  KnowMeRound,
+  MostLikelyRound,
+  RouletteRound,
+  SecretsRound,
+  StandardRound,
+  SurpriseRound,
+} from "@/features/games/rounds";
+
+function formatRemaining(ms: number): string {
+  const m = Math.ceil(ms / 60_000);
+  return m <= 1 ? "menos de 1 min" : `${m} min`;
+}
+
+/** Barra superior: Pausa y Detener siempre visibles. */
+function TopBar({ session }: { session: SessionState }) {
+  const pause = useSession((s) => s.pause);
+  const stop = useSession((s) => s.stop);
+  const now = useNow();
+  const liveActive = session.lastTickAt !== null ? session.activeMs + Math.max(0, now - session.lastTickAt) : session.activeMs;
+  const remaining = remainingMs(session.config.durationMin, liveActive);
+  const isNight = session.config.games.includes("noche");
+  return (
+    <header className="glass sticky top-0 z-20 -mx-4 flex items-center justify-between gap-2 rounded-b-3xl px-4 py-2 safe-top">
+      <div className="min-w-0 text-sm">
+        <p className="font-semibold text-accent">{INTENSITY_LABEL[session.level]}</p>
+        <p className="truncate text-faint">
+          {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
+          {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
+        </p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        {session.status !== "paused" && (
+          <Button variant="secondary" onClick={pause}>
+            Pausa
+          </Button>
+        )}
+        <Button variant="danger" onClick={stop}>
+          Detener
+        </Button>
+      </div>
+    </header>
+  );
+}
+
+/** Lanzador de la ronda según el juego actual. */
+function Launcher({ session }: { session: SessionState }) {
+  const draw = useSession((s) => s.draw);
+  const exitChain = useSession((s) => s.exitChain);
+  const [cats, setCats] = useState<Category[]>([]);
+  const game = session.currentGame;
+  const meta = session.config.games.includes("noche") || session.config.games.includes("caos");
+  const onlySurprise = session.config.games.length === 1 && session.config.games[0] === "sorpresa";
+  const effective: GameId = onlySurprise ? "tarjetas" : game;
+
+  if (meta) {
+    return (
+      <Card className="space-y-3 text-center">
+        <p className="text-muted">{session.config.games.includes("noche") ? "La noche elige el juego de cada ronda." : "Caos elige juego, persona y carta sin patrón fijo."}</p>
+        <Button block onClick={() => draw()}>
+          Siguiente ronda
+        </Button>
+      </Card>
+    );
+  }
+
+  const body = (() => {
+    switch (effective) {
+      case "verdad_reto":
+        return (
+          <div className="grid grid-cols-2 gap-3">
+            <Button className="min-h-20 text-xl" onClick={() => draw({ game: "verdad_reto", formats: ["pregunta"] })}>
+              Verdad
+            </Button>
+            <Button className="min-h-20 text-xl" onClick={() => draw({ game: "verdad_reto", formats: ["reto"] })}>
+              Reto
+            </Button>
+          </div>
+        );
+      case "ruleta":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "ruleta" })}>Girar la ruleta</Button>;
+      case "dados":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "dados" })}>Lanzar los dados</Button>;
+      case "tarjetas":
+        return (
+          <div className="space-y-3">
+            <p className="text-sm text-muted">Filtrar por categoría (opcional):</p>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.filter((c) => c !== "sorpresa" && c !== "secretos").map((c) => (
+                <Chip key={c} selected={cats.includes(c)} onClick={() => setCats((x) => (x.includes(c) ? x.filter((y) => y !== c) : [...x, c]))}>
+                  {CATEGORY_LABEL[c]}
+                </Chip>
+              ))}
+            </div>
+            <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "tarjetas", categories: cats, strictGame: cats.length > 0 })}>
+              Sacar carta
+            </Button>
+          </div>
+        );
+      case "mas_probable":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "mas_probable" })}>Nueva pregunta</Button>;
+      case "quien_conoce":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "quien_conoce" })}>Nueva ronda</Button>;
+      case "secretos":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "secretos" })}>Nueva ronda de secretos</Button>;
+      case "temporizador":
+        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "temporizador" })}>Siguiente reto con reloj</Button>;
+      case "cadena":
+        return (
+          <div className="space-y-3">
+            <p className="text-center text-muted">{session.chain ? `Etapa ${session.chain.stage + 1} de 3` : "Tres etapas progresivas. Cada una se valida y se puede pasar."}</p>
+            <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "cadena" })}>
+              {session.chain ? "Siguiente etapa" : "Empezar cadena"}
+            </Button>
+            {session.chain && (
+              <Button variant="ghost" block onClick={exitChain}>
+                Salir de la cadena
+              </Button>
+            )}
+          </div>
+        );
+      default:
+        return <Button block onClick={() => draw()}>Siguiente</Button>;
+    }
+  })();
+
+  return (
+    <Card className="space-y-4">
+      <div>
+        <h2 className="text-xl font-bold">{GAME_LABEL[effective]}</h2>
+        <p className="text-sm text-muted">{GAME_DESCRIPTION[effective]}</p>
+      </div>
+      {body}
+    </Card>
+  );
+}
+
+/** Ronda activa: delega en el controlador del juego de la carta. */
+function Round({ session }: { session: SessionState }) {
+  const turn = session.currentTurn!;
+  const activity = getActivity(turn.activityId);
+  if (!activity) return <Notice tone="warn">La actividad ya no está disponible.</Notice>;
+  const props = { session, turn, activity };
+  if (turn.game === "sorpresa") return <SurpriseRound key={turn.id} {...props} />;
+  switch (activity.formato) {
+    case "votacion":
+      return <MostLikelyRound key={turn.id} {...props} />;
+    case "conocimiento":
+      return <KnowMeRound key={turn.id} {...props} />;
+    case "secreto":
+      return <SecretsRound key={turn.id} {...props} />;
+  }
+  if (turn.game === "ruleta") return <RouletteRound key={turn.id} {...props} />;
+  if (turn.game === "dados") return <DiceRound key={turn.id} {...props} />;
+  return <StandardRound key={turn.id} {...props} />;
+}
+
+function ActivityConsent({ session }: { session: SessionState }) {
+  const activityConsent = useSession((s) => s.activityConsent);
+  const change = useSession((s) => s.change);
+  const [asking, setAsking] = useState(false);
+  const turn = session.currentTurn!;
+  const activity = getActivity(turn.activityId);
+  if (!activity) return null;
+  const askees = peopleOf(session, turn.consentAskees);
+  if (!asking) {
+    return (
+      <Card className="space-y-4">
+        <p className="text-sm uppercase tracking-widest text-faint">Antes de empezar</p>
+        <h2 className="text-2xl font-bold">
+          <RoleText text={activity.titulo} session={session} turn={turn} />
+        </h2>
+        <p className="text-lg">
+          <RoleText text={activity.texto} session={session} turn={turn} />
+        </p>
+        <p className="text-muted">Esta actividad necesita la autorización privada de las personas implicadas. Solo empieza si todas dicen que sí.</p>
+        <Button block onClick={() => setAsking(true)}>
+          Preguntar en privado
+        </Button>
+        <Button variant="ghost" block onClick={change}>
+          Elegir otra
+        </Button>
+      </Card>
+    );
+  }
+  return (
+    <ConsentRound
+      people={askees}
+      title="Autorización"
+      question={<RoleText text={activity.texto} session={session} turn={turn} />}
+      detail="¿Quieres hacer esta actividad ahora?"
+      onCancel={() => setAsking(false)}
+      onResult={(ok) => activityConsent(ok)}
+    />
+  );
+}
+
+function LevelConsent({ session }: { session: SessionState }) {
+  const levelUpResult = useSession((s) => s.levelUpResult);
+  const target = nextLevel(session.level);
+  const [asking, setAsking] = useState(false);
+  if (!target) return null;
+  if (!asking) {
+    return (
+      <Card className="space-y-4 text-center">
+        <h2 className="text-2xl font-bold">¿Todos quieren subir la intensidad?</h2>
+        <p className="text-muted">
+          De {INTENSITY_LABEL[session.level]} a {INTENSITY_LABEL[target]}. Cada persona responde en privado; si alguien no quiere, se mantiene el nivel actual y nadie
+          sabrá quién fue.
+        </p>
+        <Button block onClick={() => setAsking(true)}>
+          Empezar ronda privada
+        </Button>
+        <Button variant="ghost" block onClick={() => levelUpResult(false)}>
+          Cancelar la propuesta
+        </Button>
+      </Card>
+    );
+  }
+  return (
+    <ConsentRound
+      people={peopleOf(session)}
+      title="Subir intensidad"
+      question={`¿Quieres subir a ${INTENSITY_LABEL[target]}?`}
+      onResult={(ok) => levelUpResult(ok)}
+    />
+  );
+}
+
+function LimitsReview({ session, onDone }: { session: SessionState; onDone: () => void }) {
+  const updateLimits = useSession((s) => s.updateLimits);
+  const updateShared = useSession((s) => s.updateShared);
+  const [mode, setMode] = useState<"menu" | "individual" | "shared">("menu");
+  const people = peopleOf(session);
+  if (mode === "individual") {
+    return (
+      <PrivateRound<{ limits: SessionState["config"]["participants"][number]["limits"] } | null>
+        people={people}
+        title="Revisar límites"
+        onCancel={() => setMode("menu")}
+        renderPrivate={(p, submit) => {
+          const part = session.config.participants.find((x) => x.id === p.id)!;
+          return (
+            <div className="space-y-3">
+              <LimitsEditor
+                person={p}
+                others={people.filter((o) => o.id !== p.id)}
+                initial={part.limits}
+                initialPrefs={part.preferences}
+                onDone={(limits) => submit({ limits })}
+              />
+              <Button variant="ghost" block onClick={() => submit(null)}>
+                Dejarlos como están
+              </Button>
+            </div>
+          );
+        }}
+        onComplete={(answers) => {
+          for (const [pid, a] of answers.entries()) if (a) updateLimits(pid, a.limits);
+          answers.clear();
+          onDone();
+        }}
+      />
+    );
+  }
+  if (mode === "shared") {
+    return (
+      <SharedLimitsEditor
+        initial={session.config.sharedLimits}
+        onDone={(s) => {
+          updateShared(s);
+          onDone();
+        }}
+      />
+    );
+  }
+  return (
+    <Card className="space-y-3">
+      <h2 className="text-xl font-bold">Revisar límites</h2>
+      <p className="text-muted">Cualquier cambio descarta la carta actual y las autorizaciones anteriores.</p>
+      <Button block onClick={() => setMode("individual")}>
+        Límites individuales (pasando el teléfono)
+      </Button>
+      <Button variant="secondary" block onClick={() => setMode("shared")}>
+        Límites compartidos
+      </Button>
+      <Button variant="ghost" block onClick={onDone}>
+        Volver
+      </Button>
+    </Card>
+  );
+}
+
+function PausePanel({ session, onFinish }: { session: SessionState; onFinish: () => void }) {
+  const resume = useSession((s) => s.resume);
+  const dismissStop = useSession((s) => s.dismissStop);
+  const lower = useSession((s) => s.lowerLevel);
+  const requestLevelUp = useSession((s) => s.requestLevelUp);
+  const setGame = useSession((s) => s.setGame);
+  const updateReady = useSession((s) => s.updateReady);
+  const [view, setView] = useState<"main" | "limits" | "games">("main");
+  const games = enabledBaseGames(session);
+
+  if (session.stopped && view === "main") {
+    return (
+      <Card className="space-y-4 text-center" >
+        <h2 className="text-2xl font-bold">Actividad detenida</h2>
+        <p className="text-muted">Todo está en pausa. Pueden terminar la sesión o volver a la pausa.</p>
+        <Button variant="danger" block onClick={onFinish}>
+          Terminar sesión
+        </Button>
+        <Button variant="secondary" block onClick={dismissStop}>
+          Volver a la pausa
+        </Button>
+      </Card>
+    );
+  }
+  if (view === "limits") return <LimitsReview session={session} onDone={() => setView("main")} />;
+  if (view === "games") {
+    return (
+      <Card className="space-y-3">
+        <h2 className="text-xl font-bold">Cambiar juego</h2>
+        {games.map((g) => (
+          <Button
+            key={g}
+            variant={g === session.currentGame ? "primary" : "secondary"}
+            block
+            onClick={() => {
+              setGame(g);
+              setView("main");
+            }}
+          >
+            {GAME_LABEL[g]}
+          </Button>
+        ))}
+        <Button variant="ghost" block onClick={() => setView("main")}>
+          Volver
+        </Button>
+      </Card>
+    );
+  }
+  return (
+    <Card className="space-y-3">
+      <h2 className="text-2xl font-bold">Pausa</h2>
+      <p className="text-muted">El contenido está oculto y el reloj congelado.</p>
+      {session.notice && <Notice>{session.notice}</Notice>}
+      <Button block onClick={resume}>
+        Continuar
+      </Button>
+      {lowerLevels(session.level).map((l) => (
+        <Button key={l} variant="secondary" block onClick={() => lower(l)}>
+          Bajar a {INTENSITY_LABEL[l]}
+        </Button>
+      ))}
+      {nextLevel(session.level) && (
+        <Button variant="secondary" block onClick={requestLevelUp}>
+          Proponer subir intensidad
+        </Button>
+      )}
+      {games.length > 1 && !session.config.games.includes("noche") && !session.config.games.includes("caos") && (
+        <Button variant="secondary" block onClick={() => setView("games")}>
+          Cambiar juego
+        </Button>
+      )}
+      <Button variant="secondary" block onClick={() => setView("limits")}>
+        Revisar límites
+      </Button>
+      {updateReady && (
+        <Button variant="ghost" block onClick={applyUpdate}>
+          Hay una actualización: aplicar ahora
+        </Button>
+      )}
+      <Button variant="danger" block onClick={onFinish}>
+        Terminar sesión
+      </Button>
+    </Card>
+  );
+}
+
+function Blocked({ session }: { session: SessionState }) {
+  const draw = useSession((s) => s.draw);
+  const unblock = useSession((s) => s.unblock);
+  const lower = useSession((s) => s.lowerLevel);
+  const pause = useSession((s) => s.pause);
+  const exhausted = session.notice?.startsWith("Ya se mostraron");
+  return (
+    <Card className="space-y-3">
+      <h2 className="text-xl font-bold">Sin actividades disponibles</h2>
+      <p className="text-muted">
+        {session.notice} Nunca ampliamos permisos para conseguir más cartas.
+      </p>
+      {exhausted && (
+        <Button
+          block
+          onClick={() => {
+            unblock();
+            draw({ allowRepeat: true });
+          }}
+        >
+          Permitir repetir cartas
+        </Button>
+      )}
+      {lowerLevels(session.level).map((l) => (
+        <Button key={l} variant="secondary" block onClick={() => lower(l)}>
+          Bajar a {INTENSITY_LABEL[l]}
+        </Button>
+      ))}
+      <Button
+        variant="secondary"
+        block
+        onClick={() => {
+          unblock();
+          pause();
+        }}
+      >
+        Cambiar juego o revisar límites
+      </Button>
+    </Card>
+  );
+}
+
+function Closing({ session }: { session: SessionState }) {
+  const router = useRouter();
+  const [show, setShow] = useState(false);
+  const updateReady = useSession((s) => s.updateReady);
+  const completed = Object.values(session.stats.completed).reduce((a, b) => a + b, 0);
+  return (
+    <Screen className="justify-center">
+      <Title sub={session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
+      {show ? (
+        <Card>
+          <dl className="grid grid-cols-2 gap-y-2">
+            <dt className="text-muted">Rondas</dt>
+            <dd>{session.turnCounter}</dd>
+            <dt className="text-muted">Actividades cumplidas (participaciones)</dt>
+            <dd>{completed}</dd>
+            <dt className="text-muted">Intensidad final</dt>
+            <dd>{INTENSITY_LABEL[session.level]}</dd>
+            <dt className="text-muted">Tiempo activo</dt>
+            <dd>{Math.round(session.activeMs / 60_000)} min</dd>
+          </dl>
+        </Card>
+      ) : (
+        <Button variant="secondary" onClick={() => setShow(true)}>
+          Ver resumen (sin detalles privados)
+        </Button>
+      )}
+      {updateReady && (
+        <Button variant="ghost" onClick={applyUpdate}>
+          Aplicar actualización
+        </Button>
+      )}
+      <Button onClick={() => router.push("/crear/")}>Nueva sesión</Button>
+      <LinkButton href="/" variant="ghost">
+        Salir
+      </LinkButton>
+    </Screen>
+  );
+}
+
+export function Table() {
+  const session = useSession((s) => s.session);
+  const hydrated = useSession((s) => s.hydrated);
+  const lockedElsewhere = useSession((s) => s.lockedElsewhere);
+  const takeControl = useSession((s) => s.takeControl);
+  const finish = useSession((s) => s.finish);
+  const draw = useSession((s) => s.draw);
+  const clearNotice = useSession((s) => s.clearNotice);
+  const storageIssue = useSession((s) => s.storageIssue);
+  const [confirmFinish, setConfirmFinish] = useState(false);
+  const [timeUpDismissed, setTimeUpDismissed] = useState(false);
+  const lastSelecting = useRef<string | null>(null);
+  const now = useNow();
+
+  // Tras Cambiar o un rechazo, se elige otra actividad del mismo juego automáticamente.
+  useEffect(() => {
+    if (!session || session.status !== "selecting") return;
+    const key = `${session.id}:${session.version}`;
+    if (lastSelecting.current === key) return;
+    lastSelecting.current = key;
+    const prev = session.currentTurn;
+    const t = setTimeout(() => draw(prev ? { game: prev.game === "sorpresa" ? undefined : prev.game, skipSurprise: true } : {}), 600);
+    return () => clearTimeout(t);
+  }, [session, draw]);
+
+  if (!hydrated) return <Screen><p className="text-muted">Cargando…</p></Screen>;
+
+  if (!session || session.status === "setup") {
+    return (
+      <Screen className="justify-center">
+        <Title sub="Puede que la sesión fuera privada o que se haya terminado.">No hay una sesión activa</Title>
+        <LinkButton href="/crear/">Nueva sesión</LinkButton>
+        <LinkButton href="/" variant="ghost">
+          Inicio
+        </LinkButton>
+      </Screen>
+    );
+  }
+  if (session.status === "finished") return <Closing session={session} />;
+
+  if (lockedElsewhere) {
+    return (
+      <Screen className="justify-center">
+        <Title sub="Para evitar conflictos, solo una ventana puede jugar la sesión a la vez.">Esta sesión está abierta en otra ventana</Title>
+        <Button onClick={() => void takeControl()}>Tomar el control aquí</Button>
+        <LinkButton href="/" variant="ghost">
+          Inicio
+        </LinkButton>
+      </Screen>
+    );
+  }
+
+  const liveActive = session.lastTickAt !== null ? session.activeMs + Math.max(0, now - session.lastTickAt) : session.activeMs;
+  const remaining = remainingMs(session.config.durationMin, liveActive);
+  const timeUp = remaining === 0 && !timeUpDismissed && session.status === "ready";
+
+  const onFinish = () => setConfirmFinish(true);
+
+  let body: React.ReactNode;
+  switch (session.status) {
+    case "awaitingInitialConsent":
+      body = <Notice>Falta el consentimiento inicial. Vuelvan a crear la sesión.</Notice>;
+      break;
+    case "paused":
+      body = <PausePanel session={session} onFinish={onFinish} />;
+      break;
+    case "awaitingLevelConsent":
+      body = <LevelConsent session={session} />;
+      break;
+    case "awaitingActivityConsent":
+      body = <ActivityConsent key={session.currentTurn?.id} session={session} />;
+      break;
+    case "blocked":
+      body = <Blocked session={session} />;
+      break;
+    case "selecting":
+      body = (
+        <Card className="text-center">
+          <p className="text-lg" role="status">
+            {session.notice ?? "Eligiendo otra actividad…"}
+          </p>
+        </Card>
+      );
+      break;
+    case "playing":
+    case "roundReveal":
+      body = session.currentTurn && session.currentTurn.status !== "closed" ? <Round session={session} /> : <Launcher session={session} />;
+      break;
+    default:
+      body = (
+        <>
+          {session.notice && (
+            <Notice>
+              {session.notice}{" "}
+              <button className="underline" onClick={clearNotice}>
+                Entendido
+              </button>
+            </Notice>
+          )}
+          {timeUp ? (
+            <Card className="space-y-3 text-center">
+              <h2 className="text-xl font-bold">Se cumplió el tiempo previsto</h2>
+              <p className="text-muted">Pueden cerrar aquí o seguir un poco más, sin presión.</p>
+              <Button block onClick={onFinish}>
+                Terminar sesión
+              </Button>
+              <Button variant="secondary" block onClick={() => setTimeUpDismissed(true)}>
+                Seguir jugando
+              </Button>
+            </Card>
+          ) : (
+            <Launcher session={session} />
+          )}
+        </>
+      );
+  }
+
+  return (
+    <Screen level={session.level} className="gap-4">
+      <TopBar session={session} />
+      {storageIssue === "quota" && <Notice tone="warn">No se pudo guardar en el dispositivo. Pueden seguir jugando; la sesión continúa en memoria.</Notice>}
+      <div className="flex flex-1 flex-col gap-4">{body}</div>
+      <Dialog open={confirmFinish} title="¿Terminar la sesión?" onClose={() => setConfirmFinish(false)}>
+        <p className="text-muted">
+          {session.config.mode === "private" ? "Se descartarán todos los datos de esta sesión privada." : "Se eliminará la sesión guardada en este dispositivo."}
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="secondary" onClick={() => setConfirmFinish(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setConfirmFinish(false);
+              void finish();
+            }}
+          >
+            Terminar
+          </Button>
+        </div>
+      </Dialog>
+    </Screen>
+  );
+}
