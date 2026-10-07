@@ -1,0 +1,73 @@
+import { defineCards } from "../define";
+
+// Leve v2 · lote 05: elecciones, secretos anónimos, conocimiento, más probable y sorpresas.
+export const leveV2_05 = defineCards("leve", "l2", "base", [
+  { id: "241", t: "Voz o risa", x: "{p1}, ¿qué te resulta más irresistible: una voz tranquila y profunda o una risa contagiosa?", c: "eleccion", f: "pregunta", s: 18, req: ["preguntas_personales"] },
+  { id: "242", t: "Detalles o palabras", x: "{p1}, ¿te enamoran más los detalles o las palabras? Da un ejemplo.", c: "eleccion", f: "pregunta", s: 12, req: ["conversacion_ligera"] },
+  { id: "243", t: "Bailar o cantar", x: "{p1}, si solo pudieras conquistar con un talento, ¿bailarías o cantarías? Haz una pequeña muestra.", c: "eleccion", f: "reto", s: 16, req: ["musica", "baile_individual"], tags: ["movimiento"] },
+  { id: "244", t: "Plan de primera cita", x: "{p1}, primera cita: ¿cine, museo, comida callejera o caminata nocturna? Defiende tu elección.", c: "eleccion", f: "pregunta", s: 5, req: ["conversacion_ligera"] },
+  { id: "245", t: "Primer paso", x: "{p1}, ¿prefieres dar el primer paso o que te lo den? Explica tu estrategia.", c: "eleccion", f: "pregunta", s: 21, req: ["preguntas_personales"] },
+  { id: "246", t: "Carta o canción", x: "{p1}, ¿qué te emociona más: que te escriban una carta o que te dediquen una canción?", c: "eleccion", f: "pregunta", s: 9, req: ["conversacion_ligera", "musica"] },
+  { id: "247", t: "Mañana o medianoche", x: "{p1}, ¿cuándo tienes más encanto: a primera hora de la mañana o a medianoche?", c: "eleccion", f: "pregunta", s: 4, req: ["conversacion_ligera"], tags: ["risas"] },
+  { id: "248", t: "Misterio o claridad", x: "{p1}, ¿te atrae más una persona con misterio o una que dice todo lo que piensa?", c: "eleccion", f: "pregunta", s: 22, req: ["preguntas_personales"] },
+  { id: "249", t: "Lluvia", x: "{p1}, día de lluvia con alguien especial: ¿película en casa o salir a mojarse entre risas?", c: "eleccion", f: "pregunta", s: 7, req: ["conversacion_ligera"] },
+  { id: "250", t: "Sorpresa o planeado", x: "{p1}, ¿prefieres que te sorprendan con una salida o planearla en equipo? ¿Por qué?", c: "eleccion", f: "pregunta", s: 24, req: ["conversacion_ligera"] },
+  { id: "251", t: "Cumplido preferido", x: "{p1}, ¿qué cumplido prefieres recibir: sobre tu inteligencia, tu humor o tu atractivo?", c: "eleccion", f: "pregunta", s: 20, req: ["preguntas_personales"], tags: ["cumplido"] },
+  { id: "252", t: "Postre para compartir", x: "{p1}, para compartir con alguien que te gusta: ¿un helado, un chocolate o fresas con crema?", c: "eleccion", f: "pregunta", s: 1, req: ["conversacion_ligera"] },
+  { id: "253", t: "En persona o por chat", x: "{p1}, ¿se te da mejor coquetear en persona o por mensajes? Da una prueba en vivo.", c: "eleccion", f: "reto", s: 26, req: ["coqueteo"] },
+  { id: "254", t: "Mirada o frase", x: "{p1}, para decir «me gustas», ¿una mirada larga o una frase directa? Muéstraselo a {p2} en plan de juego.", c: "eleccion", f: "reto", s: 29, i: "directed_pair", pair: ["coqueteo", "miradas"] },
+  { id: "255", t: "Improvisado o tranquilo", x: "{p1}, ¿qué eliges: un viaje improvisado lleno de aventuras o un fin de semana tranquilo sin planes?", c: "eleccion", f: "pregunta", s: 15, req: ["conversacion_ligera"] },
+
+  // ---------------------------------------------------------------- secretos anónimos
+  { id: "256", t: "Atracción en una palabra", x: "Escribe en una sola palabra lo que más te atrae de una persona.", c: "secretos", f: "secreto", s: 3, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
+  { id: "257", t: "La cita que sueñas", x: "Escribe la cita que te encantaría vivir algún día.", c: "secretos", f: "secreto", s: 6, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
+  { id: "258", t: "Cumplido sin firma", x: "Escribe un cumplido para alguien de este grupo sin decir para quién es.", c: "secretos", f: "secreto", s: 9, req: ["escritura_privada", "revelacion_grupo", "coqueteo"], tags: ["cumplido"] },
+  { id: "259", t: "Lo que te sonroja", x: "Escribe algo que siempre consigue sonrojarte.", c: "secretos", f: "secreto", s: 12, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
+  { id: "260", t: "Mensaje no enviado", x: "Escribe un mensaje coqueto que alguna vez pensaste enviar y no te atreviste, sin nombres.", c: "secretos", f: "secreto", s: 18, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
+  { id: "261", t: "Impresión coqueta", x: "Escribe en una frase coqueta tu impresión de esta noche.", c: "secretos", f: "secreto", s: 14, req: ["escritura_privada", "revelacion_grupo", "coqueteo"] },
+  { id: "262", t: "Gusto culposo romántico", x: "Escribe tu película o canción romántica favorita que casi nunca admites.", c: "secretos", f: "secreto", s: 5, req: ["escritura_privada", "revelacion_grupo"], tags: ["risas"] },
+  { id: "263", t: "Tu mejor arma", x: "Escribe cuál crees que es tu mejor arma para conquistar.", c: "secretos", f: "secreto", s: 16, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
+  { id: "264", t: "Lo que quieres oír", x: "Escribe una frase que te encantaría que alguien te dijera esta noche.", c: "secretos", f: "secreto", s: 25, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales", "coqueteo"] },
+  { id: "265", t: "Señal escondida", x: "Escribe qué haces cuando alguien te gusta y no quieres que se note.", c: "secretos", f: "secreto", s: 20, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
+  { id: "266", t: "Atrevimiento pendiente", x: "Escribe algo atrevido pero inofensivo que te gustaría hacer antes de que termine el año.", c: "secretos", f: "secreto", s: 22, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
+  { id: "267", t: "El flechazo", x: "Escribe en una frase cómo fue el flechazo más fuerte que has sentido, sin nombres.", c: "secretos", f: "secreto", s: 27, req: ["escritura_privada", "revelacion_grupo", "confesiones"], tags: ["memoria"] },
+  { id: "268", t: "Canción dedicada", x: "Escribe el nombre de una canción que le dedicarías a alguien de este grupo.", c: "secretos", f: "secreto", s: 10, req: ["escritura_privada", "revelacion_grupo", "musica", "coqueteo"] },
+  { id: "269", t: "Ahora mismo", x: "Escribe una palabra que describa cómo te sientes en este momento.", c: "secretos", f: "secreto", s: 0, req: ["escritura_privada", "revelacion_grupo"], tags: ["apertura"] },
+  { id: "270", t: "Deseo para la próxima", x: "Escribe un deseo coqueto, sin detalles, para la próxima vez que se reúnan.", c: "secretos", f: "secreto", s: 29, req: ["escritura_privada", "revelacion_grupo", "coqueteo"], tags: ["cierre"] },
+
+  // ---------------------------------------------------------------- quién me conoce
+  { id: "271", t: "Primera cita ideal", x: "¿Qué plan elegiría {p1} para una primera cita?", c: "preguntas", f: "conocimiento", s: 4, req: ["adivinanzas"], opts: ["Cena", "Cine", "Baile", "Caminata"] },
+  { id: "272", t: "Canción de ánimo", x: "¿Qué canción pondría {p1} para ponerse de buen humor?", c: "musica", f: "conocimiento", s: 2, req: ["adivinanzas", "musica"] },
+  { id: "273", t: "Lo primero que mira", x: "¿Qué le llama la atención primero a {p1} en una persona?", c: "preguntas", f: "conocimiento", s: 14, req: ["adivinanzas", "preguntas_personales"], opts: ["La sonrisa", "La mirada", "La voz", "El sentido del humor"] },
+  { id: "274", t: "Estilo de coqueteo", x: "¿Cómo coquetea {p1} casi siempre?", c: "preguntas", f: "conocimiento", s: 18, req: ["adivinanzas", "preguntas_personales"], opts: ["Con palabras", "Con miradas", "Con humor", "Con detalles"] },
+  { id: "275", t: "Domingo especial", x: "¿Qué haría {p1} en un domingo perfecto con alguien especial?", c: "preguntas", f: "conocimiento", s: 8, req: ["adivinanzas"] },
+  { id: "276", t: "Postre de cita", x: "¿Qué postre elegiría {p1} para compartir en una cita?", c: "preguntas", f: "conocimiento", s: 6, req: ["adivinanzas"] },
+  { id: "277", t: "Lo que derrite", x: "¿Qué detalle derrite a {p1}?", c: "conexion", f: "conocimiento", s: 22, req: ["adivinanzas", "preguntas_personales"], opts: ["Un mensaje inesperado", "Una canción dedicada", "Una mirada larga", "Un plan sorpresa"] },
+  { id: "278", t: "¿Da el primer paso?", x: "Cuando alguien le gusta, ¿{p1} da el primer paso o espera?", c: "preguntas", f: "conocimiento", s: 25, req: ["adivinanzas", "preguntas_personales"], opts: ["Da el primer paso", "Espera", "Depende del momento"] },
+  { id: "279", t: "Talento encantador", x: "¿Cuál dirá {p1} que es su talento más encantador?", c: "preguntas", f: "conocimiento", s: 12, req: ["adivinanzas"] },
+  { id: "280", t: "Época para una cita", x: "¿En qué época de la historia le gustaría a {p1} tener una cita?", c: "eleccion", f: "conocimiento", s: 28, req: ["adivinanzas"] },
+
+  // ---------------------------------------------------------------- más probable
+  { id: "281", t: "Sonrojo", x: "¿Quién es más probable que se sonroje con un cumplido?", c: "rompehielo", f: "votacion", s: 3, req: ["conversacion_ligera"] },
+  { id: "282", t: "Conquista bailando", x: "¿Quién es más probable que conquiste a alguien en la pista de baile?", c: "baile", f: "votacion", s: 7, req: ["conversacion_ligera"] },
+  { id: "283", t: "Primer mensaje", x: "¿Quién es más probable que escriba primero después de una cita?", c: "preguntas", f: "votacion", s: 12, req: ["conversacion_ligera"] },
+  { id: "284", t: "Frase preparada", x: "¿Quién es más probable que tenga una frase de conquista preparada para cualquier ocasión?", c: "rompehielo", f: "votacion", s: 15, req: ["conversacion_ligera"], tags: ["risas"] },
+  { id: "285", t: "Coqueteo involuntario", x: "¿Quién es más probable que coquetee sin darse cuenta?", c: "preguntas", f: "votacion", s: 20, req: ["conversacion_ligera", "coqueteo"] },
+  { id: "286", t: "Cita sorpresa", x: "¿Quién es más probable que organice una cita sorpresa perfecta?", c: "conexion", f: "votacion", s: 5, req: ["conversacion_ligera"] },
+  { id: "287", t: "Canción en público", x: "¿Quién es más probable que dedique una canción romántica delante de todo el mundo?", c: "musica", f: "votacion", s: 9, req: ["conversacion_ligera"] },
+  { id: "288", t: "Duelo de miradas", x: "¿Quién es más probable que gane un duelo de miradas?", c: "rompehielo", f: "votacion", s: 17, req: ["conversacion_ligera"] },
+  { id: "289", t: "Amor de viaje", x: "¿Quién es más probable que se enamore durante un viaje?", c: "preguntas", f: "votacion", s: 24, req: ["conversacion_ligera", "preguntas_personales"] },
+  { id: "290", t: "Todas las miradas", x: "¿Quién es más probable que se robe todas las miradas al llegar a una fiesta?", c: "rompehielo", f: "votacion", s: 28, req: ["conversacion_ligera"] },
+
+  // ---------------------------------------------------------------- sorpresas
+  { id: "291", t: "Ronda de lo mejor", x: "Ronda para todos: cada persona dice en una frase qué le ha gustado más de esta noche.", c: "sorpresa", f: "sorpresa", s: 2, req: ["conversacion_ligera"], eff: "todos_participan" },
+  { id: "292", t: "Comedia romántica", x: "Personajes: durante la próxima carta, cada persona juega como protagonista de una comedia romántica.", c: "sorpresa", f: "sorpresa", s: 15, req: ["roles_juego"], eff: "roles_juego" },
+  { id: "293", t: "Elige pareja de juego", x: "{p1} elige con quién hará la próxima actividad en pareja, entre las opciones compatibles.", c: "sorpresa", f: "sorpresa", s: 12, sizes: [3], req: ["conversacion_ligera"], eff: "elegir_companero" },
+  { id: "294", t: "Bis voluntario", x: "Bis: si alguien quiere, puede repetir la actividad que más le gustó. Nadie está obligado.", c: "sorpresa", f: "sorpresa", s: 8, req: ["conversacion_ligera"], eff: "repetir_voluntaria" },
+  { id: "295", t: "Doble rápida", x: "Doble rápida: vienen dos mini actividades seguidas para subir el ritmo. Cualquiera se puede pasar.", c: "sorpresa", f: "sorpresa", s: 5, req: ["conversacion_ligera"], eff: "doble_mini" },
+  { id: "296", t: "Cambio de escena", x: "Cambio de escena: elijan otro de los juegos activos para seguir la noche.", c: "sorpresa", f: "sorpresa", s: 18, req: ["conversacion_ligera"], eff: "cambiar_juego" },
+  { id: "297", t: "¿Un poco más picante?", x: "¿Les apetece algo más picante? Cada persona responde en privado. Solo se sube de nivel si todas dicen que sí, y nadie verá las respuestas.", c: "sorpresa", f: "sorpresa", s: 27, req: ["conversacion_ligera"], eff: "proponer_subir" },
+  { id: "298", t: "El grupo decide", x: "El grupo elige quién protagoniza la siguiente ronda; la elección vale solo para un turno.", c: "sorpresa", f: "sorpresa", s: 22, req: ["conversacion_ligera"], eff: "elegir_protagonista" },
+  { id: "299", t: "Coro sorpresa", x: "Todos participan: canten juntos unos segundos de la canción que proponga {p1}.", c: "sorpresa", f: "sorpresa", s: 10, i: "group", req: ["musica"], eff: "todos_participan" },
+  { id: "300", t: "Modo telenovela", x: "Modo telenovela: la próxima carta se juega con voz y gestos de telenovela dramática.", c: "sorpresa", f: "sorpresa", s: 29, req: ["roles_juego"], eff: "roles_juego" },
+]);
