@@ -76,7 +76,6 @@ export function SetupWizard() {
   const [drafts, setDrafts] = useState<Draft[]>([newDraft(), newDraft(), newDraft()]);
   const [relationship, setRelationship] = useState<Relationship | null>(null);
   const [shared, setShared] = useState<Partial<Record<Permission, Light>>>(neutralSharedLimits());
-  const [sharedDone, setSharedDone] = useState(false);
   const [level, setLevel] = useState<Intensity>("leve");
   const [duration, setDuration] = useState<number | null>(30);
   const [games, setGames] = useState<GameId[]>(["verdad_reto", "tarjetas"]);
@@ -297,22 +296,22 @@ export function SetupWizard() {
 
       {step === "limits" && !editing && (
         <>
-          <Title sub="Cada persona configura sus límites a solas. Nadie puede editar los de otra persona.">Límites individuales</Title>
+          <Title sub="Cada persona responde a solas qué acepta. Nadie ve ni puede cambiar la respuesta de otra persona.">¿Qué acepta cada persona?</Title>
           <div className="space-y-2">
             {people.map((p, i) => (
               <div key={p.id} className="flex items-center justify-between rounded-2xl border border-line px-4 py-3">
                 <ParticipantTag alias={p.alias} slot={i} />
-                <span className="text-sm text-muted">{active[i].limitsDone ? "Configurados" : "Base segura"}</span>
+                <span className="text-sm text-muted">{active[i].limitsDone ? "Respondido" : "Pendiente"}</span>
               </div>
             ))}
           </div>
           <Button block onClick={() => setEditing(true)}>
-            Configurar límites (pasando el teléfono)
+            Responder (pasando el teléfono)
           </Button>
           <Button variant="secondary" block disabled={!active.every((d) => d.limitsDone)} onClick={() => go(1)}>
             Continuar
           </Button>
-          {!active.every((d) => d.limitsDone) && <p className="text-center text-sm text-faint">Cada persona debe revisar sus límites, aunque deje la base segura.</p>}
+          {!active.every((d) => d.limitsDone) && <p className="text-center text-sm text-faint">Cada persona debe responder antes de continuar.</p>}
         </>
       )}
 
@@ -346,27 +345,13 @@ export function SetupWizard() {
       )}
 
       {step === "shared" && (
-        <>
-          {!sharedDone ? (
-            <SharedLimitsEditor
-              initial={shared}
-              onDone={(s) => {
-                setShared(s);
-                setSharedDone(true);
-              }}
-            />
-          ) : (
-            <>
-              <Title>Límites compartidos guardados</Title>
-              <Button variant="secondary" block onClick={() => setSharedDone(false)}>
-                Revisar de nuevo
-              </Button>
-              <Button block onClick={() => go(1)}>
-                Continuar
-              </Button>
-            </>
-          )}
-        </>
+        <SharedLimitsEditor
+          initial={shared}
+          onDone={(s) => {
+            setShared(s);
+            go(1);
+          }}
+        />
       )}
 
       {step === "level" && (

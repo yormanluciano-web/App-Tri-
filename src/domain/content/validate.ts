@@ -43,7 +43,10 @@ const CONTACT_HINTS = /\b(abraz\w*|bes[ao]\w*|masaj\w*|acarici\w*|toc(?:ar|a|ad|
 
 /** Contenido vetado por las reglas editoriales (alerta para revisión humana). */
 const BANNED_HINTS =
-  /\b(alcohol|trago|shot|borrach\w*|menor(es)? de edad|desnud\w*|sexo|sexual\w*|genital\w*|celular de|teléfono de (otra|otro)|contraseña|foto íntima|castigo|cobarde|humill\w*)\b/i;
+  /\b(alcohol|trago|shot|borrach\w*|menor(es)? de edad|desnud\w*|sexo|sexual\w*|genital\w*|senos?|pechos?|pez[oó]n\w*|oral|pene|vagina|vulva|nalgas?|orgasm\w*|mastur\w*|porn\w*|er[oó]tic\w*|excitad\w*|celular de|teléfono de (otra|otro)|contraseña|foto\w* íntima\w*|castigo|cobarde|humill\w*)\b/i;
+
+/** Quitarse prendas nunca llega a la ropa interior ni a la desnudez. */
+const UNDERWEAR_REMOVAL = /quit\w*[^.]{0,40}ropa interior|(sin|en) ropa interior|quedar\w* sin ropa/i;
 
 export function normalizeText(text: string): string {
   return text
@@ -152,6 +155,15 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     if (!isContactActivity(a) && a.tags.includes("contacto")) err(a.id, "tag contacto sin permiso de contacto");
     if (CONTACT_HINTS.test(a.texto) && !isContactActivity(a)) warn(a.id, "el texto sugiere contacto pero no declara permiso de contacto");
     if (BANNED_HINTS.test(a.texto + " " + a.titulo)) err(a.id, "texto con término vetado por reglas editoriales");
+    if (UNDERWEAR_REMOVAL.test(a.texto)) err(a.id, "una prenda nunca puede ser la ropa interior");
+    // Prendas: se hace ante el grupo, así que toda la audiencia debe aceptarlo.
+    const allPerms = activityPermissions(a);
+    if (allPerms.includes("quitarse_prenda") && (a.audienceScope !== "sesion" || !r.audiencia.includes("quitarse_prenda")))
+      err(a.id, "quitarse_prenda requiere audienceScope «sesion» y el permiso en audiencia");
+    // Tiempo a solas: siempre por pareja y con confirmación explícita.
+    if (allPerms.includes("tiempo_a_solas") && (!r.pareja.includes("tiempo_a_solas") || !a.requiereConfirmacion))
+      err(a.id, "tiempo_a_solas requiere permiso en «pareja» y requiereConfirmacion");
+    if (r.pareja.includes("beso_intenso") && !a.requiereConfirmacion) err(a.id, "beso_intenso requiere requiereConfirmacion");
     if (activityPermissions(a).length === 0) err(a.id, "actividad sin permisos declarados");
 
     const norm = normalizeText(a.texto);
@@ -189,9 +201,9 @@ export const EDITORIAL_FAMILIES = [
 
 /** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
-  leve: [85, 65, 45, 40, 30, 25, 15, 35, 10],
-  picante: [55, 65, 40, 30, 45, 30, 35, 30, 20],
-  perverso: [30, 55, 35, 20, 45, 30, 45, 20, 20],
+  leve: [80, 60, 35, 30, 30, 20, 15, 20, 10],
+  picante: [80, 90, 40, 40, 80, 35, 40, 25, 20],
+  perverso: [60, 100, 30, 30, 90, 40, 55, 25, 20],
 };
 
 /** Familia editorial de una actividad: cada carta cuenta una sola vez. */

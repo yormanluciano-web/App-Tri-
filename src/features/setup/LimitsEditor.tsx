@@ -5,8 +5,8 @@ import {
   CATEGORIES,
   CATEGORY_LABEL,
   CONTACT_PERMISSIONS,
-  LIGHT_DESCRIPTION,
   LIGHT_LABEL,
+  PERMISSIONS,
   PERMISSION_GROUPS,
   PERMISSION_HINT,
   PERMISSION_LABEL,
@@ -25,6 +25,23 @@ const ACTIVE: Record<Light, string> = {
   yellow: "border-warn text-warn bg-surface-2",
   red: "border-bad text-bad bg-surface-2",
 };
+
+export type AcceptMode = "todo" | "parcial" | "nada";
+
+function allGreen(): Record<Permission, Light> {
+  return Object.fromEntries(PERMISSIONS.map((p) => [p, "green"])) as Record<Permission, Light>;
+}
+
+function sameMap(a: Record<Permission, Light>, b: Record<Permission, Light>): boolean {
+  return PERMISSIONS.every((p) => a[p] === b[p]);
+}
+
+/** Modo que corresponde a un perfil guardado (para revisar límites ya configurados). */
+export function modeOf(perms: Record<Permission, Light>): AcceptMode {
+  if (sameMap(perms, allGreen())) return "todo";
+  if (sameMap(perms, safeBasePermissions())) return "nada";
+  return "parcial";
+}
 
 export function PermissionRow({
   perm,
@@ -62,21 +79,48 @@ export function PermissionRow({
   );
 }
 
-function SemaforoLegend({ labels = LIGHT_LABEL, descriptions = LIGHT_DESCRIPTION }: { labels?: Record<Light, string>; descriptions?: Record<Light, string> }) {
+const MODES: { mode: AcceptMode; title: string; desc: string }[] = [
+  {
+    mode: "todo",
+    title: "Acepto todo",
+    desc: "Cualquier carta puede aparecer. Igual puedes pasar cuando quieras, y besos y tiempo a solas siempre se confirman en privado.",
+  },
+  { mode: "parcial", title: "Acepto parcialmente", desc: "Eliges qué sí y qué no, por temas." },
+  { mode: "nada", title: "No acepto", desc: "Solo charla ligera, música, adivinanzas y baile sin contacto." },
+];
+
+/** Botones Acepto / No acepto de un tema. */
+function GroupToggle({ title, hint, state, onChange, name }: { title: string; hint: string; state: "yes" | "no" | "mixed"; onChange: (yes: boolean) => void; name: string }) {
   return (
-    <ul className="space-y-1 text-sm">
-      {(["green", "yellow", "red"] as Light[]).map((l) => (
-        <li key={l} className="flex gap-2">
-          <span aria-hidden className={l === "green" ? "text-ok" : l === "yellow" ? "text-warn" : "text-bad"}>
-            {ICON[l]}
-          </span>
-          <span>
-            <strong>{labels[l]}:</strong> <span className="text-muted">{descriptions[l]}</span>
-          </span>
-        </li>
-      ))}
-    </ul>
+    <fieldset className="space-y-2 border-b border-line py-3 last:border-b-0">
+      <legend className="font-semibold">{title}</legend>
+      <p className="text-sm text-muted">{hint}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {(
+          [
+            [true, "Acepto", "border-ok text-ok"],
+            [false, "No acepto", "border-bad text-bad"],
+          ] as const
+        ).map(([yes, label, cls]) => {
+          const checked = state === (yes ? "yes" : "no");
+          return (
+            <label key={label} className={cx("flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-xl border text-sm", checked ? cls + " bg-surface-2 font-semibold" : "border-line text-muted")}>
+              <input type="radio" className="sr-only" name={name} checked={checked} onChange={() => onChange(yes)} />
+              <span aria-hidden>{yes ? "✓" : "✕"}</span>
+              {label}
+            </label>
+          );
+        })}
+      </div>
+      {state === "mixed" && <p className="text-xs text-faint">Ajustado en opciones avanzadas.</p>}
+    </fieldset>
   );
+}
+
+function groupState(perms: Record<Permission, Light>, items: Permission[]): "yes" | "no" | "mixed" {
+  if (items.every((p) => perms[p] === "green")) return "yes";
+  if (items.every((p) => perms[p] === "red")) return "no";
+  return "mixed";
 }
 
 type PairChoice = "same" | "yellow" | "red";
@@ -88,31 +132,49 @@ function pairChoiceOf(over: Partial<Record<Permission, Light>> | undefined): Pai
   return vals.includes("red") ? "red" : "yellow";
 }
 
-/** Editor individual: solo la persona que tiene el teléfono edita sus propios límites. */
+/**
+ * Editor individual simplificado: Acepto todo / Acepto parcialmente / No acepto.
+ * Solo la persona que tiene el teléfono edita sus propios límites.
+ */
 export function LimitsEditor({
   person,
   others,
   initial,
   initialPrefs,
   onDone,
-  submitLabel = "Guardar mis límites",
+  requireChoice = true,
+  submitLabel = "Guardar",
 }: {
   person: Person;
   others: Person[];
   initial: LimitProfile;
   initialPrefs: Preferences;
   onDone: (limits: LimitProfile, prefs: Preferences) => void;
+  requireChoice?: boolean;
   submitLabel?: string;
 }) {
   const [perms, setPerms] = useState<Record<Permission, Light>>(() => {
     const base = safeBasePermissions();
-    for (const k of Object.keys(base) as Permission[]) base[k] = normalizeLight(initial.permissions[k] ?? base[k]);
+    for (const k of PERMISSIONS) base[k] = normalizeLight(initial.permissions[k] ?? base[k]);
     return base;
   });
+  const [mode, setMode] = useState<AcceptMode | null>(() => (requireChoice ? null : modeOf(perms)));
   const [pairs, setPairs] = useState<Record<string, PairChoice>>(() =>
     Object.fromEntries(others.map((o) => [o.id, pairChoiceOf(initial.pairOverrides[o.id])])),
   );
   const [prefs, setPrefs] = useState<Preferences>(initialPrefs);
+
+  const choose = (m: AcceptMode) => {
+    setMode(m);
+    if (m === "todo") setPerms(allGreen());
+    if (m === "nada") setPerms(safeBasePermissions());
+    if (m === "parcial" && (sameMap(perms, allGreen()) || sameMap(perms, safeBasePermissions()))) {
+      // Punto de partida razonable: charla, coqueteo y secretos sí; lo demás no.
+      const start = safeBasePermissions();
+      for (const g of PERMISSION_GROUPS) if (["charla", "coqueteo", "secretos"].includes(g.id)) g.items.forEach((p) => (start[p] = "green"));
+      setPerms(start);
+    }
+  };
 
   const anyContactAllowed = CONTACT_PERMISSIONS.some((p) => perms[p] !== "red");
 
@@ -121,7 +183,7 @@ export function LimitsEditor({
     for (const o of others) {
       const c = pairs[o.id];
       if (c === "same") continue;
-      pairOverrides[o.id] = Object.fromEntries(CONTACT_PERMISSIONS.map((p) => [p, c]));
+      pairOverrides[o.id] = Object.fromEntries([...CONTACT_PERMISSIONS, "tiempo_a_solas"].map((p) => [p, c]));
     }
     onDone({ version: initial.version, permissions: { ...perms }, pairOverrides }, prefs);
   };
@@ -138,110 +200,133 @@ export function LimitsEditor({
     <div className="space-y-4">
       <Card className="space-y-3">
         <h2 className="text-xl font-bold">
-          Límites de <ParticipantTag alias={person.alias} slot={person.slot} />
+          ¿Qué aceptas, <ParticipantTag alias={person.alias} slot={person.slot} />?
         </h2>
-        <p className="text-muted">
-          Empiezas con la base segura: conversación ligera, música, adivinanzas y baile individual permitidos; todo lo demás en «Nunca
-          mostrar». Cambia solo lo que quieras. Nadie verá esta pantalla ni un resumen comparativo.
-        </p>
-        <SemaforoLegend />
-        <Button variant="quiet" onClick={() => setPerms(safeBasePermissions())}>
-          Restablecer base segura
-        </Button>
+        <p className="text-sm text-muted">Nadie verá tu respuesta. Puedes cambiarla durante el juego desde Pausa.</p>
+        <div className="space-y-2" role="radiogroup" aria-label="Qué aceptas">
+          {MODES.map((m) => (
+            <button
+              key={m.mode}
+              role="radio"
+              aria-checked={mode === m.mode}
+              onClick={() => choose(m.mode)}
+              className={cx("w-full rounded-2xl border p-4 text-left", mode === m.mode ? "border-accent bg-surface-2" : "border-line")}
+            >
+              <span className="block font-semibold">
+                {mode === m.mode ? "◉ " : "○ "}
+                {m.title}
+              </span>
+              <span className="text-sm text-muted">{m.desc}</span>
+            </button>
+          ))}
+        </div>
       </Card>
 
-      {PERMISSION_GROUPS.map((g) => (
-        <Card key={g.title}>
-          <details open={g.title !== "Contacto físico"}>
-            <summary className="min-h-11 cursor-pointer py-2 text-lg font-semibold">{g.title}</summary>
-            {g.title === "Contacto físico" && (
-              <p className="pb-2 text-sm text-muted">
-                El contacto está bloqueado hasta que lo configures. Permitirlo aquí no obliga a nada: cada propuesta se puede rechazar.
-              </p>
-            )}
-            {g.items.map((perm) => (
-              <PermissionRow key={perm} perm={perm} name={`${person.id}-${perm}`} value={perms[perm]} onChange={(l) => setPerms((p) => ({ ...p, [perm]: l }))} />
-            ))}
-          </details>
-        </Card>
-      ))}
-
-      {others.length > 0 && anyContactAllowed && (
-        <Card className="space-y-3">
-          <h3 className="text-lg font-semibold">Contacto con cada persona</h3>
-          <p className="text-sm text-muted">Puedes restringir el contacto con alguien en concreto, aunque la categoría general esté permitida.</p>
-          {others.map((o) => (
-            <fieldset key={o.id} className="space-y-2">
-              <legend className="font-semibold">
-                Con <ParticipantTag alias={o.alias} slot={o.slot} />
-              </legend>
-              <div className="grid grid-cols-3 gap-2">
-                {(
-                  [
-                    ["same", "Según mi configuración"],
-                    ["yellow", "Preguntar antes"],
-                    ["red", "Nunca"],
-                  ] as [PairChoice, string][]
-                ).map(([v, label]) => (
-                  <label
-                    key={v}
-                    className={cx(
-                      "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-1 text-center text-sm",
-                      pairs[o.id] === v ? "border-accent bg-surface-2 text-ink" : "border-line text-muted",
-                    )}
-                  >
-                    <input type="radio" className="sr-only" name={`pair-${person.id}-${o.id}`} checked={pairs[o.id] === v} onChange={() => setPairs((p) => ({ ...p, [o.id]: v }))} />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+      {mode === "parcial" && (
+        <Card>
+          {PERMISSION_GROUPS.map((g) => (
+            <GroupToggle
+              key={g.id}
+              name={`${person.id}-g-${g.id}`}
+              title={g.title}
+              hint={g.hint}
+              state={groupState(perms, g.items)}
+              onChange={(yes) =>
+                setPerms((p) => {
+                  const next = { ...p };
+                  g.items.forEach((it) => (next[it] = yes ? "green" : "red"));
+                  return next;
+                })
+              }
+            />
           ))}
         </Card>
       )}
 
-      <Card className="space-y-3">
-        <details>
-          <summary className="min-h-11 cursor-pointer py-2 text-lg font-semibold">Preferencias (opcional)</summary>
-          <p className="pb-2 text-sm text-muted">Solo cambian la frecuencia de las categorías. Nunca conceden permisos.</p>
-          <p className="py-1 text-sm font-semibold">Me gustan más</p>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <Chip key={c} selected={prefs.preferred.includes(c)} onClick={() => togglePref("preferred", c)}>
-                {CATEGORY_LABEL[c]}
-              </Chip>
-            ))}
-          </div>
-          <p className="py-1 pt-3 text-sm font-semibold">Mejor menos</p>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <Chip key={c} selected={prefs.avoided.includes(c)} onClick={() => togglePref("avoided", c)}>
-                {CATEGORY_LABEL[c]}
-              </Chip>
-            ))}
-          </div>
-        </details>
-      </Card>
+      {mode && mode !== "nada" && (
+        <Card>
+          <details>
+            <summary className="min-h-11 cursor-pointer py-2 font-semibold">Opciones avanzadas (opcional)</summary>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted">«Preguntar antes» pide tu permiso en privado cada vez que salga algo de ese tipo.</p>
+              {PERMISSION_GROUPS.map((g) => (
+                <div key={g.id}>
+                  <p className="pt-2 text-sm font-semibold uppercase tracking-wider text-faint">{g.title}</p>
+                  {g.items.map((perm) => (
+                    <PermissionRow key={perm} perm={perm} name={`${person.id}-${perm}`} value={perms[perm]} onChange={(l) => {
+                      setPerms((p) => ({ ...p, [perm]: l }));
+                      setMode("parcial");
+                    }} />
+                  ))}
+                </div>
+              ))}
+              {others.length > 0 && anyContactAllowed && (
+                <div className="space-y-3">
+                  <p className="font-semibold">Contacto con cada persona</p>
+                  {others.map((o) => (
+                    <fieldset key={o.id} className="space-y-2">
+                      <legend className="text-sm">
+                        Con <ParticipantTag alias={o.alias} slot={o.slot} />
+                      </legend>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(
+                          [
+                            ["same", "Igual que arriba"],
+                            ["yellow", "Preguntar antes"],
+                            ["red", "Nunca"],
+                          ] as [PairChoice, string][]
+                        ).map(([v, label]) => (
+                          <label
+                            key={v}
+                            className={cx(
+                              "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-1 text-center text-sm",
+                              pairs[o.id] === v ? "border-accent bg-surface-2 text-ink" : "border-line text-muted",
+                            )}
+                          >
+                            <input type="radio" className="sr-only" name={`pair-${person.id}-${o.id}`} checked={pairs[o.id] === v} onChange={() => setPairs((p) => ({ ...p, [o.id]: v }))} />
+                            {label}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-2">
+                <p className="font-semibold">Me gustan más</p>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => (
+                    <Chip key={c} selected={prefs.preferred.includes(c)} onClick={() => togglePref("preferred", c)}>
+                      {CATEGORY_LABEL[c]}
+                    </Chip>
+                  ))}
+                </div>
+                <p className="pt-2 font-semibold">Mejor menos</p>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => (
+                    <Chip key={c} selected={prefs.avoided.includes(c)} onClick={() => togglePref("avoided", c)}>
+                      {CATEGORY_LABEL[c]}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </details>
+        </Card>
+      )}
 
-      <Button block onClick={save}>
+      <Button block disabled={!mode} onClick={save}>
         {submitLabel}
       </Button>
     </div>
   );
 }
 
-export const SHARED_LABELS: Record<Light, string> = { green: "Según cada persona", yellow: "Preguntar siempre", red: "Nunca en esta sesión" };
-const SHARED_DESC: Record<Light, string> = {
-  green: "No añade restricción: decide el límite de cada persona.",
-  yellow: "Se pedirá autorización privada de todas las personas implicadas.",
-  red: "Bloqueado para toda la sesión, también ante el grupo.",
-};
-
-/** Restricciones compartidas: solo pueden restringir, nunca conceder. */
+/** Límites del grupo: opcionales, solo pueden restringir. */
 export function SharedLimitsEditor({
   initial,
   onDone,
-  submitLabel = "Guardar límites compartidos",
+  submitLabel = "Continuar",
 }: {
   initial: Partial<Record<Permission, Light>>;
   onDone: (shared: Record<Permission, Light>) => void;
@@ -249,29 +334,59 @@ export function SharedLimitsEditor({
 }) {
   const [shared, setShared] = useState<Record<Permission, Light>>(() => {
     const out = {} as Record<Permission, Light>;
-    for (const g of PERMISSION_GROUPS) for (const p of g.items) out[p] = normalizeLight(initial[p] ?? "green");
+    for (const p of PERMISSIONS) out[p] = normalizeLight(initial[p] ?? "green");
     return out;
   });
   return (
     <div className="space-y-4">
-      <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Límites compartidos</h2>
+      <Card className="space-y-2">
+        <h2 className="text-xl font-bold">¿Algo que nadie quiera en esta sesión?</h2>
         <p className="text-muted">
-          Restricciones para toda la sesión, incluido lo que ocurre delante del grupo. Se aplican además de los límites de cada persona y
-          nunca los amplían.
+          Opcional. Lo que marquen como «Nadie» queda fuera para todas las personas, también ante el grupo. Esto nunca amplía lo que cada persona aceptó.
         </p>
-        <SemaforoLegend labels={SHARED_LABELS} descriptions={SHARED_DESC} />
       </Card>
-      {PERMISSION_GROUPS.map((g) => (
-        <Card key={g.title}>
-          <details open={g.title === "Contacto físico"}>
-            <summary className="min-h-11 cursor-pointer py-2 text-lg font-semibold">{g.title}</summary>
-            {g.items.map((perm) => (
-              <PermissionRow key={perm} perm={perm} name={`shared-${perm}`} labels={SHARED_LABELS} value={shared[perm]} onChange={(l) => setShared((s) => ({ ...s, [perm]: l }))} />
-            ))}
-          </details>
-        </Card>
-      ))}
+      <Card>
+        {PERMISSION_GROUPS.map((g) => {
+          const blocked = g.items.every((p) => shared[p] === "red");
+          return (
+            <fieldset key={g.id} className="flex items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
+              <legend className="sr-only">{g.title}</legend>
+              <span className="font-semibold">{g.title}</span>
+              <div className="grid shrink-0 grid-cols-2 gap-2">
+                {(
+                  [
+                    [false, "Según cada quien"],
+                    [true, "Nadie"],
+                  ] as const
+                ).map(([block, label]) => (
+                  <label
+                    key={label}
+                    className={cx(
+                      "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-xs",
+                      blocked === block ? (block ? "border-bad text-bad" : "border-ok text-ok") + " bg-surface-2 font-semibold" : "border-line text-muted",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      className="sr-only"
+                      name={`shared-${g.id}`}
+                      checked={blocked === block}
+                      onChange={() =>
+                        setShared((s) => {
+                          const next = { ...s };
+                          g.items.forEach((p) => (next[p] = block ? "red" : "green"));
+                          return next;
+                        })
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          );
+        })}
+      </Card>
       <Button block onClick={() => onDone(shared)}>
         {submitLabel}
       </Button>

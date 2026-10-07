@@ -271,6 +271,8 @@ function LimitsReview({ session, onDone }: { session: SessionState; onDone: () =
                 others={people.filter((o) => o.id !== p.id)}
                 initial={part.limits}
                 initialPrefs={part.preferences}
+                requireChoice={false}
+                submitLabel="Guardar cambios"
                 onDone={(limits) => submit({ limits })}
               />
               <Button variant="ghost" block onClick={() => submit(null)}>
@@ -290,6 +292,7 @@ function LimitsReview({ session, onDone }: { session: SessionState; onDone: () =
   if (mode === "shared") {
     return (
       <SharedLimitsEditor
+        submitLabel="Guardar"
         initial={session.config.sharedLimits}
         onDone={(s) => {
           updateShared(s);
@@ -303,10 +306,10 @@ function LimitsReview({ session, onDone }: { session: SessionState; onDone: () =
       <h2 className="text-xl font-bold">Revisar límites</h2>
       <p className="text-muted">Cualquier cambio descarta la carta actual y las autorizaciones anteriores.</p>
       <Button block onClick={() => setMode("individual")}>
-        Límites individuales (pasando el teléfono)
+        Lo que acepta cada persona (pasando el teléfono)
       </Button>
       <Button variant="secondary" block onClick={() => setMode("shared")}>
-        Límites compartidos
+        Lo que nadie quiere en la sesión
       </Button>
       <Button variant="ghost" block onClick={onDone}>
         Volver

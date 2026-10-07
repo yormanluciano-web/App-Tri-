@@ -29,7 +29,8 @@ export function Help() {
           <li>
             <strong className="text-bad">✕ Nunca mostrar:</strong> nada que lo requiera aparecerá.
           </li>
-          <li>Todo empieza en la base segura: el contacto físico está bloqueado hasta que cada persona lo configure.</li>
+          <li>Cada persona elige en privado: «Acepto todo», «Acepto parcialmente» (por temas) o «No acepto». Quien no acepta solo recibe charla, música y juegos sin contacto.</li>
+          <li>Prendas: nunca la ropa interior. Tiempo a solas, besos intensos y besos siempre se confirman en privado antes de cada carta.</li>
           <li>Pasar, cambiar, pausar y detener son normales y nunca se penalizan.</li>
           <li>Subir la intensidad requiere el sí privado de todas las personas; bajar es inmediato.</li>
           <li>Nadie ve quién rechazó algo ni cuántas personas lo hicieron.</li>

@@ -5,6 +5,7 @@ import type { Activity } from "@/domain/models/activity";
 import { CATEGORY_LABEL, GAME_LABEL, INTENSITY_LABEL, TIMER_OPTIONS_SEC } from "@/domain/models/constants";
 import type { SessionState, Turn } from "@/domain/models/session";
 import { timerRemaining } from "@/domain/state/session";
+import { activityPermissions } from "@/domain/consent/limits";
 import { useSession } from "@/stores/session";
 import { Button, Card, ParticipantTag, cx } from "@/components/ui";
 import type { Person } from "@/features/session/PrivateRound";
@@ -93,6 +94,7 @@ export function ActivityCard({
           implicated.map((p) => <ParticipantTag key={p.id} alias={p.alias} slot={p.slot} />)
         )}
       </div>
+      <SafetyNotes activity={activity} />
       {children}
       <button
         type="button"
@@ -104,6 +106,23 @@ export function ActivityCard({
         {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
       </button>
     </Card>
+  );
+}
+
+/** Recordatorios automáticos según los permisos de la carta. */
+function SafetyNotes({ activity }: { activity: Activity }) {
+  const perms = activityPermissions(activity);
+  const notes: string[] = [];
+  if (perms.includes("quitarse_prenda")) notes.push("Nunca la ropa interior. Puedes pasar sin dar explicaciones.");
+  if (perms.includes("tiempo_a_solas")) notes.push("Pueden volver cuando quieran. A solas, todo sigue siendo voluntario y cualquiera puede parar.");
+  if (perms.includes("beso_intenso") || perms.includes("caricias")) notes.push("Cualquiera puede parar en cualquier momento.");
+  if (notes.length === 0) return null;
+  return (
+    <ul className="space-y-1 rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm text-muted">
+      {notes.map((n) => (
+        <li key={n}>{n}</li>
+      ))}
+    </ul>
   );
 }
 

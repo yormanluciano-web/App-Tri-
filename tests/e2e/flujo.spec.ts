@@ -90,15 +90,16 @@ test("consentimiento inicial: si alguien no acepta no se empieza y no se señala
   await expect(page.getByText(/alias repetidos/)).toBeVisible();
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Omitir" }).click();
-  await page.getByRole("button", { name: /Configurar límites/ }).click();
+  await page.getByRole("button", { name: /Responder \(pasando/ }).click();
   for (let i = 0; i < 2; i++) {
     await page.getByRole("button", { name: "Soy Ana, continuar" }).click();
-    await page.getByRole("button", { name: "Guardar mis límites" }).click();
+    await expect(page.getByRole("button", { name: "Guardar", exact: true })).toBeDisabled();
+    await page.getByRole("radio", { name: /Acepto parcialmente/ }).click();
+    await page.getByRole("group", { name: "Besos" }).getByText("Acepto", { exact: true }).click();
+    await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: /Ocultar y/ }).click();
   }
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("button", { name: "Guardar límites compartidos" }).click();
-  for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Continuar" }).click();
+  for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Pedir consentimiento y comenzar" }).click();
   await answerAll(page, ["Ana", "Ana"], [true, false]);
   await expect(page.getByText(/No todas las personas aceptaron/)).toBeVisible();

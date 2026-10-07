@@ -4,7 +4,7 @@ import { picanteAll } from "./picante";
 import { perversoAll } from "./perverso";
 
 /** Versión del catálogo. Súbela al cambiar cartas; invalida autorizaciones restauradas. */
-export const CONTENT_VERSION = 1;
+export const CONTENT_VERSION = 2;
 
 /** Todas las actividades, incluidas las no publicables (para el validador). */
 export const ALL_ACTIVITIES: readonly Activity[] = [...leveAll, ...picanteAll, ...perversoAll];

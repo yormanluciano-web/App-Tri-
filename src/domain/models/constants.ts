@@ -18,9 +18,9 @@ export const INTENSITY_LABEL: Record<Intensity, string> = {
 };
 
 export const INTENSITY_DESCRIPTION: Record<Intensity, string> = {
-  leve: "Rompehielos, gustos, miradas, música y retos sociales sencillos.",
-  picante: "Más complicidad, elecciones, preguntas atrevidas y cercanía solo si la autorizan.",
-  perverso: "Confesiones, imaginación, roles de juego y sorpresas elaboradas. Nunca ignora límites.",
+  leve: "Coqueteo, preguntas con picardía, miradas, música y retos para romper el hielo.",
+  picante: "Preguntas atrevidas, besos, bailes sensuales, caricias sobre la ropa y prendas fuera.",
+  perverso: "Lo más intenso: besos largos, más prendas, tiempo a solas, confesiones y fantasías. Nunca ignora límites.",
 };
 
 /** Intervalos internos de intensityScore por nivel (inclusivos). */
@@ -66,6 +66,10 @@ export const PERMISSIONS = [
   "roles_juego",
   "escritura_privada",
   "revelacion_grupo",
+  "beso_intenso",
+  "caricias",
+  "quitarse_prenda",
+  "tiempo_a_solas",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -89,6 +93,10 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   roles_juego: "Roles de juego",
   escritura_privada: "Escritura privada",
   revelacion_grupo: "Revelación al grupo",
+  beso_intenso: "Besos intensos",
+  caricias: "Caricias sobre la ropa",
+  quitarse_prenda: "Quitarse prendas",
+  tiempo_a_solas: "Tiempo a solas",
 };
 
 export const PERMISSION_HINT: Record<Permission, string> = {
@@ -111,10 +119,16 @@ export const PERMISSION_HINT: Record<Permission, string> = {
   roles_juego: "Interpretar personajes o roles lúdicos.",
   escritura_privada: "Escribir respuestas en el teléfono a solas.",
   revelacion_grupo: "Que tus respuestas escritas se lean ante el grupo.",
+  beso_intenso: "Besos en la boca más largos o en el cuello.",
+  caricias: "Caricias en brazos, espalda, cintura o piernas, siempre por encima de la ropa.",
+  quitarse_prenda: "Quitarse una prenda en un reto, nunca la ropa interior.",
+  tiempo_a_solas: "Ir unos minutos a otra habitación con una persona.",
 };
 
 /** Permisos que implican contacto físico. Nunca se activan en silencio. */
 export const CONTACT_PERMISSIONS: readonly Permission[] = [
+  "beso_intenso",
+  "caricias",
   "baile_cercano",
   "contacto_manos",
   "abrazo",
@@ -131,17 +145,28 @@ export const SAFE_BASE_GREEN: readonly Permission[] = [
   "baile_individual",
 ];
 
-export const PERMISSION_GROUPS: { title: string; items: Permission[] }[] = [
+/**
+ * Grupos del editor simplificado («Acepto parcialmente»). Cada grupo se
+ * acepta o no en bloque; el detalle por permiso queda en opciones avanzadas.
+ */
+export const PERMISSION_GROUPS: { id: string; title: string; hint: string; items: Permission[] }[] = [
   {
-    title: "Conversación",
+    id: "charla",
+    title: "Charla y preguntas atrevidas",
+    hint: "Preguntas personales, confesiones y fantasías contadas en voz alta.",
     items: ["conversacion_ligera", "adivinanzas", "preguntas_personales", "confesiones", "fantasias"],
   },
-  { title: "Juego y expresión", items: ["coqueteo", "miradas", "musica", "baile_individual", "roles_juego", "ojos_cerrados"] },
-  { title: "Escritura", items: ["escritura_privada", "revelacion_grupo"] },
   {
-    title: "Contacto físico",
-    items: ["baile_cercano", "contacto_manos", "abrazo", "beso", "masaje_manos", "masaje_hombros"],
+    id: "coqueteo",
+    title: "Coqueteo y juegos",
+    hint: "Cumplidos, miradas, música, baile sin contacto, personajes y ojos cerrados.",
+    items: ["coqueteo", "miradas", "musica", "baile_individual", "roles_juego", "ojos_cerrados"],
   },
+  { id: "secretos", title: "Secretos escritos", hint: "Escribir en privado y que se lea al grupo sin tu nombre.", items: ["escritura_privada", "revelacion_grupo"] },
+  { id: "contacto", title: "Contacto y caricias", hint: "Manos, abrazos, masajes, baile pegado y caricias sobre la ropa.", items: ["contacto_manos", "abrazo", "masaje_manos", "masaje_hombros", "baile_cercano", "caricias"] },
+  { id: "besos", title: "Besos", hint: "Besos en mejilla o mano, y besos intensos en la boca o el cuello.", items: ["beso", "beso_intenso"] },
+  { id: "prendas", title: "Prendas", hint: "Quitarse una prenda en un reto. Nunca la ropa interior.", items: ["quitarse_prenda"] },
+  { id: "a_solas", title: "Tiempo a solas", hint: "Ir unos minutos a otra habitación con una persona.", items: ["tiempo_a_solas"] },
 ];
 
 export const CATEGORIES = [

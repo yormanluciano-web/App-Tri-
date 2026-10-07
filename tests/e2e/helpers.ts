@@ -7,8 +7,9 @@ export interface SetupOptions {
   level?: "Leve" | "Picante" | "Perverso";
   /** Juegos a seleccionar (etiquetas visibles). Se desmarcan los predeterminados. */
   games?: string[];
-  /** Permisos a poner en verde para todas las personas (etiquetas visibles). */
+  /** Si se indica, todas las personas eligen «Acepto todo». */
   allow?: string[];
+  accept?: "todo" | "nada";
   duration?: string;
 }
 
@@ -28,22 +29,15 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   }
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Omitir" }).click();
-  await page.getByRole("button", { name: /Configurar límites/ }).click();
+  await page.getByRole("button", { name: /Responder \(pasando/ }).click();
   for (let i = 0; i < count; i++) {
     await page.getByRole("button", { name: `Soy ${aliases[i]}, continuar` }).click();
-    for (const perm of o.allow ?? []) {
-      const group = page.getByRole("group", { name: perm, exact: true });
-      if (!(await group.isVisible())) {
-        // Abre la sección plegada (contacto físico).
-        await page.getByText("Contacto físico", { exact: true }).click();
-      }
-      await group.getByText("Permitido", { exact: true }).click();
-    }
-    await page.getByRole("button", { name: "Guardar mis límites" }).click();
+    await page.getByRole("radio", { name: o.accept === "todo" || o.allow ? /Acepto todo/ : /^○ No acepto/ }).click();
+    await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: /Ocultar y/ }).click();
   }
   await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("button", { name: "Guardar límites compartidos" }).click();
+  // Límites del grupo: opcionales.
   await page.getByRole("button", { name: "Continuar" }).click();
   if (o.level) await page.getByRole("radio", { name: new RegExp(o.level) }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
