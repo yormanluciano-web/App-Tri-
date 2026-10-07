@@ -188,7 +188,7 @@ export const EDITORIAL_FAMILIES = [
 
 /** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
-  leve: [80, 60, 35, 30, 30, 20, 0, 10],
+  leve: [80, 60, 35, 30, 30, 20, 25, 10],
   picante: [80, 90, 40, 40, 80, 35, 8, 20],
   perverso: [60, 100, 30, 30, 90, 40, 30, 20],
 };

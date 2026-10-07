@@ -3,15 +3,15 @@
 Recuento real generado con `npm run content:report` (2026-10-07). Catálogo v2 (`CONTENT_VERSION` = 2): todas las actividades están activas y en estado `reviewed`.
 
 ```
-Total: 1058 · En producción (activas y revisadas): 1058
-Estados editoriales: {"reviewed":1058}
+Total: 1083 · En producción (activas y revisadas): 1083
+Estados editoriales: {"reviewed":1083}
 
-## leve — 265
-  categorías: {"rompehielo":37,"preguntas":43,"retos":33,"desafios":27,"confianza":10,"conexion":25,"musica":17,"baile":13,"pareja":20,"trio":10,"eleccion":20,"sorpresa":10}
-  formatos:   {"pregunta":102,"reto":153,"sorpresa":10}
-  juegos:     {"verdad_reto":255,"ruleta":255,"dados":255,"tarjetas":255,"cadena":255,"temporizador":80,"sorpresa":10}
-  tamaño:     {"2":251,"3":265}
-  contacto:   {"contacto":15,"sin_contacto":250}
+## leve — 290
+  categorías: {"rompehielo":37,"preguntas":43,"retos":33,"desafios":27,"confianza":10,"conexion":25,"musica":17,"baile":13,"pareja":20,"trio":10,"eleccion":20,"sorpresa":10,"secretos":25}
+  formatos:   {"pregunta":125,"reto":155,"sorpresa":10}
+  juegos:     {"verdad_reto":280,"ruleta":280,"dados":280,"tarjetas":280,"cadena":280,"temporizador":81,"sorpresa":10}
+  tamaño:     {"2":275,"3":290}
+  contacto:   {"contacto":15,"sin_contacto":275}
   familias editoriales (actual / meta):
     Preguntas y rompehielos          80 / 80
     Retos y desafíos                 60 / 60
@@ -19,7 +19,7 @@ Estados editoriales: {"reviewed":1058}
     Música y baile                   30 / 30
     Dinámicas de dos y tres          30 / 30
     Elecciones                       20 / 20
-    Confesiones y secretos            0 / 0
+    Confesiones y secretos           25 / 25
     Sorpresas                        10 / 10
 
 ## picante — 393
@@ -56,7 +56,7 @@ Estados editoriales: {"reviewed":1058}
 ```
 
 ## Estado editorial
-- **1.058 actividades**: 265 Leve, 393 Picante, 400 Perverso. El 2026-10-07 se retiraron las votaciones (36), «¿Quién me conoce mejor?» (34) y «Secretos» (72), porque pedían pasar el teléfono.
+- **1.083 actividades**: 290 Leve, 393 Picante, 400 Perverso. El 2026-10-07 se retiraron las votaciones (36), «¿Quién me conoce mejor?» (34) y «Secretos» (72), porque pedían pasar el teléfono. Se añadieron 25 confesiones en voz alta para Leve.
 - Tono más atrevido a petición de la propietaria: besos (incluidos intensos), caricias sobre la ropa, bailes sensuales, prendas y tiempo a solas, siempre con permisos y confirmación privada.
 - Línea que no se cruza: nada sexualmente explícito (sin actos sexuales, genitales, senos, nalgas, desnudez ni ropa interior). El validador veta esos términos y las cartas de prendas y de tiempo a solas muestran avisos automáticos.
 - Validador: 0 errores y 0 avisos, también con `--similar`.

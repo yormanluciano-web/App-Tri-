@@ -1,0 +1,30 @@
+import { defineCards } from "../define";
+
+// Leve v2 · lote 06: confesiones en voz alta (sin escribir ni pasar el teléfono).
+export const leveV2_06 = defineCards("leve", "l2", "base", [
+  { id: "301", t: "Confieso que…", x: "{p1}, confiesa una costumbre tuya que te da un poco de vergüenza, pero que no piensas dejar.", c: "secretos", f: "pregunta", s: 2, req: ["conversacion_ligera"], tags: ["risas", "apertura"] },
+  { id: "302", t: "Canción culpable", x: "{p1}, confiesa la canción que cantas a todo pulmón cuando nadie te escucha.", c: "secretos", f: "pregunta", s: 3, req: ["musica", "conversacion_ligera"], tags: ["risas"] },
+  { id: "303", t: "Primera impresión equivocada", x: "{p1}, confiesa una primera impresión tuya sobre alguien que resultó totalmente equivocada. Sin nombres.", c: "secretos", f: "pregunta", s: 5, req: ["conversacion_ligera"] },
+  { id: "304", t: "Mentira piadosa", x: "{p1}, confiesa la última mentira piadosa que dijiste para quedar bien.", c: "secretos", f: "pregunta", s: 6, req: ["conversacion_ligera"], tags: ["risas"] },
+  { id: "305", t: "Antojo secreto", x: "{p1}, confiesa la combinación de comida que te encanta y que te daría pena pedir en público.", c: "secretos", f: "pregunta", s: 4, req: ["conversacion_ligera"], tags: ["risas"] },
+  { id: "306", t: "Stalkeo inocente", x: "{p1}, confiesa la última vez que revisaste el perfil de alguien que te gustaba más de la cuenta. Sin nombres.", c: "secretos", f: "pregunta", s: 9, req: ["preguntas_personales"], tags: ["risas"] },
+  { id: "307", t: "Ensayo frente al espejo", x: "{p1}, confiesa algo que hayas ensayado frente al espejo antes de decirlo en persona.", c: "secretos", f: "pregunta", s: 8, req: ["conversacion_ligera"] },
+  { id: "308", t: "Mensaje borrado", x: "{p1}, confiesa la vez que escribiste un mensaje coqueto y lo borraste antes de enviarlo. ¿Qué decía, más o menos?", c: "secretos", f: "pregunta", s: 12, req: ["preguntas_personales", "coqueteo"] },
+  { id: "309", t: "Flechazo fugaz", x: "{p1}, confiesa un flechazo de cinco minutos con alguien que nunca volviste a ver.", c: "secretos", f: "pregunta", s: 13, req: ["preguntas_personales"] },
+  { id: "310", t: "Excusa para quedarte", x: "{p1}, confiesa la excusa más creativa que has inventado para quedarte más tiempo con alguien.", c: "secretos", f: "pregunta", s: 14, req: ["preguntas_personales"], tags: ["risas"] },
+  { id: "311", t: "Lo que fingiste saber", x: "{p1}, confiesa algo que fingiste saber o que te gustaba solo para impresionar a alguien.", c: "secretos", f: "pregunta", s: 11, req: ["conversacion_ligera"], tags: ["risas"] },
+  { id: "312", t: "Cumplido guardado", x: "{p1}, confiesa un cumplido que pensaste sobre {p2} esta noche y todavía no habías dicho.", c: "secretos", f: "pregunta", s: 16, i: "directed_pair", req: ["coqueteo"], tags: ["cumplido"] },
+  { id: "313", t: "Primera mirada", x: "{p1}, confiesa qué fue lo primero que miraste de {p2} cuando se conocieron.", c: "secretos", f: "pregunta", s: 18, i: "directed_pair", req: ["coqueteo", "miradas"] },
+  { id: "314", t: "Celos chiquitos", x: "{p1}, confiesa un momento en que sentiste un poquito de celos, aunque no lo admitiste. Sin nombres.", c: "secretos", f: "pregunta", s: 17, req: ["preguntas_personales", "confesiones"] },
+  { id: "315", t: "Cita desastre", x: "{p1}, confiesa el peor momento que has vivido en una cita y cómo lo salvaste (o no).", c: "secretos", f: "pregunta", s: 15, req: ["preguntas_personales"], tags: ["risas"] },
+  { id: "316", t: "Lo que nunca admitiste", x: "{p1}, confiesa algo romántico que te encanta pero que casi nunca admites en voz alta.", c: "secretos", f: "pregunta", s: 19, req: ["preguntas_personales", "confesiones"] },
+  { id: "317", t: "Confesión en ronda", x: "Ronda de confesiones: cada persona confiesa, en una frase, algo que nadie en esta sesión sabe de ella.", c: "secretos", f: "reto", s: 20, req: ["confesiones"], d: [90, 60, 180], tags: ["apertura"] },
+  { id: "318", t: "Verdad a medias", x: "{p1}, confiesa una verdad a medias que hayas dicho en una primera cita y cuéntala completa ahora.", c: "secretos", f: "pregunta", s: 22, req: ["preguntas_personales", "confesiones"] },
+  { id: "319", t: "Te pensé", x: "{p1}, confiesa la última vez que alguien te pasó por la mente justo antes de dormir. Puedes no decir quién.", c: "secretos", f: "pregunta", s: 24, req: ["preguntas_personales", "confesiones"] },
+  { id: "320", t: "Señal ignorada", x: "{p1}, confiesa una señal de interés que alguien te mandó y que tardaste demasiado en entender.", c: "secretos", f: "pregunta", s: 21, req: ["preguntas_personales"], tags: ["risas"] },
+  { id: "321", t: "Lo que te gustaría oír", x: "{p1}, confiesa un cumplido que te encantaría que te dijeran más seguido.", c: "secretos", f: "pregunta", s: 23, req: ["preguntas_personales"], tags: ["cumplido"] },
+  { id: "322", t: "Confesión mirando a los ojos", x: "{p1}, mira a {p2} a los ojos y confiésale algo que te haya hecho sonreír de su parte esta noche.", c: "secretos", f: "reto", s: 26, i: "directed_pair", pair: ["miradas", "coqueteo"], tags: ["cierre"] },
+  { id: "323", t: "Plan que nunca propusiste", x: "{p1}, confiesa un plan de cita que siempre has querido proponer y nunca te atreviste.", c: "secretos", f: "pregunta", s: 27, req: ["preguntas_personales", "confesiones"] },
+  { id: "324", t: "Confesión a tres", x: "{p1}, confiesa qué te gusta de {p2} y qué te gusta de {p3}, una cosa de cada quien.", c: "secretos", f: "pregunta", s: 28, i: "group", sizes: [3], req: ["coqueteo"], tags: ["cumplido", "cierre"] },
+  { id: "325", t: "Última confesión", x: "{p1}, confiesa qué parte de esta noche te gustaría repetir pronto.", c: "secretos", f: "pregunta", s: 30, req: ["confesiones"], tags: ["cierre"] },
+]);

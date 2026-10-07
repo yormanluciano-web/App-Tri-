@@ -12,9 +12,9 @@ describe("catálogo de producción", () => {
     expect(r.errors).toEqual([]);
   });
 
-  it("cumple la meta editorial 265/393/400 por familia", () => {
+  it("cumple la meta editorial 290/393/400 por familia", () => {
     const r = catalogReport(ALL_ACTIVITIES);
-    expect(r.byLevel).toEqual({ leve: 265, picante: 393, perverso: 400 });
+    expect(r.byLevel).toEqual({ leve: 290, picante: 393, perverso: 400 });
     for (const lvl of INTENSITIES) EDITORIAL_FAMILIES.forEach((f, i) => expect(r.byFamily[lvl][f], `${lvl} ${f}`).toBe(EDITORIAL_TARGETS[lvl][i]));
   });
 

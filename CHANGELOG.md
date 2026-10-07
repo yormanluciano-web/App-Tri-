@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1 — 2026-10-07
+- 25 confesiones en voz alta para Leve (1.083 cartas).
+
 ## 0.4.0 — 2026-10-07
 - Se retiran «¿Quién me conoce mejor?» y «Secretos»: 9 juegos y 1.058 cartas, sin rondas de pasar el teléfono durante el juego.
 
