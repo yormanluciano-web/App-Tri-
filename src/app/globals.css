@@ -1,58 +1,71 @@
 @import "tailwindcss";
 
-/* Tokens de diseño. Contraste revisado sobre --bg (#0B0B12). */
+/* Diseño v2: noche ciruela, degradados por nivel y brillo suave. */
 :root {
-  --bg: #0b0b12;
-  --surface: #171722;
-  --surface-2: #20202e;
-  --border: #2e2e40;
-  --text: #f4f2fb;
-  --muted: #b9b5cc; /* 9.4:1 sobre bg */
-  --faint: #8f8aa6; /* 5.6:1 sobre bg */
-  --leve: #b9a7ff;
-  --leve-ink: #1b1340;
-  --picante: #ff6f9f;
-  --picante-ink: #3a0a1c;
-  --perverso: #c084fc;
-  --perverso-gold: #f5c76b;
-  --perverso-ink: #24103a;
-  --green: #5ee6a8;
+  --bg: #0a0510;
+  --bg-2: #12081a;
+  --surface: rgba(32, 16, 40, 0.62);
+  --surface-solid: #1a0d22;
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 214, 236, 0.14);
+  --text: #fbf4f8;
+  --muted: #d4c1cf; /* ~11:1 sobre bg */
+  --faint: #a8919f; /* ~6.4:1 sobre bg */
+  --green: #6ee7b7;
   --yellow: #ffd166;
-  --red: #ff7b7b;
+  --red: #ff7a8a;
   --focus: #ffe08a;
-  --accent: var(--leve);
-  --accent-ink: var(--leve-ink);
+  /* Acentos por nivel (Leve por defecto) */
+  --accent: #f3a6d0;
+  --accent-2: #b9a7ff;
+  --accent-3: #ff8fb1;
+  --accent-ink: #23081a;
+  --glow: rgba(243, 166, 208, 0.45);
+  --font-display: "Playfair Display Variable", "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: "Outfit Variable", "Outfit", ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --text-scale: 1;
   color-scheme: dark;
 }
 
+[data-level="leve"] {
+  --accent: #f3a6d0;
+  --accent-2: #b9a7ff;
+  --accent-3: #ff8fb1;
+  --accent-ink: #23081a;
+  --glow: rgba(243, 166, 208, 0.45);
+}
 [data-level="picante"] {
-  --accent: var(--picante);
-  --accent-ink: var(--picante-ink);
+  --accent: #ff4d8d;
+  --accent-2: #ff8a5b;
+  --accent-3: #ff2e63;
+  --accent-ink: #2a0410;
+  --glow: rgba(255, 77, 141, 0.5);
 }
 [data-level="perverso"] {
-  --accent: var(--perverso);
-  --accent-ink: var(--perverso-ink);
+  --accent: #f5c76b;
+  --accent-2: #e8457a;
+  --accent-3: #b3123e;
+  --accent-ink: #250712;
+  --glow: rgba(232, 69, 122, 0.55);
 }
 
 @theme inline {
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
+  --color-surface: var(--surface-solid);
   --color-surface-2: var(--surface-2);
   --color-line: var(--border);
   --color-ink: var(--text);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --color-accent-ink: var(--accent-ink);
-  --color-leve: var(--leve);
-  --color-picante: var(--picante);
-  --color-perverso: var(--perverso);
-  --color-gold: var(--perverso-gold);
+  --color-gold: #f5c76b;
   --color-ok: var(--green);
   --color-warn: var(--yellow);
   --color-bad: var(--red);
-  --font-sans: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 html {
@@ -62,25 +75,189 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background: radial-gradient(120% 80% at 50% -10%, #2a0f2e 0%, var(--bg) 55%) fixed, var(--bg);
   color: var(--text);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.005em;
+}
+
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 :focus-visible {
   outline: 3px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 10px;
+  outline-offset: 3px;
+  border-radius: 14px;
 }
 
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ------------------------------------------------------------ superficies */
+
 .glass {
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 40%), var(--surface);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 20px 50px -24px rgba(0, 0, 0, 0.8);
+}
+
+/* Borde con degradado del nivel (para tarjetas destacadas). */
+.glow-border {
+  position: relative;
+  isolation: isolate;
+}
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2) 50%, var(--accent-3));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: -1;
+}
+.glow-border::after {
+  content: "";
+  position: absolute;
+  inset: 12% 8% -8% 8%;
+  border-radius: inherit;
+  background: radial-gradient(60% 60% at 50% 100%, var(--glow), transparent 70%);
+  filter: blur(28px);
+  opacity: 0.55;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2) 50%, var(--accent-3), var(--accent));
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: linear-gradient(120deg, #f3a6d0, #ff4d8d 40%, #f5c76b 75%, #f3a6d0);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 9s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------ botones */
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+  box-shadow:
+    0 10px 30px -10px var(--glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 700ms ease;
+  pointer-events: none;
+}
+.btn-primary:hover::after,
+.btn-primary:focus-visible::after {
+  transform: translateX(120%);
+}
+.btn-glass {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.btn-danger {
+  background: linear-gradient(135deg, #ff7a8a, #e8457a);
+  color: #2a0410;
+  box-shadow: 0 10px 28px -12px rgba(232, 69, 122, 0.7);
+}
+
+.pulse-glow {
+  animation: pulse-glow 2.8s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------ fondo aurora */
+
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.5;
+  will-change: transform;
+}
+.aurora span:nth-child(1) {
+  width: 60vmax;
+  height: 60vmax;
+  left: -20vmax;
+  top: -25vmax;
+  background: radial-gradient(circle, var(--accent), transparent 65%);
+  animation: drift-1 22s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(2) {
+  width: 55vmax;
+  height: 55vmax;
+  right: -25vmax;
+  top: 20vh;
+  background: radial-gradient(circle, var(--accent-2), transparent 65%);
+  animation: drift-2 26s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(3) {
+  width: 50vmax;
+  height: 50vmax;
+  left: 5vmax;
+  bottom: -30vmax;
+  background: radial-gradient(circle, var(--accent-3), transparent 65%);
+  opacity: 0.28;
+  animation: drift-3 30s ease-in-out infinite alternate;
+}
+
+/* El contenido de cada pantalla queda por encima de la aurora (especificidad cero para no pisar utilidades). */
+:where(main > :not(.aurora)) {
+  position: relative;
+  z-index: 1;
 }
 
 .safe-top {
@@ -90,19 +267,12 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
 }
 
-.wordmark {
-  letter-spacing: 0.06em;
-  font-weight: 800;
-  background: linear-gradient(120deg, var(--leve), var(--picante) 55%, var(--perverso-gold));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* ------------------------------------------------------------ animaciones */
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -110,7 +280,115 @@ body {
   }
 }
 .animate-in {
-  animation: fade-up 220ms ease-out both;
+  animation: fade-up 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes deal {
+  0% {
+    opacity: 0;
+    transform: perspective(900px) translateY(40px) rotateX(18deg) scale(0.94);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-deal {
+  animation: deal 560ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.96);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 260ms ease-out both;
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 30px -10px var(--glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 12px 44px -6px var(--glow),
+      0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.08);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+}
+.animate-heartbeat {
+  animation: heartbeat 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes drift-1 {
+  to {
+    transform: translate(12vmax, 10vmax) scale(1.15);
+  }
+}
+@keyframes drift-2 {
+  to {
+    transform: translate(-14vmax, -8vmax) scale(1.1);
+  }
+}
+@keyframes drift-3 {
+  to {
+    transform: translate(10vmax, -12vmax) scale(1.2);
+  }
 }
 
 @keyframes spin-wheel {

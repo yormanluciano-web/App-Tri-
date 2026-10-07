@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 — 2026-10-07
+- Rediseño visual completo: paleta ciruela/rosa/dorado por nivel, fondo animado tipo aurora, tipografías autoalojadas (Playfair Display y Outfit), botones con degradado y brillo, iconos propios.
+- Animaciones: carta que se reparte, logo flotante con corazón, reloj circular, botones que laten; todas se desactivan con «reducir movimiento».
+- Lanzadores grandes tipo carta (Verdad / Reto, ruleta, dados…), barra de progreso en la creación y en la duración de la sesión.
+
 ## 0.4.1 — 2026-10-07
 - 25 confesiones en voz alta para Leve (1.083 cartas).
 

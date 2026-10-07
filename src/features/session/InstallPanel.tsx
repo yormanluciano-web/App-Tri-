@@ -21,7 +21,7 @@ export function InstallButton() {
   if (standalone) return null;
   return (
     <>
-      <Button variant="ghost" onClick={() => setOpen(true)}>
+      <Button variant="secondary" icon="download" className="!min-h-16 flex-col !gap-1 rounded-3xl !px-2 !text-sm" onClick={() => setOpen(true)}>
         Instalar
       </Button>
       <Dialog open={open} title={`Instalar ${APP_NAME}`} onClose={() => setOpen(false)}>

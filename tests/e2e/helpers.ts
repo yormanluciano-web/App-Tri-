@@ -21,7 +21,7 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   await page.goto("/crear/");
   await page.getByRole("radio", { name: o.mode === "private" ? /Sesión privada/ : /Sesión normal/ }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("button", { name: String(count), exact: true }).click();
+  await page.getByRole("button", { name: new RegExp(`^${count}`) }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   for (let i = 0; i < count; i++) {
     await page.getByLabel(`Alias de la persona ${i + 1}`).fill(aliases[i]);
@@ -32,7 +32,7 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   await page.getByRole("button", { name: /Responder \(pasando/ }).click();
   for (let i = 0; i < count; i++) {
     await page.getByRole("button", { name: `Soy ${aliases[i]}, continuar` }).click();
-    await page.getByRole("radio", { name: o.accept === "todo" || o.allow ? /Acepto todo/ : /^○ No acepto/ }).click();
+    await page.getByRole("radio", { name: o.accept === "todo" || o.allow ? /Acepto todo/ : /^No acepto/ }).click();
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: /Ocultar y/ }).click();
   }
@@ -44,8 +44,8 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   if (o.duration) await page.getByRole("button", { name: o.duration, exact: true }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   if (o.games) {
-    for (const g of DEFAULT_GAMES) if (!o.games.includes(g)) await page.getByRole("button", { name: new RegExp(`^✓ ${escape(g)}`) }).click();
-    for (const g of o.games) if (!DEFAULT_GAMES.includes(g)) await page.getByRole("button", { name: new RegExp(`^${escape(g)}`) }).click();
+    for (const g of DEFAULT_GAMES) if (!o.games.includes(g)) await page.getByRole("button", { name: new RegExp(`^${escape(g)}`), pressed: true }).click();
+    for (const g of o.games) if (!DEFAULT_GAMES.includes(g)) await page.getByRole("button", { name: new RegExp(`^${escape(g)}`), pressed: false }).click();
   }
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Pedir consentimiento y comenzar" }).click();

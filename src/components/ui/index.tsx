@@ -2,39 +2,49 @@
 
 import Link from "next/link";
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { PARTICIPANT_COLORS, PARTICIPANT_MARKS, LIGHT_LABEL, type Light } from "@/domain/models/constants";
+import { PARTICIPANT_COLORS, PARTICIPANT_MARKS } from "@/domain/models/constants";
+import { Icon, type IconName } from "./icons";
+
+export { Icon, Logo, type IconName } from "./icons";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
+type Size = "md" | "lg" | "xl";
 
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-accent text-accent-ink font-semibold hover:brightness-110",
-  secondary: "bg-surface-2 text-ink border border-line hover:border-accent",
-  ghost: "bg-transparent text-ink border border-line hover:bg-surface-2",
-  danger: "bg-bad text-[#2a0606] font-semibold hover:brightness-110",
+  primary: "btn-primary font-semibold",
+  secondary: "btn-glass text-ink",
+  ghost: "bg-transparent text-ink border border-line hover:bg-white/5",
+  danger: "btn-danger font-semibold",
   quiet: "bg-transparent text-muted underline underline-offset-4 hover:text-ink",
+};
+
+const SIZE: Record<Size, string> = {
+  md: "min-h-12 px-4 py-2.5 text-base",
+  lg: "min-h-14 px-5 py-3 text-lg",
+  xl: "min-h-16 px-6 py-4 text-xl",
 };
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
 }
 
+const BASE =
+  "inline-flex items-center justify-center gap-2 rounded-full transition duration-200 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 select-none";
+
 export function Button({
   variant = "primary",
+  size = "md",
+  icon,
   className,
   block,
+  children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; block?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; icon?: IconName; block?: boolean }) {
   return (
-    <button
-      type="button"
-      {...props}
-      className={cx(
-        "min-h-11 min-w-11 rounded-2xl px-4 py-2.5 text-base transition disabled:cursor-not-allowed disabled:opacity-45",
-        VARIANT[variant],
-        block && "w-full",
-        className,
-      )}
-    />
+    <button type="button" {...props} className={cx(BASE, VARIANT[variant], variant !== "quiet" && SIZE[size], block && "w-full", className)}>
+      {icon && <Icon name={icon} className={size === "md" ? "size-5" : "size-6"} />}
+      {children}
+    </button>
   );
 }
 
@@ -42,49 +52,56 @@ export function LinkButton({
   href,
   children,
   variant = "primary",
+  size = "md",
+  icon,
   block,
   className,
 }: {
   href: string;
   children: ReactNode;
   variant?: Variant;
+  size?: Size;
+  icon?: IconName;
   block?: boolean;
   className?: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={cx(
-        "inline-flex min-h-11 items-center justify-center rounded-2xl px-4 py-2.5 text-base transition",
-        VARIANT[variant],
-        block && "w-full",
-        className,
-      )}
-    >
+    <Link href={href} className={cx(BASE, VARIANT[variant], SIZE[size], block && "w-full", className)}>
+      {icon && <Icon name={icon} className={size === "md" ? "size-5" : "size-6"} />}
       {children}
     </Link>
   );
 }
 
-export function Screen({ children, className, level }: { children: ReactNode; className?: string; level?: string }) {
+/** Fondo animado con los colores del nivel actual. */
+export function Aurora() {
   return (
-    <main
-      data-level={level}
-      className={cx("safe-top safe-bottom mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 px-4 pb-6", className)}
-    >
+    <div className="aurora" aria-hidden>
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+export function Screen({ children, className, level = "leve" }: { children: ReactNode; className?: string; level?: string }) {
+  return (
+    <main data-level={level} className={cx("safe-top safe-bottom relative mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 px-4 pb-6", className)}>
+      <Aurora />
       {children}
     </main>
   );
 }
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx("glass rounded-3xl p-5", className)}>{children}</section>;
+export function Card({ children, className, glow }: { children: ReactNode; className?: string; glow?: boolean }) {
+  return <section className={cx("glass rounded-[28px] p-5", glow && "glow-border", className)}>{children}</section>;
 }
 
-export function Title({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
+export function Title({ children, sub, eyebrow }: { children: ReactNode; sub?: ReactNode; eyebrow?: ReactNode }) {
   return (
-    <header className="space-y-1">
-      <h1 className="text-2xl font-bold leading-tight">{children}</h1>
+    <header className="space-y-2 animate-in">
+      {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">{eyebrow}</p>}
+      <h1 className="text-3xl font-semibold leading-tight">{children}</h1>
       {sub && <p className="text-muted">{sub}</p>}
     </header>
   );
@@ -95,19 +112,25 @@ export function Notice({ children, tone = "info" }: { children: ReactNode; tone?
     <p
       role="status"
       className={cx(
-        "rounded-2xl border px-4 py-3 text-sm",
-        tone === "warn" ? "border-warn/60 bg-warn/10 text-ink" : "border-line bg-surface-2 text-muted",
+        "flex gap-2 rounded-2xl border px-4 py-3 text-sm",
+        tone === "warn" ? "border-warn/50 bg-warn/10 text-ink" : "border-line bg-white/5 text-muted",
       )}
     >
-      {children}
+      <Icon name={tone === "warn" ? "shield" : "sparkle"} className="mt-0.5 size-4 shrink-0 text-accent" />
+      <span>{children}</span>
     </p>
   );
 }
 
 export function ParticipantTag({ alias, slot, className }: { alias: string; slot: number; className?: string }) {
+  const color = PARTICIPANT_COLORS[slot];
   return (
     <span className={cx("inline-flex items-center gap-1.5 font-semibold", className)}>
-      <span aria-hidden style={{ color: PARTICIPANT_COLORS[slot] }}>
+      <span
+        aria-hidden
+        className="inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] leading-none text-[#1a0612]"
+        style={{ background: color, boxShadow: `0 0 12px ${color}88` }}
+      >
         {PARTICIPANT_MARKS[slot]}
       </span>
       <span>{alias}</span>
@@ -115,73 +138,17 @@ export function ParticipantTag({ alias, slot, className }: { alias: string; slot
   );
 }
 
-const LIGHT_ICON: Record<Light, string> = { green: "✓", yellow: "?", red: "✕" };
-const LIGHT_CLASS: Record<Light, string> = {
-  green: "border-ok text-ok",
-  yellow: "border-warn text-warn",
-  red: "border-bad text-bad",
-};
-
-export function LightBadge({ light }: { light: Light }) {
+/** Avatar grande para pantallas de entrega del teléfono. */
+export function Avatar({ alias, slot }: { alias: string; slot: number }) {
+  const color = PARTICIPANT_COLORS[slot];
   return (
-    <span className={cx("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", LIGHT_CLASS[light])}>
-      <span aria-hidden>{LIGHT_ICON[light]}</span>
-      {LIGHT_LABEL[light]}
+    <span
+      aria-hidden
+      className="mx-auto flex size-20 items-center justify-center rounded-full font-display text-3xl font-semibold italic text-[#1a0612] animate-float"
+      style={{ background: `radial-gradient(circle at 30% 30%, #fff8, ${color})`, boxShadow: `0 0 40px ${color}99` }}
+    >
+      {alias.trim().charAt(0).toUpperCase() || PARTICIPANT_MARKS[slot]}
     </span>
-  );
-}
-
-/** Selector de semáforo: icono, palabra y descripción; no depende solo del color. */
-export function LightPicker({
-  value,
-  onChange,
-  label,
-  hint,
-  allowed = ["green", "yellow", "red"],
-  name,
-}: {
-  value: Light;
-  onChange: (l: Light) => void;
-  label: string;
-  hint?: string;
-  allowed?: Light[];
-  name: string;
-}) {
-  return (
-    <fieldset className="space-y-2 rounded-2xl border border-line p-3">
-      <legend className="px-1 font-semibold">{label}</legend>
-      {hint && <p className="text-sm text-muted">{hint}</p>}
-      <div className="grid grid-cols-3 gap-2">
-        {(["green", "yellow", "red"] as Light[]).map((l) => {
-          const disabled = !allowed.includes(l);
-          const checked = value === l;
-          return (
-            <label
-              key={l}
-              className={cx(
-                "flex min-h-11 cursor-pointer flex-col items-center justify-center rounded-xl border px-1 py-2 text-center text-sm",
-                checked ? LIGHT_CLASS[l] + " bg-surface-2" : "border-line text-muted",
-                disabled && "cursor-not-allowed opacity-40",
-              )}
-            >
-              <input
-                type="radio"
-                className="sr-only"
-                name={name}
-                value={l}
-                checked={checked}
-                disabled={disabled}
-                onChange={() => onChange(l)}
-              />
-              <span aria-hidden className="text-lg leading-none">
-                {LIGHT_ICON[l]}
-              </span>
-              <span>{LIGHT_LABEL[l]}</span>
-            </label>
-          );
-        })}
-      </div>
-    </fieldset>
   );
 }
 
@@ -203,13 +170,92 @@ export function Chip({
       disabled={disabled}
       onClick={onClick}
       className={cx(
-        "min-h-11 rounded-full border px-4 py-2 text-sm transition disabled:opacity-40",
-        selected ? "border-accent bg-accent text-accent-ink font-semibold" : "border-line bg-surface-2 text-ink",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition duration-200 active:scale-95 disabled:opacity-40",
+        selected ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink shadow-[0_6px_20px_-8px_var(--glow)]" : "border-line bg-white/5 text-ink hover:bg-white/10",
       )}
     >
-      {selected && <span aria-hidden>✓ </span>}
+      {selected && <Icon name="check" className="size-4" />}
       {children}
     </button>
+  );
+}
+
+/** Opción grande tipo tarjeta (radio o interruptor). */
+export function OptionTile({
+  selected,
+  onClick,
+  title,
+  description,
+  icon,
+  role = "radio",
+  level,
+  badge,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: ReactNode;
+  description?: ReactNode;
+  icon?: IconName;
+  role?: "radio" | "button";
+  level?: string;
+  badge?: ReactNode;
+}) {
+  const aria = role === "radio" ? { role: "radio", "aria-checked": selected } : { "aria-pressed": selected };
+  return (
+    <button
+      type="button"
+      {...aria}
+      data-level={level}
+      onClick={onClick}
+      className={cx(
+        "glass group relative flex w-full items-start gap-4 rounded-3xl p-4 text-left transition duration-200 active:scale-[0.98]",
+        selected ? "glow-border" : "hover:bg-white/5",
+      )}
+    >
+      {icon && (
+        <span
+          className={cx(
+            "flex size-12 shrink-0 items-center justify-center rounded-2xl transition",
+            selected ? "bg-gradient-to-br from-accent to-accent-2 text-accent-ink" : "bg-white/5 text-accent",
+          )}
+        >
+          <Icon name={icon} className="size-6" />
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="text-lg font-semibold">{title}</span>
+          {badge}
+        </span>
+        {description && <span className="mt-0.5 block text-sm text-muted">{description}</span>}
+      </span>
+      <span
+        aria-hidden
+        className={cx(
+          "mt-1 flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition",
+          selected ? "border-transparent bg-accent text-accent-ink" : "border-line",
+        )}
+      >
+        {selected && <Icon name="check" className="size-4" />}
+      </span>
+    </button>
+  );
+}
+
+/** Barra de progreso por pasos. */
+export function Steps({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="flex flex-1 items-center gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current} aria-label={`Paso ${current} de ${total}`}>
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          className={cx(
+            "h-1.5 flex-1 rounded-full transition-all duration-500",
+            i < current ? "bg-gradient-to-r from-accent to-accent-2 shadow-[0_0_10px_var(--glow)]" : "bg-white/10",
+          )}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -259,9 +305,9 @@ export function Dialog({
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center" role="presentation">
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="glass w-full max-w-md space-y-4 rounded-3xl p-5 animate-in">
-        <h2 className="text-xl font-bold">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center" role="presentation">
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="glass glow-border w-full max-w-md space-y-4 rounded-[28px] p-6 animate-deal">
+        <h2 className="text-2xl font-semibold">{title}</h2>
         {children}
       </div>
     </div>
@@ -270,9 +316,18 @@ export function Dialog({
 
 export function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
-    <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-line p-3">
-      <input type="checkbox" className="mt-1 size-5 accent-[var(--accent)]" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span>
+    <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border border-line bg-white/5 p-3 transition hover:bg-white/10">
+      <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span
+        aria-hidden
+        className={cx(
+          "relative h-7 w-12 shrink-0 rounded-full transition peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-[var(--focus)]",
+          checked ? "bg-gradient-to-r from-accent to-accent-2" : "bg-white/15",
+        )}
+      >
+        <span className={cx("absolute top-1 size-5 rounded-full bg-white shadow transition-all duration-200", checked ? "left-6" : "left-1")} />
+      </span>
+      <span className="min-w-0">
         <span className="font-semibold">{label}</span>
         {hint && <span className="block text-sm text-muted">{hint}</span>}
       </span>

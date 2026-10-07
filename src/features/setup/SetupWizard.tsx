@@ -28,7 +28,8 @@ import { GAME_FORMATS } from "@/domain/engine/orchestrator";
 import { createSession, resolveInitialConsent } from "@/domain/state/session";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { useSession } from "@/stores/session";
-import { Button, Card, Chip, Notice, ParticipantTag, Screen, Title, Toggle, cx } from "@/components/ui";
+import { Button, Card, Chip, Icon, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
+import { GAME_ICON, LEVEL_ICON } from "@/components/ui/visuals";
 import { ConsentRound, PrivateRound, type Person } from "@/features/session/PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "./LimitsEditor";
 
@@ -141,18 +142,17 @@ export function SetupWizard() {
     const a = trimAlias(d.alias);
     return a.length >= 1 && a.length <= 24 && d.adult;
   });
-  const duplicateAliases = new Set(active.map((d) => trimAlias(d.alias).toLowerCase())).size < active.length;
+  const filledAliases = active.map((d) => trimAlias(d.alias).toLowerCase()).filter(Boolean);
+  const duplicateAliases = new Set(filledAliases).size < filledAliases.length;
 
   const updateDraft = (id: string, patch: Partial<Draft>) => setDrafts((ds) => ds.map((d) => (d.id === id ? { ...d, ...patch } : d)));
 
   const header = (
-    <div className="flex items-center justify-between">
-      <Button variant="ghost" onClick={() => (step === "mode" ? router.push("/") : go(-1))} aria-label="Atrás">
-        ← Atrás
+    <div className="flex items-center gap-3">
+      <Button variant="secondary" icon="back" className="!min-h-11 !px-3" onClick={() => (step === "mode" ? router.push("/") : go(-1))} aria-label="Atrás">
+        <span className="sr-only">Atrás</span>
       </Button>
-      <span className="text-sm text-faint">
-        Paso {Math.min(ORDER.indexOf(step) + 1, ORDER.length)} de {ORDER.length}
-      </span>
+      <Steps current={Math.min(ORDER.indexOf(step) + 1, ORDER.length)} total={ORDER.length} />
     </div>
   );
 
@@ -197,32 +197,26 @@ export function SetupWizard() {
         <>
           <Title sub="Antes de pedir nombres, decide si esta sesión se guarda en el dispositivo.">¿Cómo quieren guardar la sesión?</Title>
           <div className="space-y-3" role="radiogroup" aria-label="Modo de almacenamiento">
-            {(
-              [
-                ["normal", "Sesión normal", "Alias, límites y progreso se guardan solo en este dispositivo para poder continuar después. Las respuestas, votos y secretos nunca se guardan."],
-                ["private", "Sesión privada", "Nada se guarda: al terminar o cerrar, todo se descarta. No se puede continuar más tarde."],
-              ] as [StorageMode, string, string][]
-            ).map(([m, label, desc]) => (
-              <button
-                key={m}
-                role="radio"
-                aria-checked={mode === m}
-                onClick={() => setMode(m)}
-                className={cx("glass w-full rounded-3xl p-5 text-left", mode === m && "outline outline-2 outline-accent")}
-              >
-                <span className="block text-lg font-semibold">
-                  {mode === m ? "◉ " : "○ "}
-                  {label}
-                </span>
-                <span className="text-muted">{desc}</span>
-              </button>
-            ))}
+            <OptionTile
+              selected={mode === "normal"}
+              onClick={() => setMode("normal")}
+              icon="heart"
+              title="Sesión normal"
+              description="Alias, límites y progreso se guardan solo en este dispositivo para continuar después."
+            />
+            <OptionTile
+              selected={mode === "private"}
+              onClick={() => setMode("private")}
+              icon="lock"
+              title="Sesión privada"
+              description="Nada se guarda: al terminar o cerrar, todo se descarta."
+            />
           </div>
           <Notice>
             Guardar en el dispositivo no es un respaldo permanente: el navegador puede borrar datos locales. Cualquiera con acceso a este teléfono
             podría ver la app.
           </Notice>
-          <Button block onClick={() => go(1)}>
+          <Button block size="lg" onClick={() => go(1)}>
             Continuar
           </Button>
         </>
@@ -233,12 +227,19 @@ export function SetupWizard() {
           <Title sub={`${APP_NAME} funciona con exactamente 2 o 3 adultos que comparten este teléfono.`}>¿Cuántas personas juegan?</Title>
           <div className="grid grid-cols-2 gap-3">
             {[2, 3].map((n) => (
-              <Button key={n} variant={count === n ? "primary" : "secondary"} aria-pressed={count === n} className="min-h-20 text-2xl" onClick={() => setCount(n as 2 | 3)}>
+              <Button
+                key={n}
+                variant={count === n ? "primary" : "secondary"}
+                aria-pressed={count === n}
+                className="!min-h-32 flex-col rounded-[28px] font-display text-5xl italic"
+                onClick={() => setCount(n as 2 | 3)}
+              >
                 {n}
+                <span className="font-sans text-sm not-italic opacity-80">{n === 2 ? "en pareja" : "de a tres"}</span>
               </Button>
             ))}
           </div>
-          <Button block onClick={() => go(1)}>
+          <Button block size="lg" onClick={() => go(1)}>
             Continuar
           </Button>
         </>
@@ -255,7 +256,8 @@ export function SetupWizard() {
                     <ParticipantTag alias={`Persona ${i + 1}`} slot={i} />
                   </span>
                   <input
-                    className="min-h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-ink"
+                    className="min-h-12 w-full rounded-2xl border border-line bg-white/5 px-4 text-lg text-ink transition placeholder:text-faint focus:border-accent focus:bg-white/10 focus:outline-none"
+                    placeholder="Alias"
                     value={d.alias}
                     maxLength={40}
                     autoComplete="off"
@@ -299,13 +301,16 @@ export function SetupWizard() {
           <Title sub="Cada persona responde a solas qué acepta. Nadie ve ni puede cambiar la respuesta de otra persona.">¿Qué acepta cada persona?</Title>
           <div className="space-y-2">
             {people.map((p, i) => (
-              <div key={p.id} className="flex items-center justify-between rounded-2xl border border-line px-4 py-3">
+              <div key={p.id} className="glass flex items-center justify-between rounded-2xl px-4 py-3">
                 <ParticipantTag alias={p.alias} slot={i} />
-                <span className="text-sm text-muted">{active[i].limitsDone ? "Respondido" : "Pendiente"}</span>
+                <span className={active[i].limitsDone ? "flex items-center gap-1 text-sm font-semibold text-ok" : "text-sm text-faint"}>
+                  {active[i].limitsDone && <Icon name="check" className="size-4" />}
+                  {active[i].limitsDone ? "Respondido" : "Pendiente"}
+                </span>
               </div>
             ))}
           </div>
-          <Button block onClick={() => setEditing(true)}>
+          <Button block size="lg" icon="users" onClick={() => setEditing(true)}>
             Responder (pasando el teléfono)
           </Button>
           <Button variant="secondary" block disabled={!active.every((d) => d.limitsDone)} onClick={() => go(1)}>
@@ -359,24 +364,19 @@ export function SetupWizard() {
           <Title sub="Pueden bajar en cualquier momento. Subir requiere el acuerdo privado de todas las personas.">Intensidad inicial</Title>
           <div className="space-y-3" role="radiogroup" aria-label="Intensidad">
             {INTENSITIES.map((l) => (
-              <button
+              <OptionTile
                 key={l}
-                role="radio"
-                aria-checked={level === l}
-                data-level={l}
+                level={l}
+                selected={level === l}
                 onClick={() => setLevel(l)}
-                className={cx("glass w-full rounded-3xl p-5 text-left", level === l && "outline outline-2 outline-accent")}
-              >
-                <span className="block text-lg font-semibold text-accent">
-                  {level === l ? "◉ " : "○ "}
-                  {INTENSITY_LABEL[l]}
-                </span>
-                <span className="text-muted">{INTENSITY_DESCRIPTION[l]}</span>
-              </button>
+                icon={LEVEL_ICON[l]}
+                title={<span className="font-display text-2xl italic text-gradient">{INTENSITY_LABEL[l]}</span>}
+                description={INTENSITY_DESCRIPTION[l]}
+              />
             ))}
           </div>
           {level !== "leve" && <Notice>Esta intensidad se confirma en privado con cada persona antes de comenzar.</Notice>}
-          <Button block onClick={() => go(1)}>
+          <Button block size="lg" onClick={() => go(1)}>
             Continuar
           </Button>
         </>
@@ -387,12 +387,12 @@ export function SetupWizard() {
           <Title sub="Las pausas y las pantallas de consentimiento no consumen tiempo.">Duración</Title>
           <div className="grid grid-cols-3 gap-3">
             {DURATIONS.map((d) => (
-              <Button key={String(d)} variant={duration === d ? "primary" : "secondary"} aria-pressed={duration === d} onClick={() => setDuration(d)}>
+              <Button key={String(d)} variant={duration === d ? "primary" : "secondary"} aria-pressed={duration === d} className="!min-h-16 rounded-3xl" onClick={() => setDuration(d)}>
                 {d ? `${d} min` : "Sin límite"}
               </Button>
             ))}
           </div>
-          <Button block onClick={() => go(1)}>
+          <Button block size="lg" onClick={() => go(1)}>
             Continuar
           </Button>
         </>
@@ -401,14 +401,19 @@ export function SetupWizard() {
       {step === "games" && (
         <>
           <Title sub="Elijan uno o varios. Las cartas siempre respetan los límites.">Juegos</Title>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {GAMES.map((g) => {
               const selected = games.includes(g);
               const ok = availability[g] !== false;
               return (
-                <button
+                <OptionTile
                   key={g}
-                  aria-pressed={selected}
+                  role="button"
+                  selected={selected}
+                  icon={GAME_ICON[g]}
+                  title={GAME_LABEL[g]}
+                  description={GAME_DESCRIPTION[g]}
+                  badge={!ok ? <span className="text-xs text-warn">Sin cartas con sus límites</span> : undefined}
                   onClick={() =>
                     setGames((gs) => {
                       if (gs.includes(g)) return gs.filter((x) => x !== g);
@@ -416,17 +421,7 @@ export function SetupWizard() {
                       return [...gs.filter((x) => x !== "noche"), g];
                     })
                   }
-                  className={cx("glass w-full rounded-2xl p-4 text-left", selected && "outline outline-2 outline-accent")}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="font-semibold">
-                      {selected ? "✓ " : ""}
-                      {GAME_LABEL[g]}
-                    </span>
-                    {!ok && <span className="text-xs text-warn">Sin actividades con sus límites</span>}
-                  </span>
-                  <span className="text-sm text-muted">{GAME_DESCRIPTION[g]}</span>
-                </button>
+                />
               );
             })}
           </div>
@@ -454,8 +449,8 @@ export function SetupWizard() {
         <>
           <Title sub="Sin detalles privados.">Resumen</Title>
           {rejected && <Notice tone="warn">No todas las personas aceptaron esta configuración. Pueden revisarla y volver a intentarlo.</Notice>}
-          <Card>
-            <dl className="grid grid-cols-2 gap-y-2">
+          <Card glow>
+            <dl className="grid grid-cols-2 gap-y-3">
               <dt className="text-muted">Personas</dt>
               <dd>{count}</dd>
               <dt className="text-muted">Guardado</dt>
@@ -471,6 +466,9 @@ export function SetupWizard() {
           {games.some((g) => availability[g] === false) && <Notice tone="warn">Algún juego no tiene actividades compatibles con sus límites; se usarán los demás.</Notice>}
           <Button
             block
+            size="xl"
+            icon="flame"
+            className="pulse-glow"
             onClick={() => {
               setRejected(false);
               setStep("consent");

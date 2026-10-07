@@ -7,7 +7,8 @@ import type { SessionState, Turn } from "@/domain/models/session";
 import { timerRemaining } from "@/domain/state/session";
 import { activityPermissions } from "@/domain/consent/limits";
 import { useSession } from "@/stores/session";
-import { Button, Card, ParticipantTag, cx } from "@/components/ui";
+import { Button, Card, Icon, ParticipantTag, cx } from "@/components/ui";
+import { GAME_ICON } from "@/components/ui/visuals";
 import type { Person } from "@/features/session/PrivateRound";
 
 export function peopleOf(s: SessionState, ids?: readonly string[]): Person[] {
@@ -64,25 +65,21 @@ export function ActivityCard({
     headingRef.current?.focus();
   }, [turn.id]);
   return (
-    <Card className="space-y-4 animate-in" >
-      <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-faint">
-        <span>{GAME_LABEL[turn.game]}</span>
-        <span aria-hidden>·</span>
-        <span>{CATEGORY_LABEL[activity.categoria]}</span>
-        <span aria-hidden>·</span>
-        <span className="text-accent">{INTENSITY_LABEL[activity.intensidad]}</span>
-        {turn.chainStage !== undefined && (
-          <>
-            <span aria-hidden>·</span>
-            <span>Etapa {turn.chainStage + 1} de 3</span>
-          </>
-        )}
+    <Card glow className="space-y-5 py-6 animate-deal">
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent to-accent-2 px-3 py-1 text-accent-ink">
+          <Icon name={GAME_ICON[turn.game]} className="size-3.5" />
+          {GAME_LABEL[turn.game]}
+        </span>
+        <span className="rounded-full border border-line px-3 py-1 text-muted">{CATEGORY_LABEL[activity.categoria]}</span>
+        <span className="text-gradient">{INTENSITY_LABEL[activity.intensidad]}</span>
+        {turn.chainStage !== undefined && <span className="text-muted">Etapa {turn.chainStage + 1} de 3</span>}
       </div>
-      <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold leading-snug">
+      <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold italic leading-tight">
         <RoleText text={activity.titulo} session={session} turn={turn} />
       </h2>
       {!hideText && (
-        <p className="text-xl leading-relaxed" data-testid="activity-text">
+        <p className="text-[1.375rem] leading-relaxed text-ink" data-testid="activity-text">
           <RoleText text={activity.texto} session={session} turn={turn} />
         </p>
       )}
@@ -100,9 +97,10 @@ export function ActivityCard({
         type="button"
         onClick={() => void toggleFavorite(activity.id)}
         aria-pressed={isFav}
-        className="min-h-11 text-sm text-muted underline-offset-4 hover:underline"
+        className={cx("inline-flex min-h-11 items-center gap-2 text-sm transition hover:text-ink", isFav ? "text-gold" : "text-muted")}
       >
-        {isFav ? "★ En favoritas" : "☆ Guardar en favoritas"}
+        <Icon name="star" className={cx("size-5 transition", isFav && "fill-current animate-pop")} />
+        {isFav ? "En favoritas" : "Guardar en favoritas"}
         {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
       </button>
     </Card>
@@ -118,9 +116,12 @@ function SafetyNotes({ activity }: { activity: Activity }) {
   if (perms.includes("beso_intenso") || perms.includes("caricias")) notes.push("Cualquiera puede parar en cualquier momento.");
   if (notes.length === 0) return null;
   return (
-    <ul className="space-y-1 rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm text-muted">
+    <ul className="space-y-1 rounded-2xl border border-line bg-white/5 px-4 py-3 text-sm text-muted">
       {notes.map((n) => (
-        <li key={n}>{n}</li>
+        <li key={n} className="flex gap-2">
+          <Icon name="shield" className="mt-0.5 size-4 shrink-0 text-accent" />
+          {n}
+        </li>
       ))}
     </ul>
   );
@@ -132,15 +133,15 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
   const pass = useSession((s) => s.pass);
   const change = useSession((s) => s.change);
   return (
-    <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-3 gap-2 rounded-t-3xl px-4 pt-3">
+    <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-[1fr_1fr_1.4fr] gap-2 rounded-t-[28px] px-4 pt-3">
       {extra}
-      <Button variant="secondary" onClick={pass}>
+      <Button variant="secondary" icon="skip" className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm" onClick={pass}>
         Pasar
       </Button>
-      <Button variant="secondary" onClick={change}>
+      <Button variant="secondary" icon="refresh" className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm" onClick={change}>
         Cambiar
       </Button>
-      <Button onClick={complete} disabled={!canComplete}>
+      <Button icon="check" size="lg" className="!min-h-14 pulse-glow" onClick={complete} disabled={!canComplete}>
         {completeLabel}
       </Button>
     </div>
@@ -205,7 +206,7 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
   const authorized = session.currentTurn?.authorized && session.status === "playing";
 
   return (
-    <div className="space-y-3 rounded-2xl border border-line p-4">
+    <div className="space-y-4 rounded-3xl border border-line bg-white/5 p-4">
       <p className="sr-only" aria-live="polite">
         {announce}
       </p>
@@ -219,36 +220,62 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
                   role="radio"
                   aria-checked={choice === c}
                   onClick={() => setChoice(c)}
-                  className={cx("min-h-11 rounded-full border px-4", choice === c ? "border-accent bg-accent text-accent-ink" : "border-line")}
+                  className={cx(
+                    "min-h-11 rounded-full border px-4 transition active:scale-95",
+                    choice === c ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink" : "border-line hover:bg-white/10",
+                  )}
                 >
                   {fmt(c * 1000)}
                 </button>
               ))}
             </div>
           )}
-          <Button block variant="secondary" disabled={!authorized} onClick={() => setPrep(3)}>
+          <Button block variant="secondary" icon="timer" disabled={!authorized} onClick={() => setPrep(3)}>
             Comenzar reloj ({fmt(choice * 1000)})
           </Button>
         </>
       )}
       {prep !== null && (
-        <p className="text-center text-4xl font-bold" aria-hidden>
-          Preparados… {prep}
+        <p className="text-center font-display text-5xl italic text-gradient animate-pop" key={prep} aria-hidden>
+          {prep}
         </p>
       )}
       {timer && (
         <div className="space-y-2 text-center">
-          <p className={cx("text-5xl font-bold tabular-nums", remaining <= 0 && "text-faint")} aria-hidden>
-            {fmt(remaining)}
-          </p>
+          <div className="relative mx-auto size-40" aria-hidden>
+            <svg viewBox="0 0 100 100" className="size-40 -rotate-90">
+              <defs>
+                <linearGradient id="timer-g" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stopColor="var(--accent)" />
+                  <stop offset="1" stopColor="var(--accent-2)" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="url(#timer-g)"
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 44}
+                strokeDashoffset={2 * Math.PI * 44 * (1 - Math.max(0, remaining) / timer.durationMs)}
+                style={{ transition: "stroke-dashoffset 250ms linear", filter: "drop-shadow(0 0 6px var(--glow))" }}
+              />
+            </svg>
+            <span className={cx("absolute inset-0 flex items-center justify-center text-4xl font-semibold tabular-nums", remaining <= 0 && "text-faint")}>
+              {fmt(remaining)}
+            </span>
+          </div>
           {remaining <= 0 ? (
             <p className="text-muted">Tiempo terminado. Pueden marcar Cumplido o Pasar; no hay obligación de seguir.</p>
           ) : timer.running ? (
-            <Button variant="secondary" onClick={pauseTimer}>
+            <Button variant="secondary" icon="pause" onClick={pauseTimer}>
               Pausar reloj
             </Button>
           ) : (
-            <Button variant="secondary" onClick={resumeTimer}>
+            <Button variant="secondary" icon="play" onClick={resumeTimer}>
               Reanudar reloj
             </Button>
           )}

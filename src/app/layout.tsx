@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import "@fontsource-variable/outfit/index.css";
+import "@fontsource-variable/playfair-display/wght-italic.css";
+import "@fontsource-variable/playfair-display/index.css";
 import "./globals.css";
 import { Providers } from "@/features/session/Providers";
 import { APP_NAME, APP_SUBTITLE } from "@/domain/models/constants";
@@ -23,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0B12",
+  themeColor: "#0A0510",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

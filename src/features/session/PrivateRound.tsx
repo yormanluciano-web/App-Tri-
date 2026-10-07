@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Button, Card, ParticipantTag } from "@/components/ui";
+import { Avatar, Button, Card, Icon, ParticipantTag } from "@/components/ui";
 
 export interface Person {
   id: string;
@@ -63,16 +63,17 @@ export function PrivateRound<T>({
 
   if (phase.kind === "handoff") {
     return (
-      <Card className="space-y-4 text-center animate-in">
-        <p className="text-sm uppercase tracking-widest text-faint">{title}</p>
-        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold">
+      <Card glow className="space-y-5 py-8 text-center animate-deal">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">{title}</p>
+        <Avatar alias={person.alias} slot={person.slot} />
+        <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold">
           Entrega el teléfono a <ParticipantTag alias={person.alias} slot={person.slot} />
         </h2>
         <p className="text-muted">Las demás personas no deben mirar la pantalla. Nadie verá tu respuesta.</p>
         <p className="text-sm text-faint">
           Persona {phase.index + 1} de {people.length}
         </p>
-        <Button block onClick={() => setPhase({ kind: "private", index: phase.index })}>
+        <Button block size="lg" icon="eye" onClick={() => setPhase({ kind: "private", index: phase.index })}>
           Soy {person.alias}, continuar
         </Button>
         {onCancel && (
@@ -96,12 +97,15 @@ export function PrivateRound<T>({
   }
 
   return (
-    <Card className="space-y-4 text-center animate-in">
-      <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold">
+    <Card className="space-y-5 py-8 text-center animate-deal">
+      <span aria-hidden className="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-accent-ink shadow-[0_0_30px_var(--glow)]">
+        <Icon name="lock" className="size-7" />
+      </span>
+      <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold">
         Gracias
       </h2>
       <p className="text-muted">Tu respuesta quedó guardada en privado.</p>
-      <Button block onClick={next}>
+      <Button block size="lg" onClick={next}>
         {phase.index + 1 < people.length ? "Ocultar y pasar el teléfono" : "Ocultar y ver el resultado"}
       </Button>
     </Card>
@@ -130,18 +134,18 @@ export function ConsentRound({
       title={title}
       onCancel={onCancel}
       renderPrivate={(p, submit) => (
-        <Card className="space-y-4">
+        <Card glow className="space-y-4">
           <p className="text-sm text-faint">
             Respuesta privada de <ParticipantTag alias={p.alias} slot={p.slot} />
           </p>
-          <div className="text-xl font-semibold">{question}</div>
+          <div className="font-display text-2xl font-semibold">{question}</div>
           {detail && <div className="text-muted">{detail}</div>}
           <p className="text-sm text-muted">Puedes decir que no sin dar explicaciones. Nadie sabrá qué respondiste.</p>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" onClick={() => submit(false)}>
+            <Button variant="secondary" size="lg" icon="x" onClick={() => submit(false)}>
               No
             </Button>
-            <Button variant="secondary" onClick={() => submit(true)}>
+            <Button variant="secondary" size="lg" icon="check" onClick={() => submit(true)}>
               Sí
             </Button>
           </div>

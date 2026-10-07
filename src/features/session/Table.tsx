@@ -17,7 +17,8 @@ import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression
 import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
-import { Button, Card, Chip, Dialog, LinkButton, Notice, Screen, Title } from "@/components/ui";
+import { Button, Card, Chip, Dialog, Icon, LinkButton, Logo, Notice, Screen, Title, cx, type IconName } from "@/components/ui";
+import { LEVEL_ICON } from "@/components/ui/visuals";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
 import { peopleOf, RoleText, useNow } from "@/features/games/common";
@@ -40,27 +41,65 @@ function TopBar({ session }: { session: SessionState }) {
   const now = useNow();
   const liveActive = session.lastTickAt !== null ? session.activeMs + Math.max(0, now - session.lastTickAt) : session.activeMs;
   const remaining = remainingMs(session.config.durationMin, liveActive);
+  const total = session.config.durationMin ? session.config.durationMin * 60_000 : null;
   const isNight = session.config.games.includes("noche");
   return (
-    <header className="glass sticky top-0 z-20 -mx-4 flex items-center justify-between gap-2 rounded-b-3xl px-4 py-2 safe-top">
-      <div className="min-w-0 text-sm">
-        <p className="font-semibold text-accent">{INTENSITY_LABEL[session.level]}</p>
-        <p className="truncate text-faint">
-          {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
-          {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
-        </p>
-      </div>
-      <div className="flex shrink-0 gap-2">
-        {session.status !== "paused" && (
-          <Button variant="secondary" onClick={pause}>
-            Pausa
+    <header className="glass sticky top-0 z-20 -mx-4 space-y-2 rounded-b-[28px] px-4 pb-3 safe-top">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent-2 text-accent-ink shadow-[0_0_20px_var(--glow)]">
+            <Icon name={LEVEL_ICON[session.level]} className="size-5" />
+          </span>
+          <div className="min-w-0 leading-tight">
+            <p className="font-display text-lg font-semibold italic text-gradient">{INTENSITY_LABEL[session.level]}</p>
+            <p className="truncate text-xs text-muted">
+              {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
+              {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {session.status !== "paused" && (
+            <Button variant="secondary" icon="pause" className="!min-h-11 !px-3 !text-sm" onClick={pause}>
+              Pausa
+            </Button>
+          )}
+          <Button variant="danger" icon="stop" className="!min-h-11 !px-3 !text-sm" onClick={stop}>
+            Detener
           </Button>
-        )}
-        <Button variant="danger" onClick={stop}>
-          Detener
-        </Button>
+        </div>
       </div>
+      {total && remaining !== null && (
+        <div className="h-1 overflow-hidden rounded-full bg-white/10" aria-hidden>
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2 shadow-[0_0_10px_var(--glow)] transition-[width] duration-1000"
+            style={{ width: `${Math.max(0, Math.min(100, 100 - (remaining / total) * 100))}%` }}
+          />
+        </div>
+      )}
     </header>
+  );
+}
+
+/** Botón grande tipo carta para lanzar una ronda. */
+function BigDraw({ label, hint, icon, onClick, className }: { label: string; hint?: string; icon: IconName; onClick: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cx(
+        "btn-primary group relative flex min-h-40 w-full flex-col items-center justify-center gap-2 rounded-[28px] p-5 text-center transition duration-200 active:scale-[0.97]",
+        className,
+      )}
+    >
+      <Icon name={icon} className="size-10 transition duration-300 group-hover:scale-110 group-hover:rotate-6" />
+      <span className="font-display text-3xl font-semibold italic">{label}</span>
+      {hint && (
+        <span aria-hidden className="text-sm opacity-80">
+          {hint}
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -75,13 +114,12 @@ function Launcher({ session }: { session: SessionState }) {
   const effective: GameId = onlySurprise ? "tarjetas" : game;
 
   if (meta) {
+    const night = session.config.games.includes("noche");
     return (
-      <Card className="space-y-3 text-center">
-        <p className="text-muted">{session.config.games.includes("noche") ? "La noche elige el juego de cada ronda." : "Caos elige juego, persona y carta sin patrón fijo."}</p>
-        <Button block onClick={() => draw()}>
-          Siguiente ronda
-        </Button>
-      </Card>
+      <div className="flex flex-1 flex-col justify-center gap-4 animate-in">
+        <p className="text-center text-muted">{night ? "La noche elige el juego de cada ronda." : "Caos elige juego, persona y carta sin patrón fijo."}</p>
+        <BigDraw label="Siguiente ronda" hint={night ? "Noche completa" : "Caos"} icon={night ? "moon" : "shuffle"} onClick={() => draw()} className="pulse-glow" />
+      </div>
     );
   }
 
@@ -90,21 +128,17 @@ function Launcher({ session }: { session: SessionState }) {
       case "verdad_reto":
         return (
           <div className="grid grid-cols-2 gap-3">
-            <Button className="min-h-20 text-xl" onClick={() => draw({ game: "verdad_reto", formats: ["pregunta"] })}>
-              Verdad
-            </Button>
-            <Button className="min-h-20 text-xl" onClick={() => draw({ game: "verdad_reto", formats: ["reto"] })}>
-              Reto
-            </Button>
+            <BigDraw label="Verdad" hint="Pregunta" icon="eye" onClick={() => draw({ game: "verdad_reto", formats: ["pregunta"] })} />
+            <BigDraw label="Reto" hint="Desafío" icon="flame" onClick={() => draw({ game: "verdad_reto", formats: ["reto"] })} />
           </div>
         );
       case "ruleta":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "ruleta" })}>Girar la ruleta</Button>;
+        return <BigDraw label="Girar la ruleta" icon="wheel" onClick={() => draw({ game: "ruleta" })} className="pulse-glow" />;
       case "dados":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "dados" })}>Lanzar los dados</Button>;
+        return <BigDraw label="Lanzar los dados" icon="dice" onClick={() => draw({ game: "dados" })} className="pulse-glow" />;
       case "tarjetas":
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-sm text-muted">Filtrar por categoría (opcional):</p>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.filter((c) => c !== "sorpresa" && c !== "secretos").map((c) => (
@@ -113,20 +147,27 @@ function Launcher({ session }: { session: SessionState }) {
                 </Chip>
               ))}
             </div>
-            <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "tarjetas", categories: cats, strictGame: cats.length > 0 })}>
-              Sacar carta
-            </Button>
+            <BigDraw label="Sacar carta" icon="cards" onClick={() => draw({ game: "tarjetas", categories: cats, strictGame: cats.length > 0 })} className="pulse-glow" />
           </div>
         );
       case "temporizador":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "temporizador" })}>Siguiente reto con reloj</Button>;
+        return <BigDraw label="Siguiente reto con reloj" icon="timer" onClick={() => draw({ game: "temporizador" })} className="pulse-glow" />;
       case "cadena":
         return (
           <div className="space-y-3">
-            <p className="text-center text-muted">{session.chain ? `Etapa ${session.chain.stage + 1} de 3` : "Tres etapas progresivas. Cada una se valida y se puede pasar."}</p>
-            <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "cadena" })}>
-              {session.chain ? "Siguiente etapa" : "Empezar cadena"}
-            </Button>
+            <div className="flex items-center justify-center gap-2" aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className={cx(
+                    "h-2 w-10 rounded-full transition",
+                    session.chain && i < session.chain.stage ? "bg-gradient-to-r from-accent to-accent-2" : session.chain && i === session.chain.stage ? "bg-accent/60" : "bg-white/10",
+                  )}
+                />
+              ))}
+            </div>
+            <p className="text-center text-muted">{session.chain ? `Etapa ${session.chain.stage + 1} de 3` : "Tres etapas progresivas. Cada una se puede pasar."}</p>
+            <BigDraw label={session.chain ? "Siguiente etapa" : "Empezar cadena"} icon="chain" onClick={() => draw({ game: "cadena" })} className="pulse-glow" />
             {session.chain && (
               <Button variant="ghost" block onClick={exitChain}>
                 Salir de la cadena
@@ -135,18 +176,19 @@ function Launcher({ session }: { session: SessionState }) {
           </div>
         );
       default:
-        return <Button block onClick={() => draw()}>Siguiente</Button>;
+        return <BigDraw label="Siguiente" icon="sparkle" onClick={() => draw()} />;
     }
   })();
 
   return (
-    <Card className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold">{GAME_LABEL[effective]}</h2>
+    <div className="flex flex-1 flex-col justify-center gap-5 animate-in">
+      <div className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Tu turno</p>
+        <h2 className="text-3xl font-semibold italic">{GAME_LABEL[effective]}</h2>
         <p className="text-sm text-muted">{GAME_DESCRIPTION[effective]}</p>
       </div>
       {body}
-    </Card>
+    </div>
   );
 }
 
@@ -172,16 +214,16 @@ function ActivityConsent({ session }: { session: SessionState }) {
   const askees = peopleOf(session, turn.consentAskees);
   if (!asking) {
     return (
-      <Card className="space-y-4">
-        <p className="text-sm uppercase tracking-widest text-faint">Antes de empezar</p>
-        <h2 className="text-2xl font-bold">
+      <Card glow className="space-y-4 animate-deal">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Antes de empezar</p>
+        <h2 className="text-3xl font-semibold italic">
           <RoleText text={activity.titulo} session={session} turn={turn} />
         </h2>
         <p className="text-lg">
           <RoleText text={activity.texto} session={session} turn={turn} />
         </p>
         <p className="text-muted">Esta actividad necesita la autorización privada de las personas implicadas. Solo empieza si todas dicen que sí.</p>
-        <Button block onClick={() => setAsking(true)}>
+        <Button block size="lg" icon="lock" onClick={() => setAsking(true)}>
           Preguntar en privado
         </Button>
         <Button variant="ghost" block onClick={change}>
@@ -209,13 +251,16 @@ function LevelConsent({ session }: { session: SessionState }) {
   if (!target) return null;
   if (!asking) {
     return (
-      <Card className="space-y-4 text-center">
-        <h2 className="text-2xl font-bold">¿Todos quieren subir la intensidad?</h2>
+      <Card glow className="space-y-4 py-8 text-center animate-deal">
+        <span aria-hidden className="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-accent-ink shadow-[0_0_30px_var(--glow)] animate-heartbeat">
+          <Icon name="flame" className="size-8" />
+        </span>
+        <h2 className="text-3xl font-semibold">¿Todos quieren subir la intensidad?</h2>
         <p className="text-muted">
           De {INTENSITY_LABEL[session.level]} a {INTENSITY_LABEL[target]}. Cada persona responde en privado; si alguien no quiere, se mantiene el nivel actual y nadie
           sabrá quién fue.
         </p>
-        <Button block onClick={() => setAsking(true)}>
+        <Button block size="lg" icon="lock" onClick={() => setAsking(true)}>
           Empezar ronda privada
         </Button>
         <Button variant="ghost" block onClick={() => levelUpResult(false)}>
@@ -313,13 +358,16 @@ function PausePanel({ session, onFinish }: { session: SessionState; onFinish: ()
 
   if (session.stopped && view === "main") {
     return (
-      <Card className="space-y-4 text-center" >
-        <h2 className="text-2xl font-bold">Actividad detenida</h2>
+      <Card glow className="space-y-4 py-8 text-center animate-deal">
+        <span aria-hidden className="mx-auto flex size-16 items-center justify-center rounded-full bg-white/10 text-accent">
+          <Icon name="stop" className="size-7" />
+        </span>
+        <h2 className="text-3xl font-semibold">Actividad detenida</h2>
         <p className="text-muted">Todo está en pausa. Pueden terminar la sesión o volver a la pausa.</p>
-        <Button variant="danger" block onClick={onFinish}>
+        <Button variant="danger" size="lg" icon="x" block onClick={onFinish}>
           Terminar sesión
         </Button>
-        <Button variant="secondary" block onClick={dismissStop}>
+        <Button variant="secondary" size="lg" icon="pause" block onClick={dismissStop}>
           Volver a la pausa
         </Button>
       </Card>
@@ -328,8 +376,8 @@ function PausePanel({ session, onFinish }: { session: SessionState; onFinish: ()
   if (view === "limits") return <LimitsReview session={session} onDone={() => setView("main")} />;
   if (view === "games") {
     return (
-      <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Cambiar juego</h2>
+      <Card className="space-y-3 animate-deal">
+        <h2 className="text-2xl font-semibold">Cambiar juego</h2>
         {games.map((g) => (
           <Button
             key={g}
@@ -350,29 +398,34 @@ function PausePanel({ session, onFinish }: { session: SessionState; onFinish: ()
     );
   }
   return (
-    <Card className="space-y-3">
-      <h2 className="text-2xl font-bold">Pausa</h2>
+    <Card glow className="space-y-3 animate-deal">
+      <div className="flex items-center gap-3">
+        <span aria-hidden className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-accent">
+          <Icon name="pause" className="size-6" />
+        </span>
+        <h2 className="text-3xl font-semibold">Pausa</h2>
+      </div>
       <p className="text-muted">El contenido está oculto y el reloj congelado.</p>
       {session.notice && <Notice>{session.notice}</Notice>}
-      <Button block onClick={resume}>
+      <Button block size="lg" icon="play" className="pulse-glow" onClick={resume}>
         Continuar
       </Button>
       {lowerLevels(session.level).map((l) => (
-        <Button key={l} variant="secondary" block onClick={() => lower(l)}>
+        <Button key={l} variant="secondary" icon="arrowDown" block onClick={() => lower(l)}>
           Bajar a {INTENSITY_LABEL[l]}
         </Button>
       ))}
       {nextLevel(session.level) && (
-        <Button variant="secondary" block onClick={requestLevelUp}>
+        <Button variant="secondary" icon="arrowUp" block onClick={requestLevelUp}>
           Proponer subir intensidad
         </Button>
       )}
       {games.length > 1 && !session.config.games.includes("noche") && !session.config.games.includes("caos") && (
-        <Button variant="secondary" block onClick={() => setView("games")}>
+        <Button variant="secondary" icon="shuffle" block onClick={() => setView("games")}>
           Cambiar juego
         </Button>
       )}
-      <Button variant="secondary" block onClick={() => setView("limits")}>
+      <Button variant="secondary" icon="shield" block onClick={() => setView("limits")}>
         Revisar límites
       </Button>
       {updateReady && (
@@ -380,7 +433,7 @@ function PausePanel({ session, onFinish }: { session: SessionState; onFinish: ()
           Hay una actualización: aplicar ahora
         </Button>
       )}
-      <Button variant="danger" block onClick={onFinish}>
+      <Button variant="danger" icon="x" block onClick={onFinish}>
         Terminar sesión
       </Button>
     </Card>
@@ -394,8 +447,8 @@ function Blocked({ session }: { session: SessionState }) {
   const pause = useSession((s) => s.pause);
   const exhausted = session.notice?.startsWith("Ya se mostraron");
   return (
-    <Card className="space-y-3">
-      <h2 className="text-xl font-bold">Sin actividades disponibles</h2>
+    <Card glow className="space-y-3 animate-deal">
+      <h2 className="text-2xl font-semibold">Sin actividades disponibles</h2>
       <p className="text-muted">
         {session.notice} Nunca ampliamos permisos para conseguir más cartas.
       </p>
@@ -435,23 +488,30 @@ function Closing({ session }: { session: SessionState }) {
   const updateReady = useSession((s) => s.updateReady);
   const completed = Object.values(session.stats.completed).reduce((a, b) => a + b, 0);
   return (
-    <Screen className="justify-center">
+    <Screen level={session.level} className="justify-center text-center">
+      <div className="relative mx-auto size-28">
+        <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
+        <Logo className="relative size-28 animate-float" />
+      </div>
       <Title sub={session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
       {show ? (
-        <Card>
-          <dl className="grid grid-cols-2 gap-y-2">
-            <dt className="text-muted">Rondas</dt>
-            <dd>{session.turnCounter}</dd>
-            <dt className="text-muted">Actividades cumplidas (participaciones)</dt>
-            <dd>{completed}</dd>
-            <dt className="text-muted">Intensidad final</dt>
-            <dd>{INTENSITY_LABEL[session.level]}</dd>
-            <dt className="text-muted">Tiempo activo</dt>
-            <dd>{Math.round(session.activeMs / 60_000)} min</dd>
+        <Card glow className="animate-deal">
+          <dl className="grid grid-cols-2 gap-4">
+            {[
+              ["Rondas", session.turnCounter],
+              ["Cumplidas", completed],
+              ["Intensidad", INTENSITY_LABEL[session.level]],
+              ["Minutos", Math.round(session.activeMs / 60_000)],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-2xl bg-white/5 p-3">
+                <dt className="text-xs uppercase tracking-widest text-muted">{label}</dt>
+                <dd className="font-display text-3xl font-semibold italic text-gradient">{value}</dd>
+              </div>
+            ))}
           </dl>
         </Card>
       ) : (
-        <Button variant="secondary" onClick={() => setShow(true)}>
+        <Button variant="secondary" icon="sparkle" onClick={() => setShow(true)}>
           Ver resumen (sin detalles privados)
         </Button>
       )}
@@ -460,7 +520,9 @@ function Closing({ session }: { session: SessionState }) {
           Aplicar actualización
         </Button>
       )}
-      <Button onClick={() => router.push("/crear/")}>Nueva sesión</Button>
+      <Button size="lg" icon="flame" className="pulse-glow" onClick={() => router.push("/crear/")}>
+        Nueva sesión
+      </Button>
       <LinkButton href="/" variant="ghost">
         Salir
       </LinkButton>
@@ -545,11 +607,12 @@ export function Table() {
       break;
     case "selecting":
       body = (
-        <Card className="text-center">
-          <p className="text-lg" role="status">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+          <Icon name="cards" className="size-12 text-accent animate-float" />
+          <p className="font-display text-2xl italic" role="status">
             {session.notice ?? "Eligiendo otra actividad…"}
           </p>
-        </Card>
+        </div>
       );
       break;
     case "playing":
@@ -568,8 +631,8 @@ export function Table() {
             </Notice>
           )}
           {timeUp ? (
-            <Card className="space-y-3 text-center">
-              <h2 className="text-xl font-bold">Se cumplió el tiempo previsto</h2>
+            <Card glow className="space-y-3 text-center animate-deal">
+              <h2 className="text-2xl font-semibold">Se cumplió el tiempo previsto</h2>
               <p className="text-muted">Pueden cerrar aquí o seguir un poco más, sin presión.</p>
               <Button block onClick={onFinish}>
                 Terminar sesión

@@ -16,7 +16,7 @@ import {
 } from "@/domain/models/constants";
 import type { LimitProfile, Preferences } from "@/domain/models/session";
 import { normalizeLight, safeBasePermissions } from "@/domain/consent/limits";
-import { Button, Card, Chip, ParticipantTag, cx } from "@/components/ui";
+import { Button, Card, Chip, OptionTile, ParticipantTag, cx, type IconName } from "@/components/ui";
 import type { Person } from "@/features/session/PrivateRound";
 
 const ICON: Record<Light, string> = { green: "✓", yellow: "?", red: "✕" };
@@ -79,14 +79,15 @@ export function PermissionRow({
   );
 }
 
-const MODES: { mode: AcceptMode; title: string; desc: string }[] = [
+const MODES: { mode: AcceptMode; title: string; desc: string; icon: IconName }[] = [
   {
     mode: "todo",
     title: "Acepto todo",
     desc: "Cualquier carta puede aparecer sin volver a preguntarte. Igual puedes pasar cuando quieras.",
+    icon: "flame",
   },
-  { mode: "parcial", title: "Acepto parcialmente", desc: "Eliges qué sí y qué no, por temas." },
-  { mode: "nada", title: "No acepto", desc: "Solo charla ligera, música, adivinanzas y baile sin contacto." },
+  { mode: "parcial", title: "Acepto parcialmente", desc: "Eliges qué sí y qué no, por temas.", icon: "sparkle" },
+  { mode: "nada", title: "No acepto", desc: "Solo charla ligera, música, adivinanzas y baile sin contacto.", icon: "lock" },
 ];
 
 /** Botones Acepto / No acepto de un tema. */
@@ -203,21 +204,9 @@ export function LimitsEditor({
           ¿Qué aceptas, <ParticipantTag alias={person.alias} slot={person.slot} />?
         </h2>
         <p className="text-sm text-muted">Nadie verá tu respuesta. Puedes cambiarla durante el juego desde Pausa.</p>
-        <div className="space-y-2" role="radiogroup" aria-label="Qué aceptas">
+        <div className="space-y-3" role="radiogroup" aria-label="Qué aceptas">
           {MODES.map((m) => (
-            <button
-              key={m.mode}
-              role="radio"
-              aria-checked={mode === m.mode}
-              onClick={() => choose(m.mode)}
-              className={cx("w-full rounded-2xl border p-4 text-left", mode === m.mode ? "border-accent bg-surface-2" : "border-line")}
-            >
-              <span className="block font-semibold">
-                {mode === m.mode ? "◉ " : "○ "}
-                {m.title}
-              </span>
-              <span className="text-sm text-muted">{m.desc}</span>
-            </button>
+            <OptionTile key={m.mode} selected={mode === m.mode} onClick={() => choose(m.mode)} icon={m.icon} title={m.title} description={m.desc} />
           ))}
         </div>
       </Card>
