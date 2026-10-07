@@ -29,7 +29,6 @@ const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   tarjetas: ["pregunta", "reto"],
   temporizador: ["pregunta", "reto"],
   cadena: ["pregunta", "reto"],
-  mas_probable: ["votacion"],
   quien_conoce: ["conocimiento"],
   secretos: ["secreto"],
   sorpresa: ["sorpresa"],
@@ -132,7 +131,6 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     if (a.gameModes.includes("temporizador") && !a.duracion) err(a.id, "temporizador requiere duración");
 
     // Reglas por formato.
-    if (a.formato === "votacion" && (a.tipoInteraccion !== "group" || a.roles.length > 0)) err(a.id, "votación debe ser grupal sin roles");
     if (a.formato === "conocimiento" && (a.tipoInteraccion !== "group" || a.roles.join() !== "p1")) err(a.id, "conocimiento debe ser grupal con referencia {p1}");
     if (a.formato === "secreto") {
       if (a.tipoInteraccion !== "group" || a.roles.length > 0) err(a.id, "secreto debe ser grupal sin roles");
@@ -160,10 +158,8 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     const allPerms = activityPermissions(a);
     if (allPerms.includes("quitarse_prenda") && (a.audienceScope !== "sesion" || !r.audiencia.includes("quitarse_prenda")))
       err(a.id, "quitarse_prenda requiere audienceScope «sesion» y el permiso en audiencia");
-    // Tiempo a solas: siempre por pareja y con confirmación explícita.
-    if (allPerms.includes("tiempo_a_solas") && (!r.pareja.includes("tiempo_a_solas") || !a.requiereConfirmacion))
-      err(a.id, "tiempo_a_solas requiere permiso en «pareja» y requiereConfirmacion");
-    if (r.pareja.includes("beso_intenso") && !a.requiereConfirmacion) err(a.id, "beso_intenso requiere requiereConfirmacion");
+    // Tiempo a solas: siempre como permiso por pareja.
+    if (allPerms.includes("tiempo_a_solas") && !r.pareja.includes("tiempo_a_solas")) err(a.id, "tiempo_a_solas requiere permiso en «pareja»");
     if (activityPermissions(a).length === 0) err(a.id, "actividad sin permisos declarados");
 
     const norm = normalizeText(a.texto);
@@ -195,20 +191,20 @@ export const EDITORIAL_FAMILIES = [
   "Dinámicas de dos y tres",
   "Elecciones",
   "Confesiones y secretos",
-  "Conocimiento y más probable",
+  "Quién me conoce",
   "Sorpresas",
 ] as const;
 
 /** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
-  leve: [80, 60, 35, 30, 30, 20, 15, 20, 10],
-  picante: [80, 90, 40, 40, 80, 35, 40, 25, 20],
-  perverso: [60, 100, 30, 30, 90, 40, 55, 25, 20],
+  leve: [80, 60, 35, 30, 30, 20, 15, 10, 10],
+  picante: [80, 90, 40, 40, 80, 35, 40, 12, 20],
+  perverso: [60, 100, 30, 30, 90, 40, 55, 12, 20],
 };
 
 /** Familia editorial de una actividad: cada carta cuenta una sola vez. */
 export function editorialFamily(a: Activity): (typeof EDITORIAL_FAMILIES)[number] {
-  if (a.formato === "votacion" || a.formato === "conocimiento") return "Conocimiento y más probable";
+  if (a.formato === "conocimiento") return "Quién me conoce";
   if (a.formato === "sorpresa") return "Sorpresas";
   if (a.formato === "secreto") return "Confesiones y secretos";
   switch (a.categoria) {

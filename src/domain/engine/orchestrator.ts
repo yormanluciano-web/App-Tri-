@@ -21,7 +21,6 @@ export const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   tarjetas: ["pregunta", "reto"],
   temporizador: ["pregunta", "reto"],
   cadena: ["pregunta", "reto"],
-  mas_probable: ["votacion"],
   quien_conoce: ["conocimiento"],
   secretos: ["secreto"],
   sorpresa: ["sorpresa"],
@@ -39,8 +38,8 @@ export function nightPhase(activeMs: number): NightPhase {
   return "cierre";
 }
 
-const OPENING_GAMES: readonly GameId[] = ["verdad_reto", "tarjetas", "mas_probable", "quien_conoce"];
-const CLOSING_GAMES: readonly GameId[] = ["tarjetas", "quien_conoce", "mas_probable", "temporizador"];
+const OPENING_GAMES: readonly GameId[] = ["verdad_reto", "tarjetas", "quien_conoce"];
+const CLOSING_GAMES: readonly GameId[] = ["tarjetas", "quien_conoce", "temporizador"];
 
 /** Juegos base habilitados en la sesión (para rotación, Caos y Noche completa). */
 export function enabledBaseGames(state: SessionState): GameId[] {

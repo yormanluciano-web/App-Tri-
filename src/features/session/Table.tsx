@@ -24,7 +24,6 @@ import { peopleOf, RoleText, useNow } from "@/features/games/common";
 import {
   DiceRound,
   KnowMeRound,
-  MostLikelyRound,
   RouletteRound,
   SecretsRound,
   StandardRound,
@@ -121,8 +120,6 @@ function Launcher({ session }: { session: SessionState }) {
             </Button>
           </div>
         );
-      case "mas_probable":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "mas_probable" })}>Nueva pregunta</Button>;
       case "quien_conoce":
         return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "quien_conoce" })}>Nueva ronda</Button>;
       case "secretos":
@@ -167,8 +164,6 @@ function Round({ session }: { session: SessionState }) {
   const props = { session, turn, activity };
   if (turn.game === "sorpresa") return <SurpriseRound key={turn.id} {...props} />;
   switch (activity.formato) {
-    case "votacion":
-      return <MostLikelyRound key={turn.id} {...props} />;
     case "conocimiento":
       return <KnowMeRound key={turn.id} {...props} />;
     case "secreto":

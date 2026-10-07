@@ -209,7 +209,6 @@ export const GAMES = [
   "ruleta",
   "dados",
   "tarjetas",
-  "mas_probable",
   "quien_conoce",
   "secretos",
   "temporizador",
@@ -225,7 +224,6 @@ export const GAME_LABEL: Record<GameId, string> = {
   ruleta: "Ruleta",
   dados: "Dados",
   tarjetas: "Tarjetas",
-  mas_probable: "¿Quién es más probable?",
   quien_conoce: "¿Quién me conoce mejor?",
   secretos: "Secretos",
   temporizador: "Temporizador",
@@ -240,7 +238,6 @@ export const GAME_DESCRIPTION: Record<GameId, string> = {
   ruleta: "La ruleta sortea una asignación válida y su actividad.",
   dados: "Dados de participante, actividad y duración, validados antes de rodar.",
   tarjetas: "Cartas con filtro por categoría. Guarda tus favoritas.",
-  mas_probable: "Una pregunta, un voto privado por persona y resultado agregado.",
   quien_conoce: "Una persona responde en privado; las demás intentan adivinar.",
   secretos: "Escriban respuestas anónimas, se mezclan y se leen al grupo.",
   temporizador: "Actividades con reloj de 30 s a 3 min. Pausar congela el tiempo.",
@@ -256,14 +253,13 @@ export const BASE_GAMES: readonly GameId[] = [
   "ruleta",
   "dados",
   "tarjetas",
-  "mas_probable",
   "quien_conoce",
   "secretos",
   "temporizador",
   "cadena",
 ];
 
-export const FORMATS = ["pregunta", "reto", "votacion", "conocimiento", "secreto", "sorpresa"] as const;
+export const FORMATS = ["pregunta", "reto", "conocimiento", "secreto", "sorpresa"] as const;
 export type Format = (typeof FORMATS)[number];
 
 export const INTERACTIONS = ["solo", "pair", "directed_pair", "group"] as const;

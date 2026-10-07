@@ -47,17 +47,6 @@ export const leveV2_05 = defineCards("leve", "l2", "base", [
   { id: "279", t: "Talento encantador", x: "¿Cuál dirá {p1} que es su talento más encantador?", c: "preguntas", f: "conocimiento", s: 12, req: ["adivinanzas"] },
   { id: "280", t: "Época para una cita", x: "¿En qué época de la historia le gustaría a {p1} tener una cita?", c: "eleccion", f: "conocimiento", s: 28, req: ["adivinanzas"] },
 
-  // ---------------------------------------------------------------- más probable
-  { id: "281", t: "Sonrojo", x: "¿Quién es más probable que se sonroje con un cumplido?", c: "rompehielo", f: "votacion", s: 3, req: ["conversacion_ligera"] },
-  { id: "282", t: "Conquista bailando", x: "¿Quién es más probable que conquiste a alguien en la pista de baile?", c: "baile", f: "votacion", s: 7, req: ["conversacion_ligera"] },
-  { id: "283", t: "Primer mensaje", x: "¿Quién es más probable que escriba primero después de una cita?", c: "preguntas", f: "votacion", s: 12, req: ["conversacion_ligera"] },
-  { id: "284", t: "Frase preparada", x: "¿Quién es más probable que tenga una frase de conquista preparada para cualquier ocasión?", c: "rompehielo", f: "votacion", s: 15, req: ["conversacion_ligera"], tags: ["risas"] },
-  { id: "285", t: "Coqueteo involuntario", x: "¿Quién es más probable que coquetee sin darse cuenta?", c: "preguntas", f: "votacion", s: 20, req: ["conversacion_ligera", "coqueteo"] },
-  { id: "286", t: "Cita sorpresa", x: "¿Quién es más probable que organice una cita sorpresa perfecta?", c: "conexion", f: "votacion", s: 5, req: ["conversacion_ligera"] },
-  { id: "287", t: "Canción en público", x: "¿Quién es más probable que dedique una canción romántica delante de todo el mundo?", c: "musica", f: "votacion", s: 9, req: ["conversacion_ligera"] },
-  { id: "288", t: "Duelo de miradas", x: "¿Quién es más probable que gane un duelo de miradas?", c: "rompehielo", f: "votacion", s: 17, req: ["conversacion_ligera"] },
-  { id: "289", t: "Amor de viaje", x: "¿Quién es más probable que se enamore durante un viaje?", c: "preguntas", f: "votacion", s: 24, req: ["conversacion_ligera", "preguntas_personales"] },
-  { id: "290", t: "Todas las miradas", x: "¿Quién es más probable que se robe todas las miradas al llegar a una fiesta?", c: "rompehielo", f: "votacion", s: 28, req: ["conversacion_ligera"] },
 
   // ---------------------------------------------------------------- sorpresas
   { id: "291", t: "Ronda de lo mejor", x: "Ronda para todos: cada persona dice en una frase qué le ha gustado más de esta noche.", c: "sorpresa", f: "sorpresa", s: 2, req: ["conversacion_ligera"], eff: "todos_participan" },

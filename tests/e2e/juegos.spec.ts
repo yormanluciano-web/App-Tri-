@@ -36,22 +36,6 @@ for (const size of [2, 3] as const) {
       }
     });
 
-    test("¿Quién es más probable?: votos privados, abstención y resultado agregado", async ({ page }) => {
-      const aliases = await setupSession(page, { mode: "private", count: size, games: ["¿Quién es más probable?"] });
-      await page.getByRole("button", { name: "Nueva pregunta" }).click();
-      await page.getByRole("button", { name: "Votar en privado" }).click();
-      for (let i = 0; i < aliases.length; i++) {
-        await page.getByRole("button", { name: `Soy ${aliases[i]}, continuar` }).click();
-        if (i === 0) await page.getByRole("button", { name: "Abstenerme" }).click();
-        else await page.getByRole("button", { name: new RegExp(aliases[0]) }).click();
-        await page.getByRole("button", { name: /Ocultar y/ }).click();
-      }
-      await expect(page.getByRole("list", { name: "Resultado agregado" })).toBeVisible();
-      await expect(page.getByText(`${aliases.length - 1} votos`)).toBeVisible();
-      await page.getByRole("button", { name: "Nueva ronda" }).click();
-      await expect(page.getByRole("button", { name: "Nueva pregunta" })).toBeVisible();
-    });
-
     test("¿Quién me conoce mejor?: referencia, adivinanzas y revelación", async ({ page }) => {
       const aliases = await setupSession(page, { mode: "private", count: size, games: ["¿Quién me conoce mejor?"] });
       await page.getByRole("button", { name: "Nueva ronda" }).click();

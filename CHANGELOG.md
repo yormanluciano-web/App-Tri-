@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 — 2026-10-07
+- Se retira «¿Quién es más probable?» (votaciones pasando el teléfono): 11 juegos, 1.164 cartas.
+- Lo aceptado al inicio ya no se vuelve a preguntar en cada carta de contacto, besos o tiempo a solas.
+
 ## 0.2.0 — 2026-10-07
 - Nombre visible: Cómplice.
 - Catálogo v2 más atrevido: 1.200 actividades nuevas (300 Leve, 450 Picante, 450 Perverso); se retiran las 1.000 anteriores.

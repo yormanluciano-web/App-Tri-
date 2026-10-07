@@ -64,8 +64,6 @@ function defaultGames(f: Format, hasDuration: boolean): GameId[] {
       return ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", ...(hasDuration ? (["temporizador"] as GameId[]) : [])];
     case "reto":
       return ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", ...(hasDuration ? (["temporizador"] as GameId[]) : [])];
-    case "votacion":
-      return ["mas_probable"];
     case "conocimiento":
       return ["quien_conoce"];
     case "secreto":

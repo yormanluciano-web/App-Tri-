@@ -30,7 +30,8 @@ export function Help() {
             <strong className="text-bad">✕ Nunca mostrar:</strong> nada que lo requiera aparecerá.
           </li>
           <li>Cada persona elige en privado: «Acepto todo», «Acepto parcialmente» (por temas) o «No acepto». Quien no acepta solo recibe charla, música y juegos sin contacto.</li>
-          <li>Prendas: nunca la ropa interior. Tiempo a solas, besos intensos y besos siempre se confirman en privado antes de cada carta.</li>
+          <li>Lo que cada persona acepta al inicio ya no se vuelve a preguntar en cada carta. Quien quiera que le pregunten cada vez puede marcar «Preguntar antes» en opciones avanzadas.</li>
+          <li>Prendas: nunca la ropa interior. Cualquiera puede pasar o parar en cualquier momento.</li>
           <li>Pasar, cambiar, pausar y detener son normales y nunca se penalizan.</li>
           <li>Subir la intensidad requiere el sí privado de todas las personas; bajar es inmediato.</li>
           <li>Nadie ve quién rechazó algo ni cuántas personas lo hicieron.</li>

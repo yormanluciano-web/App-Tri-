@@ -83,7 +83,7 @@ const MODES: { mode: AcceptMode; title: string; desc: string }[] = [
   {
     mode: "todo",
     title: "Acepto todo",
-    desc: "Cualquier carta puede aparecer. Igual puedes pasar cuando quieras, y besos y tiempo a solas siempre se confirman en privado.",
+    desc: "Cualquier carta puede aparecer sin volver a preguntarte. Igual puedes pasar cuando quieras.",
   },
   { mode: "parcial", title: "Acepto parcialmente", desc: "Eliges qué sí y qué no, por temas." },
   { mode: "nada", title: "No acepto", desc: "Solo charla ligera, música, adivinanzas y baile sin contacto." },
@@ -248,7 +248,7 @@ export function LimitsEditor({
           <details>
             <summary className="min-h-11 cursor-pointer py-2 font-semibold">Opciones avanzadas (opcional)</summary>
             <div className="space-y-4 pt-2">
-              <p className="text-sm text-muted">«Preguntar antes» pide tu permiso en privado cada vez que salga algo de ese tipo.</p>
+              <p className="text-sm text-muted">Lo que aceptas aquí ya no se vuelve a preguntar durante el juego. Si prefieres que te pregunten en privado cada vez, marca «Preguntar antes».</p>
               {PERMISSION_GROUPS.map((g) => (
                 <div key={g.id}>
                   <p className="pt-2 text-sm font-semibold uppercase tracking-wider text-faint">{g.title}</p>

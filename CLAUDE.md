@@ -23,7 +23,7 @@ PWA de juegos privados para 2 o 3 adultos que comparten un teléfono. Especifica
 
 ## Invariantes de consentimiento (no negociables)
 - Rojo nunca llega a pantalla. Valor ausente o desconocido = rojo. Orden `red > yellow > green`.
-- Amarillo o `requiereConfirmacion` → respuestas privadas de cada persona afectada; solo unanimidad autoriza; nunca mostrar quién ni cuántos rechazaron.
+- Amarillo («Preguntar antes») o `requiereConfirmacion` → respuestas privadas de cada persona afectada; solo unanimidad autoriza; nunca mostrar quién ni cuántos rechazaron. Por decisión de la propietaria, lo aceptado en verde al inicio no se vuelve a preguntar en cada carta (el catálogo no usa `requiereConfirmacion`).
 - Una autorización vale para un turno, actividad, asignación y versión de límites. Editar límites invalida carta, cola, cadena, reloj y autorizaciones.
 - Subir de nivel requiere unanimidad privada; bajar es inmediato. Nunca hay ascenso automático.
 - Ningún peso, favorito, sorpresa, dado, ruleta o cadena rehabilita una opción descartada: todo pasa por `selectCandidate` / `evaluateAssignment`.

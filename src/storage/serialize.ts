@@ -205,6 +205,25 @@ export function toPersisted(state: SessionState, now: number): PersistedSession 
   };
 }
 
+/** Juegos retirados (p. ej. «¿Quién es más probable?») se eliminan de sesiones antiguas. */
+const RETIRED_GAMES = new Set(["mas_probable"]);
+function dropRetiredGames(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const r = raw as Record<string, unknown> & { config?: { games?: unknown[] }; history?: { game?: string }[]; gameUsage?: Record<string, number> };
+  const swap = (g: unknown) => (typeof g === "string" && RETIRED_GAMES.has(g) ? "tarjetas" : g);
+  const games = Array.isArray(r.config?.games) ? r.config!.games!.filter((g) => !(typeof g === "string" && RETIRED_GAMES.has(g))) : r.config?.games;
+  const usage = r.gameUsage && typeof r.gameUsage === "object" ? Object.fromEntries(Object.entries(r.gameUsage).filter(([k]) => !RETIRED_GAMES.has(k))) : r.gameUsage;
+  const turn = r.currentTurn as { game?: unknown } | null | undefined;
+  return {
+    ...r,
+    config: r.config ? { ...r.config, games: games && (games as unknown[]).length ? games : ["tarjetas"] } : r.config,
+    currentGame: swap(r.currentGame),
+    gameUsage: usage,
+    history: Array.isArray(r.history) ? r.history.map((h) => ({ ...h, game: swap(h.game) })) : r.history,
+    currentTurn: turn ? { ...turn, game: swap(turn.game) } : turn,
+  };
+}
+
 export type RestoreResult =
   | { ok: true; state: SessionState; note: string | null }
   | { ok: false; reason: "invalid" | "unsupported" | "finished" };
@@ -217,7 +236,7 @@ export function fromPersisted(raw: unknown, catalog: readonly Activity[], conten
   if (raw && typeof raw === "object" && (raw as { schemaVersion?: unknown }).schemaVersion !== SCHEMA_VERSION) {
     return { ok: false, reason: "unsupported" };
   }
-  const parsed = persistedSessionSchema.safeParse(raw);
+  const parsed = persistedSessionSchema.safeParse(dropRetiredGames(raw));
   if (!parsed.success) return { ok: false, reason: "invalid" };
   const p = parsed.data;
   if (p.status === "finished") return { ok: false, reason: "finished" };
