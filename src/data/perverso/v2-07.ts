@@ -3,31 +3,6 @@ import { defineCards } from "../define";
 // Perverso v2 · lote 07: secretos anónimos, confesiones y quién me conoce.
 export const perversoV2_07 = defineCards("perverso", "v2", "base", [
   // ---------------------------------------------------------------- secretos escritos
-  { id: "361", t: "Fantasía anónima", x: "Escribe tu fantasía más atrevida en una frase, sin detalles explícitos.", c: "secretos", f: "secreto", s: 88, req: ["escritura_privada", "revelacion_grupo", "fantasias"] },
-  { id: "362", t: "Lo que quieres sentir", x: "Escribe qué te gustaría que alguien de esta sesión te hiciera sentir esta noche, sin decir quién.", c: "secretos", f: "secreto", s: 72, req: ["escritura_privada", "revelacion_grupo", "coqueteo"] },
-  { id: "363", t: "Donde desarma un roce", x: "Escribe en qué zona te desarma más un roce: el cuello, la nuca, la espalda o las manos, y por qué.", c: "secretos", f: "secreto", s: 80, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "364", t: "Nunca se lo dijiste", x: "Escribe algo atrevido que has pensado de alguien de esta sesión y nunca le has dicho.", c: "secretos", f: "secreto", s: 91, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "365", t: "La tensión en una palabra", x: "Escribe una palabra atrevida que defina la tensión de esta sesión ahora mismo.", c: "secretos", f: "secreto", s: 67, req: ["escritura_privada", "revelacion_grupo"], tags: ["cierre"] },
-  { id: "366", t: "Regla nueva", x: "Escribe una regla atrevida que añadirías a este juego para la próxima vez.", c: "secretos", f: "secreto", s: 76, req: ["escritura_privada", "revelacion_grupo", "fantasias"], tags: ["creatividad"] },
-  { id: "367", t: "Protagonista", x: "Escribe la escena de película que te gustaría protagonizar con alguien de aquí, sin detalles explícitos.", c: "secretos", f: "secreto", s: 95, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "fantasias"] },
-  { id: "368", t: "Por impulso", x: "Escribe lo más atrevido que has hecho por impulso en una cita, sin nombres.", c: "secretos", f: "secreto", s: 83, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "369", t: "La prenda que distrae", x: "Escribe qué prenda de alguien de esta sesión te ha distraído hoy, sin decir de quién.", c: "secretos", f: "secreto", s: 79, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "coqueteo"] },
-  { id: "370", t: "Deseo para el final", x: "Escribe un deseo para el final de esta noche que no te atreves a decir en voz alta, sin detalles explícitos.", c: "secretos", f: "secreto", s: 97, req: ["escritura_privada", "revelacion_grupo", "fantasias"], tags: ["cierre"] },
-  { id: "371", t: "Otra habitación", x: "Escribe con quién de esta sesión te irías unos minutos a otra habitación, sin firmar.", c: "secretos", f: "secreto", s: 90, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "372", t: "Al oído", x: "Escribe una frase que te encantaría escuchar al oído en este momento.", c: "secretos", f: "secreto", s: 70, req: ["escritura_privada", "revelacion_grupo", "coqueteo"] },
-  { id: "373", t: "Atracción física", x: "Escribe qué es lo que más te atrae físicamente de una persona, sin pensar en nadie de aquí.", c: "secretos", f: "secreto", s: 74, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
-  { id: "374", t: "Nunca falla", x: "Escribe el gesto de seducción que nunca falla contigo.", c: "secretos", f: "secreto", s: 81, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "375", t: "Sueño atrevido", x: "Escribe un sueño atrevido que hayas tenido, en una sola frase y sin detalles gráficos.", c: "secretos", f: "secreto", s: 86, req: ["escritura_privada", "revelacion_grupo", "confesiones", "fantasias"] },
-  { id: "376", t: "Sin ningún juego", x: "Escribe qué te gustaría que pasara esta noche si no hubiera cartas ni turnos, sin detalles explícitos.", c: "secretos", f: "secreto", s: 99, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "fantasias"] },
-  { id: "377", t: "Cumplidos sin firma", x: "Escribe un cumplido atrevido para cada persona de la sesión, sin firmar.", c: "secretos", f: "secreto", s: 68, req: ["escritura_privada", "revelacion_grupo", "coqueteo"], tags: ["cumplido"] },
-  { id: "378", t: "Plan para otra noche", x: "Escribe un plan atrevido que te gustaría hacer con las personas de esta sesión otra noche, sin detalles explícitos.", c: "secretos", f: "secreto", s: 93, req: ["escritura_privada", "revelacion_grupo", "fantasias"] },
-  { id: "379", t: "Pulso acelerado", x: "Escribe el momento exacto de esta noche en que más se te aceleró el pulso.", c: "secretos", f: "secreto", s: 77, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "380", t: "Confesión de hoy", x: "Escribe la confesión más atrevida que te animes a compartir hoy.", c: "secretos", f: "secreto", s: 84, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "381", t: "Lo que te frena", x: "Escribe qué te frena a veces a dar el primer paso con alguien que te gusta.", c: "secretos", f: "secreto", s: 66, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"], tags: ["calma"] },
-  { id: "382", t: "Con antifaz", x: "Escribe una fantasía que incluya un antifaz, en una frase y sin detalles explícitos.", c: "secretos", f: "secreto", s: 89, req: ["escritura_privada", "revelacion_grupo", "fantasias"] },
-  { id: "383", t: "La carta más intensa", x: "Escribe cuál ha sido para ti la carta más intensa de esta noche y por qué.", c: "secretos", f: "secreto", s: 73, req: ["escritura_privada", "revelacion_grupo", "confesiones"], tags: ["cierre"] },
-  { id: "384", t: "Lugar inesperado", x: "Escribe el lugar público más inesperado donde has sentido una tensión irresistible con alguien.", c: "secretos", f: "secreto", s: 78, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "385", t: "Que se atrevan", x: "Escribe qué te gustaría que alguien de esta sesión se atreviera a proponerte, sin detalles explícitos.", c: "secretos", f: "secreto", s: 100, sizes: [3], req: ["escritura_privada", "revelacion_grupo", "fantasias", "coqueteo"] },
 
   // ---------------------------------------------------------------- confesiones
   { id: "386", t: "Cita o dos prendas", x: "{p1}, confiesa en una frase sin detalles cuál ha sido tu cita más atrevida, o quítate dos prendas.", c: "secretos", f: "pregunta", s: 92, req: ["confesiones", "quitarse_prenda"], aud: ["quitarse_prenda"], audScope: "sesion" },
@@ -53,11 +28,4 @@ export const perversoV2_07 = defineCards("perverso", "v2", "base", [
 
 
   // ---------------------------------------------------------------- quién me conoce
-  { id: "414", t: "Irresistible para {p1}", x: "¿Qué le resulta más irresistible a {p1} en otra persona?", c: "preguntas", f: "conocimiento", s: 77, req: ["adivinanzas", "preguntas_personales"], opts: ["El cuello", "Las manos", "La boca", "Los ojos", "La espalda"] },
-  { id: "415", t: "Disfraz seductor", x: "¿Con qué personaje se disfrazaría {p1} para una noche seductora?", c: "preguntas", f: "conocimiento", s: 68, req: ["adivinanzas", "roles_juego"] },
-  { id: "416", t: "Estilo de seducción", x: "¿Qué prefiere {p1} al seducir: provocar despacio o ir directo?", c: "eleccion", f: "conocimiento", s: 84, req: ["adivinanzas", "preguntas_personales"], opts: ["Provocar despacio", "Ir directo", "Depende de la persona"] },
-  { id: "417", t: "Escapada soñada", x: "¿Cuál sería el lugar soñado de {p1} para una escapada atrevida?", c: "pareja", f: "conocimiento", s: 92, req: ["adivinanzas", "fantasias"], opts: ["Una cabaña en la montaña", "Un hotel de lujo", "Una playa privada", "Un apartamento con vista a la ciudad"] },
-  { id: "418", t: "Cumplido que desarma", x: "¿Qué tipo de cumplido desarma por completo a {p1}?", c: "confianza", f: "conocimiento", s: 70, req: ["adivinanzas", "preguntas_personales"], opts: ["Sobre su mirada", "Sobre su cuerpo", "Sobre su forma de ser", "Sobre su voz"] },
-  { id: "419", t: "Mirada de resistencia", x: "¿Cuánto tiempo aguantaría {p1} sosteniendo una mirada intensa sin reírse?", c: "desafios", f: "conocimiento", s: 74, req: ["adivinanzas"], opts: ["Menos de diez segundos", "Unos treinta segundos", "Un minuto", "Lo que haga falta"], tags: ["risas"] },
-  { id: "420", t: "La propuesta", x: "¿Qué haría {p1} si le propusieran ir unos minutos a otra habitación?", c: "eleccion", f: "conocimiento", s: 96, req: ["adivinanzas", "preguntas_personales"], opts: ["Aceptar sin pensarlo", "Pedir un momento para decidir", "Proponer otro plan", "Depende de quién lo proponga"] },
 ]);

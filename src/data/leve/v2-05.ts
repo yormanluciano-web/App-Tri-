@@ -19,33 +19,8 @@ export const leveV2_05 = defineCards("leve", "l2", "base", [
   { id: "255", t: "Improvisado o tranquilo", x: "{p1}, ¿qué eliges: un viaje improvisado lleno de aventuras o un fin de semana tranquilo sin planes?", c: "eleccion", f: "pregunta", s: 15, req: ["conversacion_ligera"] },
 
   // ---------------------------------------------------------------- secretos anónimos
-  { id: "256", t: "Atracción en una palabra", x: "Escribe en una sola palabra lo que más te atrae de una persona.", c: "secretos", f: "secreto", s: 3, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
-  { id: "257", t: "La cita que sueñas", x: "Escribe la cita que te encantaría vivir algún día.", c: "secretos", f: "secreto", s: 6, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
-  { id: "258", t: "Cumplido sin firma", x: "Escribe un cumplido para alguien de este grupo sin decir para quién es.", c: "secretos", f: "secreto", s: 9, req: ["escritura_privada", "revelacion_grupo", "coqueteo"], tags: ["cumplido"] },
-  { id: "259", t: "Lo que te sonroja", x: "Escribe algo que siempre consigue sonrojarte.", c: "secretos", f: "secreto", s: 12, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
-  { id: "260", t: "Mensaje no enviado", x: "Escribe un mensaje coqueto que alguna vez pensaste enviar y no te atreviste, sin nombres.", c: "secretos", f: "secreto", s: 18, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "261", t: "Impresión coqueta", x: "Escribe en una frase coqueta tu impresión de esta noche.", c: "secretos", f: "secreto", s: 14, req: ["escritura_privada", "revelacion_grupo", "coqueteo"] },
-  { id: "262", t: "Gusto culposo romántico", x: "Escribe tu película o canción romántica favorita que casi nunca admites.", c: "secretos", f: "secreto", s: 5, req: ["escritura_privada", "revelacion_grupo"], tags: ["risas"] },
-  { id: "263", t: "Tu mejor arma", x: "Escribe cuál crees que es tu mejor arma para conquistar.", c: "secretos", f: "secreto", s: 16, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales"] },
-  { id: "264", t: "Lo que quieres oír", x: "Escribe una frase que te encantaría que alguien te dijera esta noche.", c: "secretos", f: "secreto", s: 25, req: ["escritura_privada", "revelacion_grupo", "preguntas_personales", "coqueteo"] },
-  { id: "265", t: "Señal escondida", x: "Escribe qué haces cuando alguien te gusta y no quieres que se note.", c: "secretos", f: "secreto", s: 20, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "266", t: "Atrevimiento pendiente", x: "Escribe algo atrevido pero inofensivo que te gustaría hacer antes de que termine el año.", c: "secretos", f: "secreto", s: 22, req: ["escritura_privada", "revelacion_grupo", "confesiones"] },
-  { id: "267", t: "El flechazo", x: "Escribe en una frase cómo fue el flechazo más fuerte que has sentido, sin nombres.", c: "secretos", f: "secreto", s: 27, req: ["escritura_privada", "revelacion_grupo", "confesiones"], tags: ["memoria"] },
-  { id: "268", t: "Canción dedicada", x: "Escribe el nombre de una canción que le dedicarías a alguien de este grupo.", c: "secretos", f: "secreto", s: 10, req: ["escritura_privada", "revelacion_grupo", "musica", "coqueteo"] },
-  { id: "269", t: "Ahora mismo", x: "Escribe una palabra que describa cómo te sientes en este momento.", c: "secretos", f: "secreto", s: 0, req: ["escritura_privada", "revelacion_grupo"], tags: ["apertura"] },
-  { id: "270", t: "Deseo para la próxima", x: "Escribe un deseo coqueto, sin detalles, para la próxima vez que se reúnan.", c: "secretos", f: "secreto", s: 29, req: ["escritura_privada", "revelacion_grupo", "coqueteo"], tags: ["cierre"] },
 
   // ---------------------------------------------------------------- quién me conoce
-  { id: "271", t: "Primera cita ideal", x: "¿Qué plan elegiría {p1} para una primera cita?", c: "preguntas", f: "conocimiento", s: 4, req: ["adivinanzas"], opts: ["Cena", "Cine", "Baile", "Caminata"] },
-  { id: "272", t: "Canción de ánimo", x: "¿Qué canción pondría {p1} para ponerse de buen humor?", c: "musica", f: "conocimiento", s: 2, req: ["adivinanzas", "musica"] },
-  { id: "273", t: "Lo primero que mira", x: "¿Qué le llama la atención primero a {p1} en una persona?", c: "preguntas", f: "conocimiento", s: 14, req: ["adivinanzas", "preguntas_personales"], opts: ["La sonrisa", "La mirada", "La voz", "El sentido del humor"] },
-  { id: "274", t: "Estilo de coqueteo", x: "¿Cómo coquetea {p1} casi siempre?", c: "preguntas", f: "conocimiento", s: 18, req: ["adivinanzas", "preguntas_personales"], opts: ["Con palabras", "Con miradas", "Con humor", "Con detalles"] },
-  { id: "275", t: "Domingo especial", x: "¿Qué haría {p1} en un domingo perfecto con alguien especial?", c: "preguntas", f: "conocimiento", s: 8, req: ["adivinanzas"] },
-  { id: "276", t: "Postre de cita", x: "¿Qué postre elegiría {p1} para compartir en una cita?", c: "preguntas", f: "conocimiento", s: 6, req: ["adivinanzas"] },
-  { id: "277", t: "Lo que derrite", x: "¿Qué detalle derrite a {p1}?", c: "conexion", f: "conocimiento", s: 22, req: ["adivinanzas", "preguntas_personales"], opts: ["Un mensaje inesperado", "Una canción dedicada", "Una mirada larga", "Un plan sorpresa"] },
-  { id: "278", t: "¿Da el primer paso?", x: "Cuando alguien le gusta, ¿{p1} da el primer paso o espera?", c: "preguntas", f: "conocimiento", s: 25, req: ["adivinanzas", "preguntas_personales"], opts: ["Da el primer paso", "Espera", "Depende del momento"] },
-  { id: "279", t: "Talento encantador", x: "¿Cuál dirá {p1} que es su talento más encantador?", c: "preguntas", f: "conocimiento", s: 12, req: ["adivinanzas"] },
-  { id: "280", t: "Época para una cita", x: "¿En qué época de la historia le gustaría a {p1} tener una cita?", c: "eleccion", f: "conocimiento", s: 28, req: ["adivinanzas"] },
 
 
   // ---------------------------------------------------------------- sorpresas

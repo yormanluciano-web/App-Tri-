@@ -29,8 +29,6 @@ const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   tarjetas: ["pregunta", "reto"],
   temporizador: ["pregunta", "reto"],
   cadena: ["pregunta", "reto"],
-  quien_conoce: ["conocimiento"],
-  secretos: ["secreto"],
   sorpresa: ["sorpresa"],
   // Noche completa y Caos delegan en los juegos base; no se asignan directamente.
   noche: [],
@@ -131,15 +129,9 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     if (a.gameModes.includes("temporizador") && !a.duracion) err(a.id, "temporizador requiere duración");
 
     // Reglas por formato.
-    if (a.formato === "conocimiento" && (a.tipoInteraccion !== "group" || a.roles.join() !== "p1")) err(a.id, "conocimiento debe ser grupal con referencia {p1}");
-    if (a.formato === "secreto") {
-      if (a.tipoInteraccion !== "group" || a.roles.length > 0) err(a.id, "secreto debe ser grupal sin roles");
-      for (const p of ["escritura_privada", "revelacion_grupo"] as const)
-        if (!a.restricciones.implicados.includes(p)) err(a.id, `secreto requiere ${p}`);
-    }
     if (a.formato === "sorpresa" && !a.effect) err(a.id, "sorpresa requiere effect");
     if (a.formato !== "sorpresa" && a.effect) err(a.id, "effect solo para sorpresas");
-    if (a.opciones && a.formato !== "conocimiento") err(a.id, "opciones solo para conocimiento");
+    if (a.opciones) err(a.id, "opciones ya no se usan");
     if (!CATEGORIES.includes(a.categoria)) err(a.id, "categoría desconocida");
 
     // Contacto: exige permiso por par; nunca solo en implicados o audiencia.
@@ -191,22 +183,19 @@ export const EDITORIAL_FAMILIES = [
   "Dinámicas de dos y tres",
   "Elecciones",
   "Confesiones y secretos",
-  "Quién me conoce",
   "Sorpresas",
 ] as const;
 
 /** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
-  leve: [80, 60, 35, 30, 30, 20, 15, 10, 10],
-  picante: [80, 90, 40, 40, 80, 35, 40, 12, 20],
-  perverso: [60, 100, 30, 30, 90, 40, 55, 12, 20],
+  leve: [80, 60, 35, 30, 30, 20, 0, 10],
+  picante: [80, 90, 40, 40, 80, 35, 8, 20],
+  perverso: [60, 100, 30, 30, 90, 40, 30, 20],
 };
 
 /** Familia editorial de una actividad: cada carta cuenta una sola vez. */
 export function editorialFamily(a: Activity): (typeof EDITORIAL_FAMILIES)[number] {
-  if (a.formato === "conocimiento") return "Quién me conoce";
   if (a.formato === "sorpresa") return "Sorpresas";
-  if (a.formato === "secreto") return "Confesiones y secretos";
   switch (a.categoria) {
     case "preguntas":
     case "rompehielo":

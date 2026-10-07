@@ -23,9 +23,7 @@ import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor"
 import { peopleOf, RoleText, useNow } from "@/features/games/common";
 import {
   DiceRound,
-  KnowMeRound,
   RouletteRound,
-  SecretsRound,
   StandardRound,
   SurpriseRound,
 } from "@/features/games/rounds";
@@ -120,10 +118,6 @@ function Launcher({ session }: { session: SessionState }) {
             </Button>
           </div>
         );
-      case "quien_conoce":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "quien_conoce" })}>Nueva ronda</Button>;
-      case "secretos":
-        return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "secretos" })}>Nueva ronda de secretos</Button>;
       case "temporizador":
         return <Button block className="min-h-16 text-xl" onClick={() => draw({ game: "temporizador" })}>Siguiente reto con reloj</Button>;
       case "cadena":
@@ -163,12 +157,6 @@ function Round({ session }: { session: SessionState }) {
   if (!activity) return <Notice tone="warn">La actividad ya no está disponible.</Notice>;
   const props = { session, turn, activity };
   if (turn.game === "sorpresa") return <SurpriseRound key={turn.id} {...props} />;
-  switch (activity.formato) {
-    case "conocimiento":
-      return <KnowMeRound key={turn.id} {...props} />;
-    case "secreto":
-      return <SecretsRound key={turn.id} {...props} />;
-  }
   if (turn.game === "ruleta") return <RouletteRound key={turn.id} {...props} />;
   if (turn.game === "dados") return <DiceRound key={turn.id} {...props} />;
   return <StandardRound key={turn.id} {...props} />;

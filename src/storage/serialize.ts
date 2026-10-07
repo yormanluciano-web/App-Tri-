@@ -205,8 +205,8 @@ export function toPersisted(state: SessionState, now: number): PersistedSession 
   };
 }
 
-/** Juegos retirados (p. ej. «¿Quién es más probable?») se eliminan de sesiones antiguas. */
-const RETIRED_GAMES = new Set(["mas_probable"]);
+/** Juegos retirados (votaciones, «¿Quién me conoce mejor?» y «Secretos») se eliminan de sesiones antiguas. */
+const RETIRED_GAMES = new Set(["mas_probable", "quien_conoce", "secretos"]);
 function dropRetiredGames(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const r = raw as Record<string, unknown> & { config?: { games?: unknown[] }; history?: { game?: string }[]; gameUsage?: Record<string, number> };

@@ -5,11 +5,6 @@ import { defineCards } from "../define";
 export const perversoV2_08 = defineCards("perverso", "v2", "base", [
 
   // ---------------------------------------------------------------- quién me conoce
-  { id: "426", t: "Tipo de fantasía", x: "¿Qué tipo de fantasía elegiría {p1} para contar en voz alta?", c: "secretos", f: "conocimiento", s: 89, req: ["adivinanzas", "fantasias"], opts: ["Romántica", "Misteriosa", "Aventurera", "Muy atrevida"] },
-  { id: "427", t: "Canción intensa", x: "¿Qué canción pondría {p1} para una noche intensa?", c: "musica", f: "conocimiento", s: 66, req: ["adivinanzas", "musica"] },
-  { id: "428", t: "Reto favorito", x: "¿Qué reto de esta noche le ha gustado más a {p1}?", c: "retos", f: "conocimiento", s: 79, req: ["adivinanzas"], tags: ["cierre"] },
-  { id: "429", t: "Iniciativa", x: "¿Qué prefiere {p1}: tomar la iniciativa o que le seduzcan?", c: "eleccion", f: "conocimiento", s: 73, req: ["adivinanzas", "preguntas_personales"], opts: ["Tomar la iniciativa", "Que le seduzcan", "Depende del momento"] },
-  { id: "430", t: "El roce que desarma", x: "¿Dónde le desarma más un roce a {p1}?", c: "confianza", f: "conocimiento", s: 100, req: ["adivinanzas", "preguntas_personales"], opts: ["El cuello", "La nuca", "Las manos", "La espalda"] },
 
   // ---------------------------------------------------------------- sorpresas
   { id: "431", t: "Todos a la vez", x: "Todos participan: a la cuenta de tres, cada persona se quita una prenda o pasa sin explicaciones.", c: "sorpresa", f: "sorpresa", s: 84, req: ["quitarse_prenda"], aud: ["quitarse_prenda"], audScope: "sesion", eff: "todos_participan", tags: ["risas"] },

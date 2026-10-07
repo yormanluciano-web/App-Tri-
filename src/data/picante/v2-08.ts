@@ -2,16 +2,6 @@ import { defineCards } from "../define";
 
 // Picante v2, lote 08: cartas p2-421 a p2-450.
 export const picanteV2_08 = defineCards("picante", "p2", "base", [
-  { id: "421", t: "Canción de seducción", x: "¿Qué canción pondría {p1} para una noche de seducción?", c: "musica", f: "conocimiento", s: 38, req: ["adivinanzas", "musica"] },
-  { id: "422", t: "Cita preferida", x: "¿Qué prefiere {p1} en una cita?", c: "pareja", f: "conocimiento", s: 41, req: ["adivinanzas", "conversacion_ligera"], opts: ["Bailar pegado", "Conversación larga", "Cena con velas", "Plan improvisado"] },
-  { id: "423", t: "Escenario atrevido", x: "¿Dónde le gustaría a {p1} tener una cita atrevida?", c: "pareja", f: "conocimiento", s: 44, req: ["adivinanzas", "preguntas_personales"], opts: ["Playa de noche", "Terraza", "En casa", "Pista de baile"] },
-  { id: "424", t: "Cumplido que derrite", x: "¿Qué cumplido derrite más a {p1}?", c: "preguntas", f: "conocimiento", s: 47, req: ["adivinanzas", "coqueteo"] },
-  { id: "425", t: "Coqueteo descarado", x: "¿Qué haría {p1} si alguien le coqueteara descaradamente en una fiesta?", c: "preguntas", f: "conocimiento", s: 50, req: ["adivinanzas", "preguntas_personales"], opts: ["Le sigue el juego", "Se sonroja", "Coquetea más fuerte", "Cambia de tema"] },
-  { id: "426", t: "Cita más arriesgada", x: "¿Cuál ha sido la cita más arriesgada de {p1}?", c: "preguntas", f: "conocimiento", s: 53, req: ["adivinanzas", "confesiones"] },
-  { id: "427", t: "Romper la tensión", x: "¿Qué gesto prefiere {p1} para romper la tensión con alguien que le gusta?", c: "pareja", f: "conocimiento", s: 56, req: ["adivinanzas", "preguntas_personales"], opts: ["Tomarse de las manos", "Un abrazo", "Un piquito", "Una mirada larga"] },
-  { id: "428", t: "Viaje romántico", x: "¿Cuál sería el viaje romántico soñado de {p1}?", c: "pareja", f: "conocimiento", s: 59, req: ["adivinanzas", "fantasias"] },
-  { id: "429", t: "Prenda atractiva", x: "¿Qué prenda le parece más atractiva a {p1} en otra persona?", c: "preguntas", f: "conocimiento", s: 62, req: ["adivinanzas", "preguntas_personales"] },
-  { id: "430", t: "Momento favorito", x: "¿Qué momento de esta noche fue el favorito de {p1}?", c: "conexion", f: "conocimiento", s: 65, req: ["adivinanzas", "conversacion_ligera"], tags: ["cierre"] },
   { id: "431", t: "Todos a la vez", x: "Todos a la vez: cada persona dice en una palabra qué le provoca la persona que tiene enfrente.", c: "sorpresa", f: "sorpresa", s: 31, req: ["coqueteo"], eff: "todos_participan", tags: ["apertura"] },
   { id: "432", t: "Ronda relámpago", x: "Ronda relámpago: todas las personas confiesan, por turnos, su cita más atrevida en una sola frase.", c: "sorpresa", f: "sorpresa", s: 45, req: ["confesiones"], eff: "todos_participan" },
   { id: "433", t: "Accesorios al centro", x: "Todas las personas se quitan un accesorio a la vez y lo dejan en el centro hasta el final de la ronda.", c: "sorpresa", f: "sorpresa", s: 60, req: ["quitarse_prenda"], aud: ["quitarse_prenda"], eff: "todos_participan", tags: ["risas"] },

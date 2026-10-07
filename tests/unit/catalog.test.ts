@@ -12,9 +12,9 @@ describe("catálogo de producción", () => {
     expect(r.errors).toEqual([]);
   });
 
-  it("cumple la meta editorial 290/437/437 por familia", () => {
+  it("cumple la meta editorial 265/393/400 por familia", () => {
     const r = catalogReport(ALL_ACTIVITIES);
-    expect(r.byLevel).toEqual({ leve: 290, picante: 437, perverso: 437 });
+    expect(r.byLevel).toEqual({ leve: 265, picante: 393, perverso: 400 });
     for (const lvl of INTENSITIES) EDITORIAL_FAMILIES.forEach((f, i) => expect(r.byFamily[lvl][f], `${lvl} ${f}`).toBe(EDITORIAL_TARGETS[lvl][i]));
   });
 
@@ -40,7 +40,7 @@ describe("catálogo de producción", () => {
           const low = new Set(buildCandidates(CATALOG, s, opts, 0).map((c) => c.activity.id));
           const all = new Set(buildCandidates(CATALOG, wide, opts, 0).map((c) => c.activity.id));
           expect(low.size, `${g} tramo bajo`).toBeGreaterThan(0);
-          const min = g === "sorpresa" ? 5 : g === "quien_conoce" ? 8 : g === "secretos" ? 12 : 40;
+          const min = g === "sorpresa" ? 5 : 40;
           expect(all.size, `${g} total`).toBeGreaterThanOrEqual(min);
         }
       });
@@ -52,9 +52,9 @@ describe("catálogo de producción", () => {
       const cfg = config(["a", "b", "c"].slice(0, n).map((id) => participant(id)), { initialLevel: "leve" });
       const s = readySession(cfg);
       const wide = { ...s, progress: { ...s.progress, turnsOfferedInLevel: 99 } };
-      for (const g of ["verdad_reto", "tarjetas", "ruleta", "dados", "temporizador", "cadena", "quien_conoce"] as GameId[]) {
+      for (const g of ["verdad_reto", "tarjetas", "ruleta", "dados", "temporizador", "cadena"] as GameId[]) {
         const all = new Set(buildCandidates(CATALOG, wide, { game: g, formats: GAME_FORMATS[g], requireDuration: g === "temporizador" }, 0).map((c) => c.activity.id));
-        expect(all.size, `${g} con ${n}`).toBeGreaterThanOrEqual(g === "quien_conoce" ? 5 : 40);
+        expect(all.size, `${g} con ${n}`).toBeGreaterThanOrEqual(40);
       }
     }
   });

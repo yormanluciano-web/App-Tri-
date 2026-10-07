@@ -13,7 +13,7 @@ const [confirm] = defineCards("leve", "tl", "test", [
   { id: "conf", t: "Confirmada", x: "{p1}, cuenta algo de tu semana.", c: "preguntas", f: "pregunta", s: 5, req: ["conversacion_ligera"], conf: true },
 ]);
 const [groupSecret] = defineCards("leve", "tl", "test", [
-  { id: "sec", t: "Secreto", x: "Escribe algo que te guste de los lunes.", c: "secretos", f: "secreto", s: 5, req: ["escritura_privada", "revelacion_grupo"] },
+  { id: "sec", t: "Secreto", x: "Escribe algo que te guste de los lunes.", c: "secretos", f: "pregunta", s: 5, req: ["escritura_privada", "revelacion_grupo"] },
 ]);
 
 describe("semáforo", () => {

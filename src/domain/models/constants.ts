@@ -162,7 +162,6 @@ export const PERMISSION_GROUPS: { id: string; title: string; hint: string; items
     hint: "Cumplidos, miradas, música, baile sin contacto, personajes y ojos cerrados.",
     items: ["coqueteo", "miradas", "musica", "baile_individual", "roles_juego", "ojos_cerrados"],
   },
-  { id: "secretos", title: "Secretos escritos", hint: "Escribir en privado y que se lea al grupo sin tu nombre.", items: ["escritura_privada", "revelacion_grupo"] },
   { id: "contacto", title: "Contacto y caricias", hint: "Manos, abrazos, masajes, baile pegado y caricias sobre la ropa.", items: ["contacto_manos", "abrazo", "masaje_manos", "masaje_hombros", "baile_cercano", "caricias"] },
   { id: "besos", title: "Besos", hint: "Besos en mejilla o mano, y besos intensos en la boca o el cuello.", items: ["beso", "beso_intenso"] },
   { id: "prendas", title: "Prendas", hint: "Quitarse una prenda en un reto. Nunca la ropa interior.", items: ["quitarse_prenda"] },
@@ -209,8 +208,6 @@ export const GAMES = [
   "ruleta",
   "dados",
   "tarjetas",
-  "quien_conoce",
-  "secretos",
   "temporizador",
   "cadena",
   "noche",
@@ -224,8 +221,6 @@ export const GAME_LABEL: Record<GameId, string> = {
   ruleta: "Ruleta",
   dados: "Dados",
   tarjetas: "Tarjetas",
-  quien_conoce: "¿Quién me conoce mejor?",
-  secretos: "Secretos",
   temporizador: "Temporizador",
   cadena: "Cadena de retos",
   noche: "Noche completa",
@@ -238,8 +233,6 @@ export const GAME_DESCRIPTION: Record<GameId, string> = {
   ruleta: "La ruleta sortea una asignación válida y su actividad.",
   dados: "Dados de participante, actividad y duración, validados antes de rodar.",
   tarjetas: "Cartas con filtro por categoría. Guarda tus favoritas.",
-  quien_conoce: "Una persona responde en privado; las demás intentan adivinar.",
-  secretos: "Escriban respuestas anónimas, se mezclan y se leen al grupo.",
   temporizador: "Actividades con reloj de 30 s a 3 min. Pausar congela el tiempo.",
   cadena: "Tres etapas progresivas. Cada una se valida y se puede pasar.",
   noche: "60 minutos: apertura, desarrollo y cierre con mezcla automática.",
@@ -253,13 +246,11 @@ export const BASE_GAMES: readonly GameId[] = [
   "ruleta",
   "dados",
   "tarjetas",
-  "quien_conoce",
-  "secretos",
   "temporizador",
   "cadena",
 ];
 
-export const FORMATS = ["pregunta", "reto", "conocimiento", "secreto", "sorpresa"] as const;
+export const FORMATS = ["pregunta", "reto", "sorpresa"] as const;
 export type Format = (typeof FORMATS)[number];
 
 export const INTERACTIONS = ["solo", "pair", "directed_pair", "group"] as const;

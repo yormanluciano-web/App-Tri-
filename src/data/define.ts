@@ -64,10 +64,6 @@ function defaultGames(f: Format, hasDuration: boolean): GameId[] {
       return ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", ...(hasDuration ? (["temporizador"] as GameId[]) : [])];
     case "reto":
       return ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", ...(hasDuration ? (["temporizador"] as GameId[]) : [])];
-    case "conocimiento":
-      return ["quien_conoce"];
-    case "secreto":
-      return ["secretos"];
     case "sorpresa":
       return ["sorpresa"];
   }
@@ -83,7 +79,7 @@ export function defineCards(
   return cards.map((c) => {
     const roles = placeholdersIn(c.x + " " + c.t);
     const interaction: Interaction =
-      c.i ?? (roles.includes("p2") ? "pair" : roles.includes("p1") && c.f !== "conocimiento" ? "solo" : "group");
+      c.i ?? (roles.includes("p2") ? "pair" : roles.includes("p1") ? "solo" : "group");
     const [min, max] =
       interaction === "solo" ? [1, 1] : interaction === "group" ? [2, 3] : [2, 2];
     const perms = [...(c.req ?? []), ...(c.pair ?? []), ...(c.aud ?? []), ...Object.values(c.rol ?? {}).flat()];

@@ -171,7 +171,7 @@ export function LimitsEditor({
     if (m === "parcial" && (sameMap(perms, allGreen()) || sameMap(perms, safeBasePermissions()))) {
       // Punto de partida razonable: charla, coqueteo y secretos sí; lo demás no.
       const start = safeBasePermissions();
-      for (const g of PERMISSION_GROUPS) if (["charla", "coqueteo", "secretos"].includes(g.id)) g.items.forEach((p) => (start[p] = "green"));
+      for (const g of PERMISSION_GROUPS) if (["charla", "coqueteo"].includes(g.id)) g.items.forEach((p) => (start[p] = "green"));
       setPerms(start);
     }
   };

@@ -129,7 +129,7 @@ describe("filtros obligatorios", () => {
       const perms = seed % 2 === 0 ? allLights("green") : undefined;
       const cfg = config([participant("a", perms), participant("b"), participant("c", { abrazo: "yellow", coqueteo: "green" })], {
         initialLevel: (["leve", "picante", "perverso"] as const)[seed % 3],
-        games: ["tarjetas", "verdad_reto", "quien_conoce", "secretos", "temporizador", "cadena", "sorpresa"],
+        games: ["tarjetas", "verdad_reto", "temporizador", "cadena", "sorpresa"],
       });
       let state = readySession(cfg, seed);
       for (let i = 0; i < 40; i++) {

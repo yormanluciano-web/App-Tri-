@@ -36,52 +36,6 @@ for (const size of [2, 3] as const) {
       }
     });
 
-    test("¿Quién me conoce mejor?: referencia, adivinanzas y revelación", async ({ page }) => {
-      const aliases = await setupSession(page, { mode: "private", count: size, games: ["¿Quién me conoce mejor?"] });
-      await page.getByRole("button", { name: "Nueva ronda" }).click();
-      await page.getByRole("button", { name: "Empezar" }).click();
-      for (let i = 0; i < aliases.length; i++) {
-        const btn = page.getByRole("button", { name: /^Soy .*, continuar$/ });
-        await btn.click();
-        const box = page.getByRole("textbox");
-        if (await box.isVisible()) {
-          await box.fill("Chocolate");
-          await page.getByRole("button", { name: "Guardar" }).click();
-        } else {
-          await page.locator("section button").first().click();
-        }
-        await page.getByRole("button", { name: /Ocultar y/ }).click();
-      }
-      await expect(page.getByText(/Respuesta de/)).toBeVisible();
-      await page.getByRole("button", { name: "Cerrar ronda" }).click();
-    });
-
-    test("Secretos: escribir, retirar, mezclar, revelar y borrar", async ({ page }) => {
-      const aliases = await setupSession(page, { mode: "private", count: size, games: ["Secretos"], allow: ALLOW });
-      await page.getByRole("button", { name: "Nueva ronda de secretos" }).click();
-      await page.getByRole("button", { name: "Empezar a escribir" }).click();
-      for (let i = 0; i < aliases.length; i++) {
-        await page.getByRole("button", { name: `Soy ${aliases[i]}, continuar` }).click();
-        await page.getByRole("textbox").fill(`Texto secreto número ${i + 1}`);
-        await page.getByRole("button", { name: "Revisar" }).click();
-        if (i === 0) await page.getByRole("button", { name: "Retirar" }).click();
-        else await page.getByRole("button", { name: "Confirmar" }).click();
-        await page.getByRole("button", { name: /Ocultar y/ }).click();
-      }
-      await expect(page.getByText(/Secreto 1 de/)).toBeVisible();
-      await expect(page.getByText("Texto secreto número 1")).toHaveCount(0);
-      while (await page.getByRole("button", { name: "Siguiente", exact: true }).isVisible()) await page.getByRole("button", { name: "Siguiente", exact: true }).click();
-      await page.getByRole("button", { name: "Autorías (opcional)" }).click();
-      for (let i = 1; i < aliases.length; i++) {
-        await page.getByRole("button", { name: `Soy ${aliases[i]}, continuar` }).click();
-        await page.getByRole("button", { name: i === 1 ? "Sí" : "No", exact: true }).click();
-        await page.getByRole("button", { name: /Ocultar y/ }).click();
-      }
-      await expect(page.getByText(/Autoría revelada/)).toHaveCount(1);
-      await page.getByRole("button", { name: "Borrar y cerrar" }).click();
-      await expect(page.getByText("Texto secreto número 2")).toHaveCount(0);
-    });
-
     test("Temporizador: el reloj empieza solo tras autorizar y se pausa", async ({ page }) => {
       await setupSession(page, { mode: "private", count: size, games: ["Temporizador"] });
       await page.getByRole("button", { name: "Siguiente reto con reloj" }).click();
