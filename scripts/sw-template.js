@@ -1,4 +1,4 @@
-/* TRIO service worker. Generado por scripts/build-sw.mjs; no editar out/sw.js a mano. */
+/* Service worker de Cómplice. Generado por scripts/build-sw.mjs; no editar out/sw.js a mano. */
 const VERSION = "__VERSION__";
 const CACHE = "trio-" + VERSION;
 const PRECACHE = __PRECACHE__;

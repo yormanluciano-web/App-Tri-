@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_NAME } from "@/domain/models/constants";
+
 import { useEffect, useState } from "react";
 import { useSession } from "@/stores/session";
 import { loadSettings, saveSettings, type AppSettings } from "@/storage/settings";
@@ -69,7 +71,7 @@ export function Settings() {
                 ))}
               </div>
             </fieldset>
-            <Toggle checked={settings.sound} onChange={(v) => update({ sound: v })} label="Sonido" hint="Apagado por defecto. TRIO no reproduce música." />
+            <Toggle checked={settings.sound} onChange={(v) => update({ sound: v })} label="Sonido" hint={`Apagado por defecto. ${APP_NAME} no reproduce música.`} />
             <Toggle checked={settings.vibration} onChange={(v) => update({ vibration: v })} label="Vibración" hint="Apagada por defecto; solo si el dispositivo la admite." />
           </>
         )}
@@ -88,7 +90,7 @@ export function Settings() {
           <li>Favoritas guardan solo el identificador de la carta, sin personas ni respuestas.</li>
           <li>El servidor que entrega la web puede ver datos técnicos (como la IP) al descargarla; no promete anonimato de red.</li>
           <li>Una dirección poco conocida no es un control de acceso: cualquiera con la URL puede abrir la web, pero no tus sesiones.</li>
-          <li>En un teléfono compartido alguien puede mirar o deducir respuestas. TRIO no puede impedir capturas de pantalla ni grabaciones.</li>
+          <li>En un teléfono compartido alguien puede mirar o deducir respuestas. {APP_NAME} no puede impedir capturas de pantalla ni grabaciones.</li>
           <li>El navegador puede borrar datos locales; guardar aquí no es un respaldo permanente. Cambiar de dirección web no traslada los datos.</li>
         </ul>
       </Card>
@@ -96,7 +98,7 @@ export function Settings() {
       <Card className="space-y-3">
         <h2 className="text-xl font-bold">Borrar datos</h2>
         <p className="text-muted">
-          Elimina sesiones, límites, favoritas y ajustes de TRIO en este dispositivo, también en otras pestañas abiertas. Los archivos públicos de la app que permiten usarla sin
+          Elimina sesiones, límites, favoritas y ajustes de {APP_NAME} en este dispositivo, también en otras pestañas abiertas. Los archivos públicos de la app que permiten usarla sin
           conexión se conservan.
         </p>
         <Button variant="danger" block onClick={() => setConfirm(true)}>
@@ -133,9 +135,9 @@ export function Settings() {
               applySettingsToDocument();
               setResult(
                 r === "deleted"
-                  ? "Listo: los datos de TRIO se eliminaron de este dispositivo."
+                  ? `Listo: los datos de ${APP_NAME} se eliminaron de este dispositivo.`
                   : r === "blocked"
-                    ? "Datos marcados para borrar. Cierra las demás pestañas de TRIO para completar la eliminación."
+                    ? `Datos marcados para borrar. Cierra las demás pestañas de ${APP_NAME} para completar la eliminación.`
                     : "No se pudo completar el borrado. Inténtalo de nuevo.",
               );
             }}

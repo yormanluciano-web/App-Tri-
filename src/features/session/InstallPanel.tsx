@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_NAME } from "@/domain/models/constants";
+
 import { useEffect, useState } from "react";
 import { Button, Dialog } from "@/components/ui";
 import { isIos, isStandalone, onInstallAvailability, promptInstall } from "@/pwa/install";
@@ -22,10 +24,10 @@ export function InstallButton() {
       <Button variant="ghost" onClick={() => setOpen(true)}>
         Instalar
       </Button>
-      <Dialog open={open} title="Instalar TRIO" onClose={() => setOpen(false)}>
+      <Dialog open={open} title={`Instalar ${APP_NAME}`} onClose={() => setOpen(false)}>
         {native ? (
           <div className="space-y-3">
-            <p className="text-muted">Tu navegador permite instalar TRIO como app.</p>
+            <p className="text-muted">Tu navegador permite instalar {APP_NAME} como app.</p>
             <Button block onClick={() => void promptInstall().then(() => setOpen(false))}>
               Instalar ahora
             </Button>
@@ -38,13 +40,13 @@ export function InstallButton() {
                 <li>Espera el aviso «Disponible sin conexión» en el inicio.</li>
                 <li>Toca el botón Compartir y elige «Añadir a pantalla de inicio».</li>
                 <li>Si aparece «Abrir como app web», actívalo y confirma «Añadir».</li>
-                <li>Abre TRIO desde el icono.</li>
+                <li>Abre {APP_NAME} desde el icono.</li>
               </>
             ) : (
               <>
                 <li>Abre el menú del navegador.</li>
                 <li>Elige «Instalar app» o «Añadir a pantalla de inicio».</li>
-                <li>Abre TRIO desde el icono.</li>
+                <li>Abre {APP_NAME} desde el icono.</li>
               </>
             )}
           </ol>

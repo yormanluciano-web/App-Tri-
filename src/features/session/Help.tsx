@@ -1,4 +1,4 @@
-import { GAMES, GAME_DESCRIPTION, GAME_LABEL, INTENSITIES, INTENSITY_DESCRIPTION, INTENSITY_LABEL } from "@/domain/models/constants";
+import { APP_NAME, GAMES, GAME_DESCRIPTION, GAME_LABEL, INTENSITIES, INTENSITY_DESCRIPTION, INTENSITY_LABEL } from "@/domain/models/constants";
 import { Card, LinkButton, Screen, Title } from "@/components/ui";
 
 export function Help() {
@@ -13,7 +13,7 @@ export function Help() {
       <Card className="space-y-2">
         <h2 className="text-xl font-bold">Aviso para adultos</h2>
         <p className="text-muted">
-          TRIO es solo para mayores de 18 años. Cada persona lo declara por sí misma; no es una verificación documental. El contenido es sugerente, sin imágenes
+          {APP_NAME} es solo para mayores de 18 años. Cada persona lo declara por sí misma; no es una verificación documental. El contenido es sugerente, sin imágenes
           ni instrucciones explícitas.
         </p>
       </Card>

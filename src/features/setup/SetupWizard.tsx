@@ -1,8 +1,10 @@
 "use client";
 
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  APP_NAME,
   BASE_GAMES,
   GAMES,
   GAME_DESCRIPTION,
@@ -229,7 +231,7 @@ export function SetupWizard() {
 
       {step === "count" && (
         <>
-          <Title sub="TRIO funciona con exactamente 2 o 3 adultos que comparten este teléfono.">¿Cuántas personas juegan?</Title>
+          <Title sub={`${APP_NAME} funciona con exactamente 2 o 3 adultos que comparten este teléfono.`}>¿Cuántas personas juegan?</Title>
           <div className="grid grid-cols-2 gap-3">
             {[2, 3].map((n) => (
               <Button key={n} variant={count === n ? "primary" : "secondary"} aria-pressed={count === n} className="min-h-20 text-2xl" onClick={() => setCount(n as 2 | 3)}>

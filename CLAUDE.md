@@ -1,4 +1,4 @@
-# TRIO — instrucciones del proyecto
+# Cómplice (antes TRIO) — instrucciones del proyecto
 
 @AGENTS.md
 

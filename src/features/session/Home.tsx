@@ -43,7 +43,7 @@ export function Home() {
             <circle cx="76" cy="50" r="26" fill="none" stroke="url(#g)" strokeWidth="7" opacity="0.85" />
             <circle cx="60" cy="76" r="26" fill="none" stroke="url(#g)" strokeWidth="7" opacity="0.7" />
           </svg>
-          <h1 className="wordmark text-5xl">{APP_NAME}</h1>
+          <h1 className="wordmark text-[clamp(2.25rem,13vw,3rem)] leading-tight">{APP_NAME}</h1>
           <p className="text-lg font-semibold">{APP_SUBTITLE}</p>
           <p className="text-muted">{APP_PROMISE}</p>
         </header>

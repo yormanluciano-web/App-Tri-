@@ -21,3 +21,4 @@
 | 2026-10-06 | CSP con `'unsafe-inline'` para scripts y estilos | La exportación estática de Next inserta scripts en línea y no admite nonces sin servidor | `connect-src 'self'`, sin iframes ni orígenes externos |
 | 2026-10-06 | Ampliación del catálogo redactada en paralelo por agentes con el mismo validador y metas por familia, y revisada por muestreo | Plan §0.1.10 permite agentes paralelos | 1.000 cartas validadas |
 | 2026-10-06 | En Quién me conoce mejor las adivinanzas se muestran con alias | El juego compara conocimiento; no hay respuestas sensibles ni votos | Las respuestas se borran al cerrar la ronda |
+| 2026-10-07 | Nombre de marca: **Cómplice** (antes TRIO, provisional) | Decisión de la persona propietaria | Solo cambia el nombre visible (`APP_NAME`, manifest). La base IndexedDB «trio», las claves «trio:» y las cachés «trio-» se conservan para no perder sesiones ni favoritas guardadas |

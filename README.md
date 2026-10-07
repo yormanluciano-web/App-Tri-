@@ -1,4 +1,4 @@
-# TRIO — Conexión a tu ritmo
+# Cómplice — Conexión a tu ritmo
 
 PWA de juegos privados para 2 o 3 adultos que comparten un teléfono. Cada sesión es diferente. Tus límites siempre cuentan.
 

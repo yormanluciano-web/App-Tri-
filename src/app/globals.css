@@ -91,7 +91,7 @@ body {
 }
 
 .wordmark {
-  letter-spacing: 0.32em;
+  letter-spacing: 0.06em;
   font-weight: 800;
   background: linear-gradient(120deg, var(--leve), var(--picante) 55%, var(--perverso-gold));
   -webkit-background-clip: text;

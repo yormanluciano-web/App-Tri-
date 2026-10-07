@@ -1,7 +1,8 @@
 // Enumeraciones centrales del dominio. Cambiar estos valores es un cambio de
 // contrato: requiere migración de datos guardados y revisión del catálogo.
 
-export const APP_NAME = "TRIO";
+/** Nombre de marca visible. Identificadores internos (base «trio», claves «trio:») no cambian para conservar datos guardados. */
+export const APP_NAME = "Cómplice";
 export const APP_SUBTITLE = "Conexión a tu ritmo";
 export const APP_PROMISE = "Cada sesión es diferente. Tus límites siempre cuentan.";
 
