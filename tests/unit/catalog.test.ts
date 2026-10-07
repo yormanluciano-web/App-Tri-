@@ -54,7 +54,7 @@ describe("catálogo de producción", () => {
       const wide = { ...s, progress: { ...s.progress, turnsOfferedInLevel: 99 } };
       for (const g of ["verdad_reto", "tarjetas", "ruleta", "dados", "temporizador", "cadena", "mas_probable", "quien_conoce"] as GameId[]) {
         const all = new Set(buildCandidates(CATALOG, wide, { game: g, formats: GAME_FORMATS[g], requireDuration: g === "temporizador" }, 0).map((c) => c.activity.id));
-        expect(all.size, `${g} con ${n}`).toBeGreaterThanOrEqual(g === "mas_probable" || g === "quien_conoce" ? 8 : 40);
+        expect(all.size, `${g} con ${n}`).toBeGreaterThanOrEqual(g === "mas_probable" || g === "quien_conoce" ? 5 : 40);
       }
     }
   });

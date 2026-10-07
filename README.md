@@ -2,7 +2,7 @@
 
 PWA de juegos privados para 2 o 3 adultos que comparten un teléfono. Cada sesión es diferente. Tus límites siempre cuentan.
 
-- 12 juegos, 3 intensidades (Leve, Picante, Perverso) y 1.000 actividades revisadas.
+- 12 juegos, 3 intensidades (Leve, Picante, Perverso) y 1.200 actividades revisadas.
 - Límites individuales con semáforo, autorizaciones privadas y unánimes, equilibrio de protagonismo.
 - Sin cuentas, sin analítica, sin IA online. Funciona sin conexión.
 

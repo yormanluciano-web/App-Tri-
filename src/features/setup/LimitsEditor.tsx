@@ -349,10 +349,9 @@ export function SharedLimitsEditor({
         {PERMISSION_GROUPS.map((g) => {
           const blocked = g.items.every((p) => shared[p] === "red");
           return (
-            <fieldset key={g.id} className="flex items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
-              <legend className="sr-only">{g.title}</legend>
-              <span className="font-semibold">{g.title}</span>
-              <div className="grid shrink-0 grid-cols-2 gap-2">
+            <fieldset key={g.id} className="space-y-2 border-b border-line py-3 last:border-b-0">
+              <legend className="font-semibold">{g.title}</legend>
+              <div className="grid grid-cols-2 gap-2">
                 {(
                   [
                     [false, "Según cada quien"],

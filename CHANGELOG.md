@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — 2026-10-07
+- Nombre visible: Cómplice.
+- Catálogo v2 más atrevido: 1.200 actividades nuevas (300 Leve, 450 Picante, 450 Perverso); se retiran las 1.000 anteriores.
+- Permisos nuevos: besos intensos, caricias sobre la ropa, quitarse prendas y tiempo a solas, con reglas de validación y avisos en las cartas.
+- Límites simplificados: «Acepto todo», «Acepto parcialmente» (por temas) o «No acepto»; detalle en opciones avanzadas.
+- Límites del grupo en una sola pantalla opcional.
+
 ## 0.1.0 — 2026-10-06
 - Proyecto Next.js 16 con exportación estática, TypeScript estricto, Tailwind 4, Zustand y Zod.
 - Motor puro: límites y consentimiento, progresión por tramos, selección con equilibrio (espera ≤ 3), variedad y cooldown, transiciones idempotentes.

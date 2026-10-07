@@ -95,7 +95,7 @@ test("consentimiento inicial: si alguien no acepta no se empieza y no se señala
     await page.getByRole("button", { name: "Soy Ana, continuar" }).click();
     await expect(page.getByRole("button", { name: "Guardar", exact: true })).toBeDisabled();
     await page.getByRole("radio", { name: /Acepto parcialmente/ }).click();
-    await page.getByRole("group", { name: "Besos" }).getByText("Acepto", { exact: true }).click();
+    await page.getByRole("group", { name: "Besos" }).getByRole("radio", { name: "Acepto", exact: true }).check({ force: true });
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: /Ocultar y/ }).click();
   }
