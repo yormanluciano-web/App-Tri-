@@ -7,6 +7,6 @@
 - `npm run content:validate -- --similar`: 1.109 actividades, 0 errores, 0 avisos.
 - `npm test`: 75 pruebas en verde.
 - `npm run build`: exportación estática + `sw.js` con 65 recursos.
-- `npm run test:e2e`: 27 pruebas en verde (incluida la demo) en Chromium (móvil).
+- `npm run test:e2e`: 29 pruebas en verde (incluidas la demo y el panel de administración) en Chromium (móvil).
 
-**Siguiente acción concreta:** que la propietaria decida cómo conectar el panel de administración (ver PENDIENTES); verificar el despliegue nuevo en Vercel y probar en el iPhone (las sesiones guardadas con el catálogo anterior reemplazan su carta actual de forma segura).
+**Siguiente acción concreta:** crear la llave de GitHub y probar el panel de administración (docs/DESPLIEGUE.md); verificar el despliegue nuevo en Vercel y probar en el iPhone (las sesiones guardadas con el catálogo anterior reemplazan su carta actual de forma segura).

@@ -51,3 +51,11 @@ En Vercel → Deployments → elegir el despliegue anterior → **Promote to Pro
 
 ## Cambiar de dominio
 El almacenamiento local pertenece al origen: al cambiar de dominio las sesiones guardadas y favoritas no se trasladan.
+
+## Panel de administración (cartas desde la app)
+1. En GitHub: **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
+   - Repository access: **solo este repositorio**. Permissions → **Contents: Read and write**. Caducidad corta (p. ej. 90 días).
+2. En la app: **Ajustes → Panel de administración**. Usuario, repositorio y **la rama que publica Vercel en producción** (Vercel → Project → Settings → Git → Production Branch). Pega la llave y deja que el iPhone la guarde en el llavero.
+3. Esa rama debe contener este código (el panel y `src/data/custom/cartas.json`); si Vercel publica `main`, primero hay que fusionar la rama de trabajo en `main`.
+4. Cada cambio crea un commit en `src/data/custom/cartas.json`; Vercel vuelve a publicar en 1 a 3 minutos. Si un cambio rompiera el build, Vercel mantiene la versión anterior.
+5. Si la llave se pierde o se filtra: bórrala en GitHub y crea otra. Nunca la pegues en chats ni documentos.

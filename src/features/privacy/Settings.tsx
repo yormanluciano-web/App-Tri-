@@ -11,7 +11,7 @@ import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 
-export const APP_VERSION = "0.8.1";
+export const APP_VERSION = "0.9.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -105,6 +105,14 @@ export function Settings() {
           Eliminar todos mis datos
         </Button>
         {result && <Notice>{result}</Notice>}
+      </Card>
+
+      <Card className="space-y-2">
+        <h2 className="text-xl font-bold">Administración</h2>
+        <p className="text-sm text-muted">Solo para quien administra las cartas: agregar, editar, ocultar o borrar. Requiere una llave de GitHub con permiso de escritura.</p>
+        <LinkButton href="/admin/" variant="secondary" icon="lock" block>
+          Panel de administración
+        </LinkButton>
       </Card>
 
       <Card className="space-y-2">

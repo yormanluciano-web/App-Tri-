@@ -6,6 +6,6 @@
 | Alta | Prueba manual en iPhone físico (Safari, Añadir a pantalla de inicio, modo avión) | Pendiente de dispositivo |
 | Media | Pruebas automatizadas en WebKit | No disponible en este entorno (solo Chromium instalado); la CI puede añadir `npx playwright install webkit` |
 | Media | Verificar cabeceras CSP en la URL real de Vercel (ya probadas en `preview`) | Tras publicar |
-| Alta | Panel de administración dentro de la app (registrarse, agregar/editar/borrar cartas que se guarden en el repositorio) | **Esperando decisión**: escribir en GitHub desde la app fue bloqueado por el control de permisos de la sesión. Ya existen el formato `cartas.json`, el armado de cartas y la validación; falta la conexión. Mientras tanto se edita `src/data/custom/cartas.json` desde la web de GitHub |
+| Alta | Crear la llave de GitHub y probar el panel de administración en el iPhone contra el repositorio real | Pendiente de la propietaria (ver docs/DESPLIEGUE.md → Panel de administración) |
 | Hecho | Nombre de marca definitivo: Cómplice | 2026-10-07 |
 | Baja | Panel editorial, paquetes premium y sincronización (Supabase) | Fuera de la primera versión; ver `docs/EVOLUCION.md` |

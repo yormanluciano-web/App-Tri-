@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0 — 2026-10-08
+- Panel de administración (Ajustes → Panel de administración): entrar con una llave de GitHub, crear y editar cartas con vista previa y validación, borrar cartas propias y ocultar o restaurar cartas base. Cada cambio se guarda en `src/data/custom/cartas.json` del repositorio y Vercel vuelve a publicar.
+- La llave solo vive en memoria mientras dura la sesión (el llavero del sistema puede autocompletarla); en el dispositivo solo queda el nombre del repositorio y la rama.
+- CSP: `connect-src` permite `https://api.github.com`, usada solo por el panel.
+
 ## 0.8.1 — 2026-10-08
 - Cartas propias sin programar: `src/data/custom/cartas.json` añade cartas y oculta cartas base; se carga en el catálogo y pasa por el mismo validador (guía en docs/CONTENIDO.md).
 - Nuevo atributo «solo un género» (`genero: "hombre" | "mujer"`): todas las personas de la carta deben tener ese género; sin género declarado no sale.

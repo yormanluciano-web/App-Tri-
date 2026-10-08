@@ -29,7 +29,7 @@ PWA de juegos privados para 2 o 3 adultos que comparten un teléfono. Especifica
 - Ningún peso, favorito, sorpresa, dado, ruleta o cadena rehabilita una opción descartada: todo pasa por `selectCandidate` / `evaluateAssignment`.
 - Respuestas, votos y autorías viven solo en memoria de la ronda (`RoundEphemeral`), nunca en `SessionState` persistible.
 - Sesión privada: cero escrituras en IndexedDB/Web Storage. Serializar solo con la lista explícita de `src/storage/serialize.ts`.
-- Nada de datos de juego en URL, logs, red o telemetría. Sin IA online, analítica ni SDKs externos.
+- Nada de datos de juego en URL, logs, red o telemetría. Sin IA online, analítica ni SDKs externos. La única llamada de red es el panel de administración (`src/admin/`), que solo envía `src/data/custom/cartas.json` a la API de GitHub; la llave nunca se guarda en el dispositivo.
 
 ## Arquitectura
 - `src/domain/` funciones puras (reloj y RNG inyectables): `engine/` selección, progresión, orquestador; `consent/limits.ts`; `state/session.ts` transiciones; `content/validate.ts`.
