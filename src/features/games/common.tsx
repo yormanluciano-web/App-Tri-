@@ -7,7 +7,8 @@ import type { SessionState, Turn } from "@/domain/models/session";
 import { timerRemaining } from "@/domain/state/session";
 import { activityPermissions } from "@/domain/consent/limits";
 import { useSession } from "@/stores/session";
-import { Button, Card, Icon, ParticipantTag, cx } from "@/components/ui";
+import { Button, Card, Icon, Logo, ParticipantTag, cx } from "@/components/ui";
+import { Tilt } from "@/components/ui/tilt";
 import { GAME_ICON } from "@/components/ui/visuals";
 import type { Person } from "@/features/session/PrivateRound";
 
@@ -65,7 +66,10 @@ export function ActivityCard({
     headingRef.current?.focus();
   }, [turn.id]);
   return (
-    <Card glow className="space-y-5 py-6 animate-deal">
+    <Tilt max={6} ignoreInteractive>
+      <div className="flip-3d" key={turn.id}>
+        <div className="face-front">
+    <Card glow className="space-y-5 py-6">
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent to-accent-2 px-3 py-1 text-accent-ink">
           <Icon name={GAME_ICON[turn.game]} className="size-3.5" />
@@ -104,6 +108,12 @@ export function ActivityCard({
         {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
       </button>
     </Card>
+        </div>
+        <div className="face-back card-back flex items-center justify-center" aria-hidden>
+          <Logo className="size-28 opacity-90 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]" />
+        </div>
+      </div>
+    </Tilt>
   );
 }
 

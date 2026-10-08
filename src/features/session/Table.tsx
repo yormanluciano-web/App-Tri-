@@ -17,8 +17,9 @@ import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression
 import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
-import { Button, Card, Chip, Dialog, Icon, LinkButton, Logo, Notice, Screen, Title, cx, type IconName } from "@/components/ui";
+import { Button, Card, Chip, Dialog, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx, type IconName } from "@/components/ui";
 import { LEVEL_ICON } from "@/components/ui/visuals";
+import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
 import { peopleOf, RoleText, useNow } from "@/features/games/common";
@@ -84,6 +85,7 @@ function TopBar({ session }: { session: SessionState }) {
 /** Botón grande tipo carta para lanzar una ronda. */
 function BigDraw({ label, hint, icon, onClick, className }: { label: string; hint?: string; icon: IconName; onClick: () => void; className?: string }) {
   return (
+    <Tilt max={10} className="w-full">
     <button
       type="button"
       onClick={onClick}
@@ -100,6 +102,7 @@ function BigDraw({ label, hint, icon, onClick, className }: { label: string; hin
         </span>
       )}
     </button>
+    </Tilt>
   );
 }
 
@@ -491,7 +494,7 @@ function Closing({ session }: { session: SessionState }) {
     <Screen level={session.level} className="justify-center text-center">
       <div className="relative mx-auto size-28">
         <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
-        <Logo className="relative size-28 animate-float" />
+        <Logo3D className="relative size-28 animate-float" />
       </div>
       <Title sub={session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
       {show ? (

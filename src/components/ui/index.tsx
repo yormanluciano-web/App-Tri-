@@ -5,7 +5,7 @@ import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "re
 import { PARTICIPANT_COLORS, PARTICIPANT_MARKS } from "@/domain/models/constants";
 import { Icon, type IconName } from "./icons";
 
-export { Icon, Logo, type IconName } from "./icons";
+export { Icon, Logo, Logo3D, type IconName } from "./icons";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
 type Size = "md" | "lg" | "xl";
@@ -86,7 +86,7 @@ export function Aurora() {
 
 export function Screen({ children, className, level = "leve" }: { children: ReactNode; className?: string; level?: string }) {
   return (
-    <main data-level={level} className={cx("safe-top safe-bottom relative mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 px-4 pb-6", className)}>
+    <main data-level={level} className={cx("safe-top safe-bottom relative mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 overflow-x-clip px-4 pb-6", className)}>
       <Aurora />
       {children}
     </main>

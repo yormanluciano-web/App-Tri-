@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0 — 2026-10-08
+- Animaciones 3D con CSS nativo: cartas que se voltean al repartirse, inclinación 3D con reflejo que sigue al dedo (carta y lanzadores), dados cúbicos que ruedan, ruleta en perspectiva y logo en capas con profundidad.
+- Todas se desactivan con «reducir movimiento»; la inclinación se pausa sobre botones para no mover el objetivo al tocar.
+
 ## 0.5.0 — 2026-10-07
 - Rediseño visual completo: paleta ciruela/rosa/dorado por nivel, fondo animado tipo aurora, tipografías autoalojadas (Playfair Display y Outfit), botones con degradado y brillo, iconos propios.
 - Animaciones: carta que se reparte, logo flotante con corazón, reloj circular, botones que laten; todas se desactivan con «reducir movimiento».

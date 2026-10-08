@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "@/stores/session";
 import { APP_NAME, APP_PROMISE, APP_SUBTITLE, INTENSITY_LABEL } from "@/domain/models/constants";
-import { Button, Dialog, LinkButton, Logo, Notice, Screen } from "@/components/ui";
+import { Button, Dialog, LinkButton, Logo3D, Notice, Screen } from "@/components/ui";
 import { OfflineBadge } from "./OfflineBadge";
 import { InstallButton } from "./InstallPanel";
 
@@ -33,7 +33,7 @@ export function Home() {
         <header className="space-y-4 text-center">
           <div className="relative mx-auto size-36">
             <div aria-hidden className="absolute inset-4 rounded-full bg-[radial-gradient(circle,rgba(255,77,141,0.55),transparent_70%)] blur-2xl" />
-            <Logo className="relative size-36 animate-float" />
+            <Logo3D className="relative size-36 animate-float" />
           </div>
           <h1 className="wordmark text-[clamp(3rem,16vw,4.25rem)] leading-none animate-in">{APP_NAME}</h1>
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-accent animate-in">{APP_SUBTITLE}</p>

@@ -44,11 +44,12 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
   if (done) return <StandardRound session={session} turn={turn} activity={activity} />;
   const colors = [...PARTICIPANT_COLORS, "#8f8aa6"];
   return (
-    <Card className="flex flex-col items-center gap-4">
-      <p className="text-muted" aria-live="polite">
+    <Card glow className="flex flex-col items-center gap-4 overflow-hidden">
+      <p className="font-display text-xl italic text-muted" aria-live="polite">
         La ruleta gira…
       </p>
-      <div className="relative size-64">
+      <div className="scene-3d">
+      <div className="wheel-3d relative size-64 rounded-full shadow-[0_30px_60px_-20px_var(--glow)]">
         <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 text-2xl text-gold" aria-hidden>
           ▼
         </div>
@@ -67,7 +68,15 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
               </g>
             );
           })}
+          <circle r="14" fill="#1a0d22" stroke="url(#wheel-hub)" strokeWidth="4" />
+          <defs>
+            <linearGradient id="wheel-hub" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stopColor="#F5C76B" />
+              <stop offset="1" stopColor="#FF4D8D" />
+            </linearGradient>
+          </defs>
         </svg>
+      </div>
       </div>
     </Card>
   );
@@ -77,7 +86,7 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
 export function DiceRound({ session, turn, activity }: { session: SessionState; turn: Turn; activity: Activity }) {
   const [done, setDone] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), prefersReducedMotion() ? 50 : 1400);
+    const t = setTimeout(() => setDone(true), prefersReducedMotion() ? 50 : 1600);
     return () => clearTimeout(t);
   }, []);
   const who = turn.protagonist ? session.config.participants.find((p) => p.id === turn.protagonist) : null;
@@ -92,17 +101,21 @@ export function DiceRound({ session, turn, activity }: { session: SessionState; 
         <p className="sr-only" aria-live="polite">
           {done ? `Resultado: ${faces.map((f) => `${f.label} ${f.value}`).join(", ")}` : "Lanzando dados"}
         </p>
-        <div className="grid grid-cols-3 gap-2">
-          {faces.map((f) => (
+        <div className="grid grid-cols-3 gap-2 py-2">
+          {faces.map((f, i) => (
             <div key={f.label} className="flex flex-col items-center gap-1">
-              <div
-                className="flex size-20 items-center justify-center rounded-2xl border-2 border-accent bg-surface-2 p-1 text-center text-sm font-bold"
-                style={done ? undefined : { animation: "dice-roll 0.45s linear infinite" }}
-                aria-hidden
-              >
-                {done ? f.value : "?"}
+              <div className="scene-3d flex h-28 items-end justify-center">
+                <div className={done ? "cube" : "cube rolling"} style={{ animationDelay: `${i * 120}ms` }} aria-hidden>
+                  <div className="f1">{f.value}</div>
+                  <div className="f2">✦</div>
+                  <div className="f3">♥</div>
+                  <div className="f4">✦</div>
+                  <div className="f5">♥</div>
+                  <div className="f6">✦</div>
+                </div>
               </div>
-              <span className="text-xs text-faint">{f.label}</span>
+              <div className="cube-shadow" aria-hidden />
+              <span className="text-xs uppercase tracking-widest text-faint">{f.label}</span>
             </div>
           ))}
         </div>
