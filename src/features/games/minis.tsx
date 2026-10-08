@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { create } from "zustand";
 import type { Activity } from "@/domain/models/activity";
 import { GAME_LABEL, MINI_GAMES, PARTICIPANT_COLORS, type Format, type GameId, type Interaction } from "@/domain/models/constants";
-import { BOARD, BOARD_SIZE, SQUARE_STYLE, cardFor, move, squarePosition, type SquareKind } from "./parques-logic";
+import { BOARD, BOARD_SIZE, GRID, SQUARE_STYLE, cardFor, gridCell, move, squareAnnouncement, type SquareKind } from "./parques-logic";
 import type { SessionState, Turn } from "@/domain/models/session";
 import { useSession } from "@/stores/session";
 import { GameEmblem, Notice, ParticipantTag, cx } from "@/components/ui";
@@ -624,91 +624,150 @@ export function isMiniGame(g: GameId): boolean {
 
 // ------------------------------------------------------------------ Parqués de la pasión
 
-const STEP_MS = 280;
+/** Ritmo pensado para el suspenso: se ve cada salto, dónde cae y qué le toca. */
+const ROLL_MS = 1700;
+const SHOW_ROLL_MS = 900;
+const STEP_MS = 560;
+const LANDED_MS = 850;
+const REVEAL_MS = 1700;
 
 /** Cara al azar del dado (solo desde eventos, nunca al pintar). */
 function rollDie(): number {
   return 1 + Math.floor(Math.random() * 6);
 }
 
-/** Cara del dado con puntos. */
-function DieFace({ value }: { value: number }) {
-  const pips: Record<number, [number, number][]> = {
-    1: [[50, 50]],
-    2: [[28, 28], [72, 72]],
-    3: [[26, 26], [50, 50], [74, 74]],
-    4: [[28, 28], [72, 28], [28, 72], [72, 72]],
-    5: [[26, 26], [74, 26], [50, 50], [26, 74], [74, 74]],
-    6: [[28, 24], [72, 24], [28, 50], [72, 50], [28, 76], [72, 76]],
-  };
-  return (
-    <svg viewBox="0 0 100 100" className="size-full" aria-hidden>
-      <rect x="4" y="4" width="92" height="92" rx="20" fill="url(#die-g)" stroke="#fff3c4" strokeWidth="3" />
-      <defs>
-        <linearGradient id="die-g" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stopColor="#fff" />
-          <stop offset="1" stopColor="#ffd6e7" />
-        </linearGradient>
-      </defs>
-      {pips[value].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="9" fill="#b3123e" />
-      ))}
-    </svg>
-  );
-}
+const PIPS: Record<number, [number, number][]> = {
+  1: [[50, 50]],
+  2: [[28, 28], [72, 72]],
+  3: [[26, 26], [50, 50], [74, 74]],
+  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
+  5: [[26, 26], [74, 26], [50, 50], [26, 74], [74, 74]],
+  6: [[28, 24], [72, 24], [28, 50], [72, 50], [28, 76], [72, 76]],
+};
 
-/** Tablero circular con las 24 casillas, las fichas y el corazón al centro. */
-function ParquesBoard({ people, pos, active }: { people: Seat[]; pos: Record<string, number>; active: string | null }) {
+/** Giro que deja cada número de frente (cara 1 delante, 2 arriba, 3 a la derecha…). */
+const DIE_TURN: Record<number, { fx: string; fy: string }> = {
+  1: { fx: "0deg", fy: "0deg" },
+  2: { fx: "-90deg", fy: "0deg" },
+  3: { fx: "0deg", fy: "-90deg" },
+  4: { fx: "0deg", fy: "90deg" },
+  5: { fx: "90deg", fy: "0deg" },
+  6: { fx: "0deg", fy: "180deg" },
+};
+
+/** Dado 3D con puntos: cae dando tumbos y se detiene en el número ya sorteado. */
+function Die3D({ value, rolling, rollKey }: { value: number; rolling: boolean; rollKey: number }) {
+  const turn = DIE_TURN[value];
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[22rem]" style={themeStyle("parques")}>
-      <div className="absolute inset-[6%] rounded-full border-2 border-[#fcd34d]/30 bg-[radial-gradient(circle,rgba(225,29,116,0.22),rgba(109,40,217,0.12)_60%,transparent_72%)]" aria-hidden />
-      {BOARD.map((sq, i) => {
-        const { x, y } = squarePosition(i);
-        const st = SQUARE_STYLE[sq.kind];
-        return (
-          <span
-            key={i}
-            className="absolute flex size-[11%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl text-sm font-bold text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.25),0_4px_8px_-2px_rgba(0,0,0,0.5)]"
-            style={{ left: `${x}%`, top: `${y}%`, background: `linear-gradient(135deg, ${st.from}, ${st.to})` }}
-            aria-hidden
-          >
-            {sq.kind === "avanza" || sq.kind === "retrocede" ? `${st.glyph}${sq.steps}` : st.glyph}
-          </span>
-        );
-      })}
-      <div className="absolute inset-0 m-auto flex size-[34%] flex-col items-center justify-center" aria-hidden>
-        <GameEmblem theme="parques" className="size-full drop-shadow-[0_0_24px_rgba(225,29,116,0.6)]" />
+    <div className="pdie-scene" aria-hidden>
+      <div key={rollKey} className={cx("pdie", rolling && "rolling")} style={{ "--fx": turn.fx, "--fy": turn.fy } as CSSProperties}>
+        {[1, 2, 3, 4, 5, 6].map((n) => (
+          <div key={n} className={`pdie-face pf${n}`}>
+            <svg viewBox="0 0 100 100" className="size-full">
+              {PIPS[n].map(([x, y], i) => (
+                <circle key={i} cx={x} cy={y} r="9" fill="#b3123e" />
+              ))}
+            </svg>
+          </div>
+        ))}
       </div>
-      {people.map((p, k) => {
-        const at = pos[p.id] ?? 0;
-        const c = at >= BOARD_SIZE ? { x: 50, y: 50 } : squarePosition(at, 41);
-        // Varias fichas en la misma casilla: se reparten un poco.
-        const same = people.filter((o) => (pos[o.id] ?? 0) === at);
-        const idx = same.findIndex((o) => o.id === p.id);
-        const off = same.length > 1 ? (idx - (same.length - 1) / 2) * 3.2 : 0;
-        return (
-          <span
-            key={p.id}
-            className={cx(
-              "absolute z-10 flex size-[8.5%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white font-display text-xs font-semibold italic text-[#1a0612] transition-[left,top] duration-200 ease-out",
-              active === p.id && "ring-4 ring-gold",
-            )}
-            style={{
-              left: `${c.x + off}%`,
-              top: `${c.y - off}%`,
-              background: `radial-gradient(circle at 30% 30%, #fff, ${PARTICIPANT_COLORS[p.slot]})`,
-              boxShadow: `0 0 16px ${PARTICIPANT_COLORS[p.slot]}`,
-            }}
-            aria-hidden
-            data-ficha={k}
-          >
-            {p.alias.charAt(0).toUpperCase()}
-          </span>
-        );
-      })}
+      <div className="pdie-shadow" />
     </div>
   );
 }
+
+const HEART_STYLE = { from: "#e11d74", to: "#6d28d9", glyph: "♥", label: "Corazón" };
+
+function squareLook(i: number) {
+  const sq = BOARD[i];
+  if (!sq) return HEART_STYLE;
+  const st = SQUARE_STYLE[sq.kind];
+  return { ...st, glyph: sq.kind === "avanza" || sq.kind === "retrocede" ? `${st.glyph}${sq.steps}` : st.glyph };
+}
+
+const PCELL = 100 / GRID;
+
+/** Tablero cuadrado inclinado en 3D: 24 casillas en el borde, fichas de pie y el corazón al centro. */
+function ParquesBoard({
+  people,
+  pos,
+  active,
+  hot,
+  center,
+}: {
+  people: Seat[];
+  pos: Record<string, number>;
+  active: string | null;
+  hot: number | null;
+  center: ReactNode;
+}) {
+  return (
+    <div className="parques-stage" style={themeStyle("parques")}>
+      <div className="parques-board">
+        {BOARD.map((_, i) => {
+          const { col, row } = gridCell(i);
+          const look = squareLook(i);
+          return (
+            <div
+              key={i}
+              className={cx("parques-tile", hot === i && "hot")}
+              style={{ left: `${col * PCELL}%`, top: `${row * PCELL}%`, width: `${PCELL}%`, height: `${PCELL}%` }}
+              data-casilla={i}
+              aria-hidden
+            >
+              <span style={{ background: `linear-gradient(135deg, ${look.from}, ${look.to})` }}>{i === 0 ? "⚑" : look.glyph}</span>
+            </div>
+          );
+        })}
+        <div className="parques-center" style={{ left: `${PCELL}%`, top: `${PCELL}%`, width: `${PCELL * 5}%`, height: `${PCELL * 5}%` }}>
+          {center}
+        </div>
+        {people.map((p) => {
+          const at = pos[p.id] ?? 0;
+          const { col, row } = gridCell(at);
+          const same = people.filter((o) => (pos[o.id] ?? 0) === at);
+          const idx = same.findIndex((o) => o.id === p.id);
+          const off = same.length > 1 ? (idx - (same.length - 1) / 2) * 26 : 0;
+          return (
+            <div
+              key={p.id}
+              className="parques-token"
+              style={{ width: `${PCELL}%`, height: `${PCELL}%`, transform: `translate3d(${col * 100}%, ${row * 100}%, 0)` }}
+              aria-hidden
+            >
+              <div className="parques-token-slot" style={{ transform: `translate3d(${off}%, ${-off / 2}%, 0)` }}>
+                <div className="parques-token-shadow" />
+                <div key={at} className={cx("parques-pawn", active === p.id && "active")} style={{ "--pc": PARTICIPANT_COLORS[p.slot] } as CSSProperties}>
+                  <span className="head">{p.alias.charAt(0).toUpperCase()}</span>
+                  <span className="body" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Ficha que se voltea para anunciar lo que tocó, antes de mostrar la carta. */
+function RevealTile({ square, title, hint }: { square: number; title: string; hint: string }) {
+  const look = squareLook(square);
+  return (
+    <div className="parques-reveal" role="status" aria-live="assertive">
+      <div className="parques-reveal-card">
+        <div className="pr-face pr-mystery">?</div>
+        <div className="pr-face pr-result" style={{ background: `linear-gradient(145deg, ${look.from}, ${look.to})` }}>
+          <span className="text-5xl leading-none">{look.glyph}</span>
+          <span className="font-display text-2xl font-semibold italic">{title}</span>
+        </div>
+      </div>
+      <p className="parques-reveal-hint">{hint}</p>
+    </div>
+  );
+}
+
+type ParquesPhase = "idle" | "rolling" | "rolled" | "moving" | "landed" | "bonus" | "reveal" | "decide" | "winner";
 
 export function ParquesLauncher({ session }: { session: SessionState }) {
   useMinisFor(session);
@@ -720,11 +779,15 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
   const current = people[state.turn % people.length];
   const [pos, setPos] = useState<Record<string, number>>(state.pos);
   const [die, setDie] = useState(1);
-  const [phase, setPhase] = useState<"idle" | "rolling" | "moving" | "winner" | "info">("idle");
+  const [rollKey, setRollKey] = useState(0);
+  const [phase, setPhase] = useState<ParquesPhase>("idle");
+  const [left, setLeft] = useState(0);
+  const [hot, setHot] = useState<number | null>(null);
+  const [reveal, setReveal] = useState<{ square: number; title: string; hint: string } | null>(null);
+  const [play, setPlay] = useState<{ value: number; bonus: number; to: number } | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  const finishTurn = (nextPos: Record<string, number>, last: string | null) =>
-    set({ parques: { pos: nextPos, turn: state.turn + 1, last } });
+  const finishTurn = (nextPos: Record<string, number>, last: string | null) => set({ parques: { pos: nextPos, turn: state.turn + 1, last } });
 
   const giveCard = (nextPos: Record<string, number>, to: string, req: { formats?: readonly Format[]; interactions?: readonly Interaction[] }, last: string) => {
     finishTurn(nextPos, last);
@@ -734,63 +797,150 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
   };
 
   const roll = async () => {
-    if (phase !== "idle" && phase !== "info") return;
-    setInfo(null);
-    setPhase("rolling");
+    if (phase !== "idle") return;
     const value = rollDie();
-    // El dado gira mostrando caras al azar antes de detenerse.
-    for (let i = 0; i < 6; i++) {
-      setDie(rollDie());
-      await wait(90);
-    }
+    setInfo(null);
     setDie(value);
-    await wait(250);
-    setPhase("moving");
-    const from = pos[current.id] ?? 0;
-    const m = move(from, value);
+    setRollKey((k) => k + 1);
+    setPhase("rolling");
+    await wait(ROLL_MS);
+    setPhase("rolled");
+    await wait(SHOW_ROLL_MS);
+
+    const m = move(pos[current.id] ?? 0, value);
+    const diceSteps = Math.min(value, m.path.length);
     let shown = { ...pos };
-    for (const step of m.path) {
-      shown = { ...shown, [current.id]: step };
-      setPos(shown);
-      await wait(STEP_MS);
-    }
-    if (m.finished) {
+    const walk = async (steps: number[]) => {
+      setPhase("moving");
+      for (let k = 0; k < steps.length; k++) {
+        shown = { ...shown, [current.id]: steps[k] };
+        setPos(shown);
+        setHot(steps[k]);
+        setLeft(steps.length - k - 1);
+        await wait(STEP_MS);
+      }
+    };
+    const win = () => {
+      setHot(null);
+      setReveal({ square: BOARD_SIZE, title: "¡Al corazón!", hint: `${current.alias} ganó la vuelta. Elige a quién le toca el próximo reto.` });
       setPhase("winner");
-      return;
+    };
+
+    await walk(m.path.slice(0, diceSteps));
+    if (m.finished && diceSteps === m.path.length) return win();
+    setHot(m.landed);
+    setPhase("landed");
+    await wait(LANDED_MS);
+
+    if (m.bonus !== 0) {
+      setReveal({ square: m.landed, ...squareAnnouncement(m.landed) });
+      setPhase("bonus");
+      await wait(REVEAL_MS + 600);
+      setReveal(null);
+      await walk(m.path.slice(diceSteps));
+      if (m.finished) return win();
+      setHot(m.to);
+      setPhase("landed");
+      await wait(LANDED_MS);
     }
-    const sq = BOARD[m.to];
-    const card = cardFor(m.to);
-    const moved = m.bonus > 0 ? ` y avanzó ${m.bonus}` : m.bonus < 0 ? ` y retrocedió ${-m.bonus}` : "";
-    const label = `${current.alias} sacó ${value}${moved}: ${SQUARE_STYLE[sq.kind].label}`;
+
+    // La ficha queda donde cayó aunque la pantalla se cierre antes de decidir.
+    set({ parques: { pos: shown, turn: state.turn, last: state.last } });
+    setPlay({ value, bonus: m.bonus, to: m.to });
+    setReveal({ square: m.to, ...squareAnnouncement(m.to) });
+    setPhase("reveal");
+    await wait(REVEAL_MS);
+    setPhase("decide");
+  };
+
+  const proceed = () => {
+    if (!play || !reveal) return;
+    const moved = play.bonus > 0 ? ` y avanzó ${play.bonus}` : play.bonus < 0 ? ` y retrocedió ${-play.bonus}` : "";
+    const label = `${current.alias} sacó ${play.value}${moved}: ${reveal.title.replace(/[¡!]/g, "")}`;
+    const card = cardFor(play.to);
     if (card) {
-      giveCard(shown, current.id, card, label);
+      giveCard(pos, current.id, card, label);
       return;
     }
-    finishTurn(shown, null);
-    setInfo(`${label}. Pasa el turno.`);
-    setPhase("info");
+    finishTurn(pos, null);
+    setInfo(`${label}. Pasó el turno.`);
+    setReveal(null);
+    setHot(null);
+    setPlay(null);
+    setPhase("idle");
   };
 
   const prize = (to: Seat) => {
     const reset = Object.fromEntries(people.map((p) => [p.id, 0]));
     setPos(reset);
-    setPhase("idle");
     giveCard(reset, to.id, { formats: ["reto"] }, `${current.alias} llegó al corazón y eligió a ${to.alias}`);
   };
 
-  const busy = phase === "rolling" || phase === "moving";
+  const proceedLabel = (() => {
+    const kind = play ? BOARD[play.to]?.kind : undefined;
+    if (kind === "verdad") return "Ver la pregunta";
+    if (kind === "reto") return "Ver el reto";
+    if (kind === "pareja" || kind === "comodin") return "Ver la carta";
+    return "Pasar el turno";
+  })();
+
+  const status = (() => {
+    switch (phase) {
+      case "rolling":
+        return "Rodando el dado…";
+      case "rolled":
+        return `¡${current.alias} sacó ${die}!`;
+      case "moving":
+        return left > 0 ? `Avanzando… faltan ${left}` : "Avanzando…";
+      case "landed":
+        return "¿Qué le tocará?";
+      case "bonus":
+      case "reveal":
+        return `${current.alias} cayó en…`;
+      case "decide":
+        return reveal ? `${reveal.title.replace(/!$/, "")} para ${current.alias}!` : null;
+      default:
+        return null;
+    }
+  })();
+
+  const center = (
+    <>
+      <GameEmblem theme="parques" className={cx("parques-emblem", (phase === "rolled" || phase === "moving") && "dim")} />
+      {phase === "rolled" && (
+        <span key="roll" className="parques-big animate-pop">
+          {die}
+        </span>
+      )}
+      {phase === "moving" && (
+        <span key={`left-${left}`} className="parques-big animate-pop">
+          {left}
+        </span>
+      )}
+    </>
+  );
+
+  const busy = phase !== "idle";
   return (
-    <div className="space-y-4">
-      <p className="text-center text-lg" aria-live="polite">
+    <div className="space-y-3">
+      <div className="min-h-[3.5rem] text-center" aria-live="polite">
         {phase === "winner" ? (
-          <span className="font-display text-2xl font-semibold italic text-gradient">¡{current.alias} llegó al corazón!</span>
+          <p className="font-display text-2xl font-semibold italic text-gradient">¡{current.alias} llegó al corazón!</p>
+        ) : status ? (
+          <p className="font-display text-2xl font-semibold italic text-gradient">{status}</p>
         ) : (
-          <>
-            Turno de <ParticipantTag alias={current.alias} slot={current.slot} />: tira el dado
-          </>
+          <p className="text-lg">
+            Turno de <ParticipantTag alias={current.alias} slot={current.slot} />
+          </p>
         )}
-      </p>
-      <ParquesBoard people={people} pos={pos} active={phase === "winner" ? null : current.id} />
+        {phase === "idle" && <p className="text-sm text-muted">{info ?? "Toca el dado y que la suerte decida"}</p>}
+      </div>
+
+      <div className="relative">
+        <ParquesBoard people={people} pos={pos} active={phase === "winner" ? null : current.id} hot={hot} center={center} />
+        {reveal && <RevealTile key={`${reveal.square}-${phase === "bonus" ? "b" : "f"}`} {...reveal} />}
+      </div>
+
       {phase === "winner" ? (
         <div className="glass space-y-3 rounded-3xl p-4 text-center animate-deal">
           <p className="font-semibold">Premio: elige a quién le toca el próximo reto</p>
@@ -804,31 +954,25 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
               ))}
           </div>
         </div>
+      ) : phase === "decide" ? (
+        <div className="deck animate-deal" style={themeStyle("parques")}>
+          <button type="button" onClick={proceed} className="deck-face w-full px-5 py-4 font-display text-xl font-semibold italic">
+            {proceedLabel}
+          </button>
+        </div>
       ) : (
-        <>
-          {info && (
-            <p className="text-center text-sm text-muted" role="status">
-              {info}
-            </p>
-          )}
-          <div className="flex items-center justify-center gap-4">
-            <button
-              type="button"
-              aria-label="Tirar el dado"
-              disabled={busy}
-              onClick={() => void roll()}
-              className={cx("size-20 transition active:scale-95", phase === "rolling" && "parques-die-roll")}
-            >
-              <DieFace value={die} />
+        <div className="flex items-center justify-center gap-5">
+          <button type="button" aria-label="Tirar el dado" disabled={busy} onClick={() => void roll()} className="transition active:scale-95">
+            <Die3D value={die} rolling={phase === "rolling"} rollKey={rollKey} />
+          </button>
+          <div className="deck" style={themeStyle("parques")}>
+            <button type="button" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-4 font-display text-xl font-semibold italic disabled:opacity-70">
+              {busy ? "Tirando…" : "¡Tirar el dado!"}
             </button>
-            <div className="deck" style={themeStyle("parques")}>
-              <button type="button" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-4 font-display text-xl font-semibold italic disabled:opacity-70">
-                {busy ? "…" : "¡Tirar el dado!"}
-              </button>
-            </div>
           </div>
-        </>
+        </div>
       )}
+
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted" aria-hidden>
         {(["verdad", "reto", "pareja", "comodin", "avanza", "retrocede", "descanso"] as SquareKind[]).map((k) => (
           <span key={k} className="flex items-center gap-1">

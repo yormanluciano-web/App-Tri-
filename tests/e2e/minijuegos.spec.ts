@@ -66,16 +66,20 @@ test("Ronda especial: aparece cada 6 rondas y luego se vuelve al juego anterior"
   await expect(banner).toHaveCount(0);
 });
 
-test("Parqués de la pasión: el dado mueve la ficha y la casilla trae su carta", async ({ page }) => {
+test("Parqués de la pasión: el dado mueve la ficha, anuncia la casilla y luego trae su carta", async ({ page }) => {
   await setupSession(page, { mode: "private", games: ["Parqués de la pasión"], accept: "todo" });
   await expect(page.getByText(/Turno de/)).toContainText("Ana");
   // Desde la salida, cualquier número cae en una casilla con carta.
   await page.getByRole("button", { name: "¡Tirar el dado!" }).click();
+  // Primero se anuncia qué tocó; la carta sale solo al tocar el botón.
+  await expect(page.getByRole("status").filter({ hasText: /¡(Verdad|Reto|Pareja|Comodín)!/ })).toBeVisible();
+  await expect(page.getByTestId("activity-text")).toHaveCount(0);
+  await page.getByRole("button", { name: /^Ver (la pregunta|el reto|la carta)$/ }).click();
   await expect(page.getByText(/Ana sacó \d/)).toBeVisible();
   await expect(page.getByTestId("activity-text")).toBeVisible();
   await settle(page);
   await page.getByRole("button", { name: "Cumplido" }).click();
-  // Vuelve al tablero con el turno de la siguiente persona y la ficha de Ana fuera de la salida.
+  // Vuelve al tablero con el turno de la siguiente persona.
   await expect(page.getByText(/Turno de/)).toContainText("Leo");
   await expect(page.getByRole("button", { name: "Tirar el dado", exact: true })).toBeEnabled();
 });

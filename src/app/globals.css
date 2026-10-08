@@ -788,21 +788,369 @@ html[data-motion="reduce"] *::after {
   }
 }
 
-/* Parqués: el dado da tumbos mientras sale el número. */
-.parques-die-roll {
-  animation: parques-die-roll 0.3s ease-in-out infinite;
+/* ---------- Parqués de la pasión ---------- */
+/* Tablero inclinado: las casillas en el plano y las fichas de pie. */
+.parques-stage {
+  perspective: 1100px;
+  perspective-origin: 50% 0%;
+  padding: 0.25rem 0 0.75rem;
 }
-@keyframes parques-die-roll {
-  0%,
+.parques-board {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 1.75rem;
+  transform: rotateX(24deg);
+  transform-origin: 50% 60%;
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(225, 29, 116, 0.35), transparent 55%),
+    linear-gradient(145deg, #2a0b2e, #14051a);
+  box-shadow:
+    inset 0 0 0 3px rgba(252, 211, 77, 0.35),
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 30px 40px -18px rgba(0, 0, 0, 0.8);
+}
+.parques-tile {
+  position: absolute;
+  padding: 3px;
+}
+.parques-tile > span {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.7rem;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(0.85rem, 4.2vw, 1.25rem);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+    0 5px 0 rgba(0, 0, 0, 0.35);
+}
+/* Casilla donde está o cae la ficha: salta y se ilumina. */
+.parques-tile.hot > span {
+  animation: tile-hot 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.parques-tile.hot > span::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 0.9rem;
+  border: 3px solid #fff3c4;
+  box-shadow: 0 0 18px #fcd34d;
+  animation: tile-ring 0.9s ease-in-out infinite alternate;
+}
+@keyframes tile-hot {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(0, -6px, 0) scale(1.14);
+  }
   100% {
-    transform: rotate(0deg) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  25% {
-    transform: rotate(-18deg) scale(1.08);
+}
+@keyframes tile-ring {
+  from {
+    opacity: 0.45;
+    transform: scale(0.96);
   }
-  75% {
-    transform: rotate(16deg) scale(0.94);
+  to {
+    opacity: 1;
+    transform: scale(1.06);
   }
+}
+.parques-center {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10%;
+}
+.parques-emblem {
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 0 24px rgba(225, 29, 116, 0.6));
+  transition: opacity 0.3s ease;
+}
+.parques-emblem.dim {
+  opacity: 0.25;
+}
+.parques-big {
+  position: absolute;
+  font-family: var(--font-display, serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 22vw, 6rem);
+  line-height: 1;
+  color: #fff3c4;
+  text-shadow:
+    0 0 24px rgba(252, 211, 77, 0.8),
+    0 4px 0 #b3123e;
+}
+/* Fichas: se deslizan de casilla en casilla y dan un salto en cada una. */
+.parques-token {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.45, 0, 0.3, 1);
+  pointer-events: none;
+}
+.parques-token-slot {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.parques-token-shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 14%;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6), transparent);
+}
+.parques-pawn {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 22%;
+  height: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transform-origin: 50% 100%;
+  transform: rotateX(-24deg);
+  animation: pawn-hop 0.46s cubic-bezier(0.3, 0, 0.4, 1);
+}
+.parques-pawn .head {
+  z-index: 1;
+  display: flex;
+  width: 62%;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: -12%;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  font-size: clamp(0.6rem, 2.8vw, 0.85rem);
+  font-weight: 800;
+  color: #1a0612;
+  background: radial-gradient(circle at 32% 30%, #fff, var(--pc) 70%);
+}
+.parques-pawn .body {
+  width: 92%;
+  height: 46%;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 0.4rem 0.4rem / 70% 70% 0.4rem 0.4rem;
+  background: linear-gradient(180deg, var(--pc), color-mix(in srgb, var(--pc) 55%, #000));
+}
+.parques-pawn.active .head {
+  box-shadow: 0 0 0 3px #fcd34d, 0 0 18px #fcd34d;
+}
+@keyframes pawn-hop {
+  0% {
+    transform: rotateX(-24deg) translate3d(0, 0, 0) scale(1, 1);
+  }
+  15% {
+    transform: rotateX(-24deg) translate3d(0, 0, 0) scale(1.12, 0.86);
+  }
+  50% {
+    transform: rotateX(-24deg) translate3d(0, -55%, 0) scale(0.94, 1.08);
+  }
+  85% {
+    transform: rotateX(-24deg) translate3d(0, 0, 0) scale(1.1, 0.9);
+  }
+  100% {
+    transform: rotateX(-24deg) translate3d(0, 0, 0) scale(1, 1);
+  }
+}
+/* Anuncio: la ficha «?» tiembla, se voltea y muestra lo que tocó (en dos piezas, sin backface). */
+.parques-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 1.75rem;
+  background: radial-gradient(circle, rgba(20, 5, 26, 0.75), rgba(20, 5, 26, 0.35) 70%);
+  animation: fade-in 0.25s ease-out both;
+  perspective: 900px;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.parques-reveal-card {
+  position: relative;
+  width: min(13rem, 58%);
+  aspect-ratio: 1;
+}
+.pr-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 1.5rem;
+  color: #fff;
+  text-align: center;
+  border: 3px solid #fff3c4;
+  box-shadow:
+    0 0 40px rgba(252, 211, 77, 0.55),
+    inset 0 -8px 0 rgba(0, 0, 0, 0.25);
+}
+.pr-mystery {
+  font-family: var(--font-display, serif);
+  font-size: 6rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #fff3c4;
+  background: linear-gradient(145deg, #6d28d9, #e11d74);
+  animation: pr-mystery 1.25s ease-in both;
+}
+.pr-result {
+  transform: rotateY(-90deg);
+  animation: pr-result 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.25) 1.25s both;
+}
+@keyframes pr-mystery {
+  0% {
+    transform: scale(0.4) rotateY(0deg);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1.08) rotateY(0deg);
+    opacity: 1;
+  }
+  26% {
+    transform: scale(1) rotateZ(0deg);
+  }
+  34% {
+    transform: scale(1) rotateZ(-6deg);
+  }
+  42% {
+    transform: scale(1) rotateZ(6deg);
+  }
+  50% {
+    transform: scale(1) rotateZ(-5deg);
+  }
+  58% {
+    transform: scale(1) rotateZ(5deg);
+  }
+  66% {
+    transform: scale(1.04) rotateZ(0deg);
+  }
+  80% {
+    transform: scale(1.04) rotateY(0deg);
+  }
+  100% {
+    transform: scale(1) rotateY(90deg);
+  }
+}
+@keyframes pr-result {
+  from {
+    transform: rotateY(-90deg) scale(1);
+  }
+  to {
+    transform: rotateY(0deg) scale(1);
+  }
+}
+.parques-reveal-hint {
+  max-width: 80%;
+  text-align: center;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  animation: fade-in 0.4s ease-out 1.6s both;
+}
+/* Dado 3D con puntos. */
+.pdie-scene {
+  perspective: 600px;
+  padding-top: 0.5rem;
+}
+.pdie {
+  --s: 76px;
+  position: relative;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+  transform: translate3d(0, 0, 0) rotateX(-16deg) rotateY(20deg) rotateX(var(--fx)) rotateY(var(--fy));
+}
+.pdie.rolling {
+  animation: pdie-roll 1.7s both;
+  will-change: transform;
+}
+.pdie-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #ffd6e7);
+  box-shadow:
+    inset 0 0 0 2px #fff3c4,
+    inset 0 -6px 12px rgba(179, 18, 62, 0.18);
+  backface-visibility: hidden;
+}
+.pf1 {
+  transform: translateZ(calc(var(--s) / 2));
+}
+.pf6 {
+  transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
+}
+.pf3 {
+  transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
+}
+.pf4 {
+  transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
+}
+.pf2 {
+  transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
+}
+.pf5 {
+  transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
+}
+@keyframes pdie-roll {
+  0% {
+    transform: translate3d(0, -160px, 0) rotateX(1064deg) rotateY(-700deg) rotateX(var(--fx)) rotateY(var(--fy));
+    animation-timing-function: cubic-bezier(0.3, 0.1, 0.6, 1);
+  }
+  68% {
+    transform: translate3d(0, 0, 0) rotateX(-34deg) rotateY(42deg) rotateX(var(--fx)) rotateY(var(--fy));
+    animation-timing-function: ease-out;
+  }
+  82% {
+    transform: translate3d(0, -16px, 0) rotateX(-8deg) rotateY(12deg) rotateX(var(--fx)) rotateY(var(--fy));
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(-16deg) rotateY(20deg) rotateX(var(--fx)) rotateY(var(--fy));
+  }
+}
+.pdie-shadow {
+  width: 66px;
+  height: 12px;
+  margin: 12px auto 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), transparent);
 }
 
 /* Texto dorado de lámina. */
@@ -919,7 +1267,14 @@ html[data-motion="reduce"] *::after {
   .flip-3d > .face-front,
   .cube.rolling,
   .logo-3d,
-  .parques-die-roll,
+  .pdie.rolling,
+  .parques-pawn,
+  .parques-tile.hot > span,
+  .parques-tile.hot > span::after,
+  .parques-reveal,
+  .parques-reveal-hint,
+  .pr-mystery,
+  .pr-result,
   .animate-deal {
     animation: none !important;
   }
@@ -927,7 +1282,14 @@ html[data-motion="reduce"] *::after {
 html[data-motion="reduce"] .flip-3d > .face-front,
 html[data-motion="reduce"] .cube.rolling,
 html[data-motion="reduce"] .logo-3d,
-html[data-motion="reduce"] .parques-die-roll,
+html[data-motion="reduce"] .pdie.rolling,
+html[data-motion="reduce"] .parques-pawn,
+html[data-motion="reduce"] .parques-tile.hot > span,
+html[data-motion="reduce"] .parques-tile.hot > span::after,
+html[data-motion="reduce"] .parques-reveal,
+html[data-motion="reduce"] .parques-reveal-hint,
+html[data-motion="reduce"] .pr-mystery,
+html[data-motion="reduce"] .pr-result,
 html[data-motion="reduce"] .animate-deal {
   animation: none !important;
 }
@@ -938,4 +1300,18 @@ html[data-motion="reduce"] .animate-deal {
 }
 html[data-motion="reduce"] .flip-3d > .face-back {
   display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pr-mystery {
+    display: none;
+  }
+  .pr-result {
+    transform: none;
+  }
+}
+html[data-motion="reduce"] .pr-mystery {
+  display: none;
+}
+html[data-motion="reduce"] .pr-result {
+  transform: none;
 }

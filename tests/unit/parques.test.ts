@@ -3,7 +3,7 @@ import { draw } from "@/domain/engine/orchestrator";
 import { closeTurn } from "@/domain/state/session";
 import { seededRng } from "@/domain/engine/rng";
 import { CATALOG } from "@/data/catalog";
-import { BOARD, BOARD_SIZE, cardFor, move } from "@/features/games/parques-logic";
+import { BOARD, BOARD_SIZE, GRID, cardFor, gridCell, move, squareAnnouncement } from "@/features/games/parques-logic";
 import { allLights, config, participant, readySession } from "../helpers";
 
 const two = () => [participant("a", allLights("green")), participant("b", allLights("green"))];
@@ -93,5 +93,29 @@ describe("parqués: cartas por el motor", () => {
       const out = draw(CATALOG, s, seededRng(5), 1000, { game: "parques", strictGame: true, formats: [f] });
       expect(CATALOG.find((x) => x.id === out.state.currentTurn!.activityId)!.formato).toBe(f);
     }
+  });
+});
+
+describe("parqués: tablero cuadrado", () => {
+  it("las 24 casillas ocupan el borde de 7×7 sin repetirse y el corazón queda al centro", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      const { col, row } = gridCell(i);
+      expect(col === 0 || col === GRID - 1 || row === 0 || row === GRID - 1).toBe(true);
+      seen.add(`${col},${row}`);
+      if (i > 0) {
+        const prev = gridCell(i - 1);
+        expect(Math.abs(prev.col - col) + Math.abs(prev.row - row)).toBe(1);
+      }
+    }
+    expect(seen.size).toBe(BOARD_SIZE);
+    expect(gridCell(BOARD_SIZE)).toEqual({ col: 3, row: 3 });
+  });
+
+  it("cada casilla tiene su anuncio", () => {
+    expect(squareAnnouncement(1).title).toBe("¡Verdad!");
+    expect(squareAnnouncement(3).title).toBe("¡Avanza 2!");
+    expect(squareAnnouncement(8).title).toBe("¡Retrocede 2!");
+    expect(squareAnnouncement(11).title).toBe("Descanso");
   });
 });

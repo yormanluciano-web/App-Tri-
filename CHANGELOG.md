@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1 — 2026-10-08
+- **Parqués de la pasión, con más suspenso**: tablero cuadrado de 7×7 en 3D, inclinado como sobre una mesa, con casillas más grandes y fichas de pie que dan un salto en cada casilla.
+- Dado 3D con puntos que cae dando tumbos y se detiene en el número; luego aparece en grande «¡Ana sacó 4!».
+- La ficha avanza despacio con cuenta regresiva en el centro («faltan 3, 2, 1…») y la casilla donde cae se ilumina: «¿Qué le tocará?».
+- Una ficha «?» tiembla, se voltea y anuncia lo que tocó («¡Verdad!», «¡Reto!», «¡Avanza 2!», «Descanso»…). Si es avanzar o retroceder, primero se anuncia y luego se ve a la ficha moverse.
+- La carta ya no sale de golpe: aparece solo al tocar «Ver la pregunta», «Ver el reto» o «Ver la carta».
+
 ## 1.5.0 — 2026-10-08
 - Nuevo minijuego **Parqués de la pasión**: tablero circular de 24 casillas con el corazón al centro. Cada persona tira el dado en su turno y su ficha avanza casilla por casilla.
 - Casillas: Verdad (pregunta), Reto, Pareja (carta de pareja si la hay), Comodín (cualquier carta), Avanza/Retrocede (movimiento extra una sola vez) y Descanso (sin carta, pasa el turno).

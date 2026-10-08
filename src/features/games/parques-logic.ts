@@ -103,8 +103,43 @@ export function cardFor(square: number): { formats?: readonly Format[]; interact
   }
 }
 
-/** Posición (en %) de cada casilla alrededor del tablero. */
-export function squarePosition(i: number, radius = 41): { x: number; y: number } {
-  const a = ((i / BOARD_SIZE) * 360 - 90) * (Math.PI / 180);
-  return { x: 50 + radius * Math.cos(a), y: 50 + radius * Math.sin(a) };
+/** Lado del tablero: 7×7, con las 24 casillas en el borde y el corazón en el centro. */
+export const GRID = 7;
+
+/**
+ * Celda (columna, fila) de cada casilla en el borde del tablero, en el sentido
+ * de las agujas del reloj desde la esquina superior izquierda. BOARD_SIZE
+ * (el corazón) es el centro.
+ */
+export function gridCell(i: number): { col: number; row: number } {
+  const last = GRID - 1;
+  if (i >= BOARD_SIZE) return { col: last / 2, row: last / 2 };
+  if (i <= last) return { col: i, row: 0 }; // arriba →
+  if (i <= 2 * last) return { col: last, row: i - last }; // derecha ↓
+  if (i <= 3 * last) return { col: 3 * last - i, row: last }; // abajo ←
+  return { col: 0, row: 4 * last - i }; // izquierda ↑
+}
+
+/** Qué le toca a quien cae en la casilla, para anunciarlo antes de la carta. */
+export function squareAnnouncement(i: number): { title: string; hint: string } {
+  const sq = BOARD[i];
+  if (!sq) return { title: "¡Corazón!", hint: "Llegó al centro del tablero." };
+  switch (sq.kind) {
+    case "verdad":
+      return { title: "¡Verdad!", hint: "Te toca responder una pregunta." };
+    case "reto":
+      return { title: "¡Reto!", hint: "Te toca cumplir un reto." };
+    case "pareja":
+      return { title: "¡Pareja!", hint: "Una carta para hacer entre dos." };
+    case "comodin":
+      return { title: "¡Comodín!", hint: "Puede salir cualquier carta." };
+    case "avanza":
+      return { title: `¡Avanza ${sq.steps}!`, hint: "La ficha sigue de largo…" };
+    case "retrocede":
+      return { title: `¡Retrocede ${sq.steps}!`, hint: "La ficha se devuelve…" };
+    case "descanso":
+      return { title: "Descanso", hint: "Esta vez no hay carta: pasa el turno." };
+    default:
+      return { title: "Salida", hint: "De vuelta al inicio: pasa el turno." };
+  }
 }
