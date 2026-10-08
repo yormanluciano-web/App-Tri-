@@ -8,6 +8,7 @@ import { APP_NAME, APP_PROMISE, APP_SUBTITLE, INTENSITY_LABEL } from "@/domain/m
 import { Button, Dialog, LinkButton, Logo3D, Notice, Screen } from "@/components/ui";
 import { OfflineBadge } from "./OfflineBadge";
 import { InstallButton } from "./InstallPanel";
+import { demoConfig } from "./demo";
 
 export function Home() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export function Home() {
   const storageIssue = useSession((s) => s.storageIssue);
   const resumeRecovered = useSession((s) => s.resumeRecovered);
   const discardRecovered = useSession((s) => s.discardRecovered);
+  const startSession = useSession((s) => s.startSession);
+  const initialConsent = useSession((s) => s.initialConsent);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   const activeInMemory = !!session && session.status !== "finished" && session.status !== "setup";
@@ -24,6 +27,12 @@ export function Home() {
 
   const onContinue = async () => {
     if (!activeInMemory && recoverable?.kind === "found") await resumeRecovered();
+    router.push("/jugar/");
+  };
+
+  const onDemo = () => {
+    startSession(demoConfig());
+    initialConsent(true);
     router.push("/jugar/");
   };
 
@@ -65,9 +74,14 @@ export function Home() {
               </button>
             </Notice>
           )}
-          <LinkButton href="/ayuda/" variant="ghost" icon="help" block>
-            Cómo funciona
-          </LinkButton>
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="ghost" icon="sparkle" onClick={onDemo}>
+              Ver demo
+            </Button>
+            <LinkButton href="/ayuda/" variant="ghost" icon="help">
+              Cómo funciona
+            </LinkButton>
+          </div>
         </nav>
       </div>
 

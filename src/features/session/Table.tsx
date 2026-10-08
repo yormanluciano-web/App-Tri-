@@ -52,7 +52,14 @@ function TopBar({ session }: { session: SessionState }) {
             <Icon name={LEVEL_ICON[session.level]} className="size-5" />
           </span>
           <div className="min-w-0 leading-tight">
-            <p className="font-display text-lg font-semibold italic text-gradient">{INTENSITY_LABEL[session.level]}</p>
+            <p className="flex items-center gap-2 font-display text-lg font-semibold italic text-gradient">
+              {INTENSITY_LABEL[session.level]}
+              {session.config.demo && (
+                <span className="rounded-full border border-gold/60 px-2 py-0.5 font-sans text-[0.65rem] font-semibold not-italic uppercase tracking-widest text-gold">
+                  Demo
+                </span>
+              )}
+            </p>
             <p className="truncate text-xs text-muted">
               {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
               {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
@@ -496,7 +503,7 @@ function Closing({ session }: { session: SessionState }) {
         <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
         <Logo3D className="relative size-28 animate-float" />
       </div>
-      <Title sub={session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
+      <Title sub={session.config.demo ? "Así se juega Cómplice. Crea tu propia sesión para elegir nombres, límites y nivel." : session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
       {show ? (
         <Card glow className="animate-deal">
           <dl className="grid grid-cols-2 gap-4">
@@ -654,6 +661,9 @@ export function Table() {
   return (
     <Screen level={session.level} className="gap-4">
       <TopBar session={session} />
+      {session.config.demo && session.turnCounter === 0 && session.status === "ready" && (
+        <Notice>Demo con dos personas ficticias (Ana y Leo) y cartas suaves sin contacto. Nada se guarda.</Notice>
+      )}
       {storageIssue === "quota" && <Notice tone="warn">No se pudo guardar en el dispositivo. Pueden seguir jugando; la sesión continúa en memoria.</Notice>}
       <div className="flex flex-1 flex-col gap-4">{body}</div>
       <Dialog open={confirmFinish} title="¿Terminar la sesión?" onClose={() => setConfirmFinish(false)}>

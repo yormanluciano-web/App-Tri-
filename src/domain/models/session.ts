@@ -43,6 +43,8 @@ export interface SessionConfig {
   durationMin: number | null;
   games: GameId[];
   sharedLimits: Partial<Record<Permission, Light>>;
+  /** Sesión de demostración: personas ficticias, siempre privada, sin pantallas de configuración. */
+  demo?: boolean;
 }
 
 export type SessionStatus =

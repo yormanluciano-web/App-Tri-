@@ -105,3 +105,20 @@ test("consentimiento inicial: si alguien no acepta no se empieza y no se señala
   await expect(page.getByText(/No todas las personas aceptaron/)).toBeVisible();
   await expect(page).toHaveURL(/\/crear\/$/);
 });
+
+test("demo desde el menú: sin nombres ni consentimiento, juega y no escribe datos", async ({ page }) => {
+  await instrumentStorage(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ver demo" }).click();
+  await expect(page).toHaveURL(/\/jugar\/$/);
+  await expect(page.getByText("Demo", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Verdad", exact: true }).click();
+  await expect(page.getByTestId("activity-text")).toBeVisible();
+  await page.getByRole("button", { name: "Cumplido" }).click();
+  await page.getByRole("button", { name: "Detener" }).click();
+  await page.getByRole("button", { name: "Terminar sesión" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Terminar" }).click();
+  await expect(page.getByRole("heading", { name: "Gracias por jugar" })).toBeVisible();
+  const w = await writes(page);
+  expect(w.filter((x) => !x.startsWith("idb:favorites")), w.join("\n")).toEqual([]);
+});
