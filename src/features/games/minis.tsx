@@ -10,6 +10,7 @@ import { useSession } from "@/stores/session";
 import { GameEmblem, Notice, ParticipantTag, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle } from "@/components/ui/visuals";
 import { ActionBar, ActivityCard, TimerControl, peopleOf } from "./common";
+import { haptic, sfx, spinTicks } from "@/sound/sfx";
 
 function reducedMotion(): boolean {
   if (typeof window === "undefined") return true;
@@ -97,7 +98,11 @@ export function SpecialRound({ session }: { session: SessionState }) {
   }, [special, session.status, session.turnCounter, set, setGame]);
 
   const mini = specialFor(session);
-  if (!mini || special || dismissedAt === session.turnCounter) return null;
+  const visible = !!mini && !special && dismissedAt !== session.turnCounter;
+  useEffect(() => {
+    if (visible) sfx("special");
+  }, [visible]);
+  if (!mini || !visible) return null;
   const theme = GAME_THEME[mini];
   return (
     <div className="deck animate-deal" style={themeStyle(mini)}>
@@ -181,10 +186,12 @@ export function TowerLauncher({ session }: { session: SessionState }) {
   const pull = async (i: number) => {
     if (busy || pulled.includes(i)) return;
     setMoving(i);
+    sfx("woodPull");
     await wait(650);
     const falls = Math.random() < collapseChance(pulled, i);
     if (!falls) {
       // Sobrevivió: sacudida breve y turno de la siguiente persona.
+      sfx(risk > 0.4 ? "heartbeat" : "wobble");
       set({ pulled: [...pulled, i], puller: puller + 1, collapsed: false });
       setMoving(null);
       setShake(true);
@@ -193,6 +200,8 @@ export function TowerLauncher({ session }: { session: SessionState }) {
       return;
     }
     setFalling(true);
+    sfx("crash");
+    haptic([60, 40, 120]);
     await wait(1500);
     set({ pulled: [], collapsed: true, toppledBy: current.alias, puller: puller + 1 });
     setFalling(false);
@@ -227,6 +236,7 @@ export function TowerLauncher({ session }: { session: SessionState }) {
         <div
           className={cx("tower", falling && "tower-fall", !falling && shake && "tower-shake", !falling && !shake && risk > 0.25 && "tower-wobble")}
           style={{ ["--wobble" as string]: `${0.5 + risk * 2.2}deg` }}
+          data-sfx="tower"
           role="group"
           aria-label={`Torre del deseo: quedan ${TOTAL - pulled.length} bloques`}
         >
@@ -425,15 +435,21 @@ export function BottleRound({ session, turn, activity }: { session: SessionState
   const turns = 7 + (seed % 3);
   const rotation = { from: -24, to: 360 * turns + seatAngle(targetIndex, people.length) + ((seed % 17) - 8) };
 
+  const spinDeg = rotation.to - rotation.from;
   useEffect(() => {
     const fast = reducedMotion();
-    const t1 = setTimeout(() => setPhase("landed"), fast ? 30 : BOTTLE_SPIN_MS);
+    // Un tic cada octavo de vuelta, cada vez más espaciados hasta que se detiene.
+    if (!fast) spinTicks(BOTTLE_SPIN_MS / 1000, Math.round(spinDeg / 45));
+    const t1 = setTimeout(() => {
+      if (!fast) haptic(40);
+      setPhase("landed");
+    }, fast ? 30 : BOTTLE_SPIN_MS);
     const t2 = setTimeout(() => setPhase("done"), fast ? 60 : BOTTLE_SPIN_MS + 1400);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, []);
+  }, [spinDeg]);
 
   if (phase === "done")
     return (
@@ -531,8 +547,10 @@ export function ScratchCover({ onReveal }: { onReveal: () => void }) {
     return () => ro.disconnect();
   }, []);
 
+  const lastScratch = useRef(0);
   const reveal = () => {
     if (fading) return;
+    sfx("reveal");
     setFading(true);
     setTimeout(onReveal, reducedMotion() ? 0 : 450);
   };
@@ -542,6 +560,10 @@ export function ScratchCover({ onReveal }: { onReveal: () => void }) {
     const ctx = canvas?.getContext("2d");
     const gr = grid.current;
     if (!canvas || !ctx || !gr || fading) return;
+    if (e.timeStamp - lastScratch.current > 70) {
+      lastScratch.current = e.timeStamp;
+      sfx("scratch");
+    }
     // Coordenadas del dedo en el espacio de la capa (corrige cualquier escala visual).
     const rect = canvas.getBoundingClientRect();
     const x = ((e.clientX - rect.left) * canvas.offsetWidth) / Math.max(1, rect.width);
@@ -630,6 +652,13 @@ const SHOW_ROLL_MS = 900;
 const STEP_MS = 560;
 const LANDED_MS = 850;
 const REVEAL_MS = 1700;
+/** La ficha «?» tiembla este tiempo antes de voltearse (igual que en el CSS). */
+const MYSTERY_MS = 1250;
+
+/** Efectos que acompañan una animación: con «reducir movimiento» no se amontonan. */
+function fx(name: Parameters<typeof sfx>[0], opts?: Parameters<typeof sfx>[1]): void {
+  if (!reducedMotion()) sfx(name, opts);
+}
 
 /** Cara al azar del dado (solo desde eventos, nunca al pintar). */
 function rollDie(): number {
@@ -803,16 +832,21 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
     setDie(value);
     setRollKey((k) => k + 1);
     setPhase("rolling");
+    fx("diceRoll", { duration: (ROLL_MS - 250) / 1000 });
     await wait(ROLL_MS);
+    fx("diceLand");
+    haptic(30);
     setPhase("rolled");
     await wait(SHOW_ROLL_MS);
 
     const m = move(pos[current.id] ?? 0, value);
     const diceSteps = Math.min(value, m.path.length);
     let shown = { ...pos };
-    const walk = async (steps: number[]) => {
+    const walk = async (steps: number[], backwards = false) => {
       setPhase("moving");
       for (let k = 0; k < steps.length; k++) {
+        // Cada salto suena un poco más agudo (o más grave si se devuelve).
+        fx("step", { step: backwards ? -2 * k : 2 * k });
         shown = { ...shown, [current.id]: steps[k] };
         setPos(shown);
         setHot(steps[k]);
@@ -821,6 +855,8 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
       }
     };
     const win = () => {
+      sfx("win");
+      haptic([40, 60, 40, 60, 120]);
       setHot(null);
       setReveal({ square: BOARD_SIZE, title: "¡Al corazón!", hint: `${current.alias} ganó la vuelta. Elige a quién le toca el próximo reto.` });
       setPhase("winner");
@@ -828,20 +864,28 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
 
     await walk(m.path.slice(0, diceSteps));
     if (m.finished && diceSteps === m.path.length) return win();
+    // Suspenso: latido al caer y redoble mientras la ficha «?» tiembla.
+    const suspense = async () => {
+      fx("heartbeat");
+      fx("suspense", { duration: (LANDED_MS + MYSTERY_MS) / 1000 });
+      await wait(LANDED_MS);
+    };
     setHot(m.landed);
     setPhase("landed");
-    await wait(LANDED_MS);
+    await suspense();
 
     if (m.bonus !== 0) {
       setReveal({ square: m.landed, ...squareAnnouncement(m.landed) });
       setPhase("bonus");
-      await wait(REVEAL_MS + 600);
+      await wait(MYSTERY_MS);
+      sfx(m.bonus > 0 ? "whoosh" : "whooshBack");
+      await wait(REVEAL_MS - MYSTERY_MS + 600);
       setReveal(null);
-      await walk(m.path.slice(diceSteps));
+      await walk(m.path.slice(diceSteps), m.bonus < 0);
       if (m.finished) return win();
       setHot(m.to);
       setPhase("landed");
-      await wait(LANDED_MS);
+      await suspense();
     }
 
     // La ficha queda donde cayó aunque la pantalla se cierre antes de decidir.
@@ -849,7 +893,10 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
     setPlay({ value, bonus: m.bonus, to: m.to });
     setReveal({ square: m.to, ...squareAnnouncement(m.to) });
     setPhase("reveal");
-    await wait(REVEAL_MS);
+    await wait(MYSTERY_MS);
+    sfx("reveal");
+    haptic(25);
+    await wait(REVEAL_MS - MYSTERY_MS);
     setPhase("decide");
   };
 
@@ -948,7 +995,15 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
             {people
               .filter((p) => p.id !== current.id)
               .map((p) => (
-                <button key={p.id} type="button" onClick={() => prize(p)} className="btn-glass flex min-h-12 items-center justify-center gap-2 rounded-full">
+                <button
+                  key={p.id}
+                  type="button"
+                  data-sfx="deal"
+                  onClick={() => {
+                    sfx("deal");
+                    prize(p);
+                  }}
+                  className="btn-glass flex min-h-12 items-center justify-center gap-2 rounded-full">
                   <ParticipantTag alias={p.alias} slot={p.slot} />
                 </button>
               ))}
@@ -956,17 +1011,24 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
         </div>
       ) : phase === "decide" ? (
         <div className="deck animate-deal" style={themeStyle("parques")}>
-          <button type="button" onClick={proceed} className="deck-face w-full px-5 py-4 font-display text-xl font-semibold italic">
+          <button
+            type="button"
+            data-sfx="deal"
+            onClick={() => {
+              sfx("deal");
+              proceed();
+            }}
+            className="deck-face w-full px-5 py-4 font-display text-xl font-semibold italic">
             {proceedLabel}
           </button>
         </div>
       ) : (
         <div className="flex items-center justify-center gap-5">
-          <button type="button" aria-label="Tirar el dado" disabled={busy} onClick={() => void roll()} className="transition active:scale-95">
+          <button type="button" aria-label="Tirar el dado" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="transition active:scale-95">
             <Die3D value={die} rolling={phase === "rolling"} rollKey={rollKey} />
           </button>
           <div className="deck" style={themeStyle("parques")}>
-            <button type="button" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-4 font-display text-xl font-semibold italic disabled:opacity-70">
+            <button type="button" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-4 font-display text-xl font-semibold italic disabled:opacity-70">
               {busy ? "Tirando…" : "¡Tirar el dado!"}
             </button>
           </div>

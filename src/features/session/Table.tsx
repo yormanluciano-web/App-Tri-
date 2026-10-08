@@ -8,6 +8,7 @@ import {
   CATEGORY_LABEL,
   GAME_DESCRIPTION,
   GAME_LABEL,
+  INTENSITIES,
   INTENSITY_LABEL,
   type Category,
   type GameId,
@@ -24,6 +25,7 @@ import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
 import { BottleLauncher, BottleRound, ParquesLauncher, ParquesRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
 import { Tilt } from "@/components/ui/tilt";
+import { haptic, sfx, useSfxMute } from "@/sound/sfx";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
 import { peopleOf, RoleText, useNow } from "@/features/games/common";
@@ -67,6 +69,7 @@ function TopBar({ session }: { session: SessionState }) {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
+          <MuteButton />
           {session.status !== "paused" && (
             <Button variant="secondary" icon="pause" className="!min-h-11 !px-3 !text-sm" onClick={pause}>
               Pausa
@@ -89,6 +92,37 @@ function TopBar({ session }: { session: SessionState }) {
   );
 }
 
+/** Silenciar los efectos solo durante esta partida (no se guarda nada). */
+function MuteButton() {
+  const muted = useSfxMute((s) => s.muted);
+  const toggle = useSfxMute((s) => s.toggle);
+  return (
+    <Button
+      variant="secondary"
+      icon={muted ? "mute" : "sound"}
+      aria-label={muted ? "Activar los efectos de sonido" : "Silenciar los efectos de sonido"}
+      aria-pressed={muted}
+      className="!min-h-11 !px-3"
+      onClick={toggle}
+    />
+  );
+}
+
+/** Sonidos de la mesa que no dependen de un botón: subir o bajar de nivel. */
+function SoundDirector({ session }: { session: SessionState }) {
+  const prev = useRef(session.level);
+  useEffect(() => {
+    const before = INTENSITIES.indexOf(prev.current);
+    const after = INTENSITIES.indexOf(session.level);
+    prev.current = session.level;
+    if (after > before) {
+      sfx("levelUp");
+      haptic([30, 60, 30, 60, 80]);
+    } else if (after < before) sfx("levelDown");
+  }, [session.level]);
+  return null;
+}
+
 /** Mazo para lanzar una ronda: carta con el color y el emblema del juego, y cartas asomando detrás. */
 function BigDraw({ label, hint, theme, onClick, className }: { label: string; hint?: string; theme: ThemeKey; onClick: () => void; className?: string }) {
   return (
@@ -96,7 +130,12 @@ function BigDraw({ label, hint, theme, onClick, className }: { label: string; hi
       <div className="deck" style={themeStyle(theme)}>
         <button
           type="button"
-          onClick={onClick}
+          data-sfx="deal"
+          onClick={() => {
+            sfx("deal");
+            haptic(10);
+            onClick();
+          }}
           className={cx(
             "deck-face group relative flex min-h-44 w-full flex-col items-center justify-center gap-2 p-5 text-center transition duration-200 active:scale-[0.97]",
             className,
@@ -513,6 +552,11 @@ function Blocked({ session }: { session: SessionState }) {
   );
 }
 
+function ClosingSound() {
+  useEffect(() => sfx("win"), []);
+  return null;
+}
+
 function Closing({ session }: { session: SessionState }) {
   const router = useRouter();
   const [show, setShow] = useState(false);
@@ -522,6 +566,7 @@ function Closing({ session }: { session: SessionState }) {
   return (
     <Screen level={session.level} className="justify-center text-center">
       <MusicDirector session={session} />
+      <ClosingSound />
       <div className="relative mx-auto size-28">
         <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
         <Logo3D className="relative size-28 animate-float" />
@@ -691,6 +736,7 @@ export function Table() {
     <Screen level={session.level} className="gap-4">
       <TopBar session={session} />
       <MusicDirector session={session} />
+      <SoundDirector session={session} />
       <MusicStatus />
       {session.config.prueba ? (
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2 text-sm">

@@ -11,8 +11,9 @@ import { MusicSettings } from "@/music/ui";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
+import { sfx } from "@/sound/sfx";
 
-export const APP_VERSION = "1.5.1";
+export const APP_VERSION = "1.6.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -72,7 +73,38 @@ export function Settings() {
                 ))}
               </div>
             </fieldset>
-            <Toggle checked={settings.sound} onChange={(v) => update({ sound: v })} label="Sonido" hint={`Apagado por defecto. ${APP_NAME} no reproduce música.`} />
+            <Toggle
+              checked={settings.sfx}
+              onChange={(v) => update({ sfx: v })}
+              label="Efectos de sonido"
+              hint="Dados, cartas, fichas y suspenso. Se generan en el teléfono, sin internet. En iPhone, el interruptor de silencio los apaga."
+            />
+            {settings.sfx && (
+              <fieldset className="space-y-2">
+                <legend className="font-semibold">Volumen de los efectos</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      ["bajo", "Bajo"],
+                      ["medio", "Medio"],
+                      ["alto", "Alto"],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <Button
+                      key={v}
+                      variant={settings.sfxVolume === v ? "primary" : "secondary"}
+                      aria-pressed={settings.sfxVolume === v}
+                      onClick={() => {
+                        update({ sfxVolume: v });
+                        sfx("reveal");
+                      }}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             <Toggle checked={settings.vibration} onChange={(v) => update({ vibration: v })} label="Vibración" hint="Apagada por defecto; solo si el dispositivo la admite." />
           </>
         )}

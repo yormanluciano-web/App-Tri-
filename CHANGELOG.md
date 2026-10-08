@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.0 — 2026-10-08
+- **Efectos de sonido** en toda la app, encendidos por defecto. Se generan en el propio teléfono (Web Audio), sin archivos ni internet, así que funcionan sin conexión.
+- Cartas: sacar carta (barajada), la carta al voltearse (roce de papel y brillo), Cumplido (acorde alegre), Pasar y Cambiar.
+- Dados con traqueteo y golpe al caer; la ruleta y la botella hacen tic-tic cada vez más lento hasta detenerse.
+- Torre del deseo: bloque de madera al sacarlo, crujido o latido cuando aguanta, y derrumbe completo cuando cae.
+- Rasca y descubre: sonido de raspado y brillo al descubrir.
+- Parqués: dado, cada salto de la ficha más agudo (más grave si retrocede), latido y redoble de suspenso mientras tiembla la ficha «?», platillo al revelarla, silbido al avanzar o retroceder y fanfarria al llegar al corazón.
+- Ronda especial, subir o bajar de nivel, cuenta regresiva y fin del reloj (campanas), y fanfarria al cerrar la sesión. Un clic suave en los demás botones.
+- En la mesa hay un botón de altavoz para silenciar la partida (no se guarda nada, ni en sesión privada). En Ajustes: encender o apagar y volumen bajo, medio o alto.
+- Si está activada en Ajustes, la vibración acompaña los momentos clave (en teléfonos que la admiten).
+- En iPhone los efectos se mezclan con Spotify sin cortarlo; el interruptor de silencio del teléfono los apaga.
+
 ## 1.5.1 — 2026-10-08
 - **Parqués de la pasión, con más suspenso**: tablero cuadrado de 7×7 en 3D, inclinado como sobre una mesa, con casillas más grandes y fichas de pie que dan un salto en cada casilla.
 - Dado 3D con puntos que cae dando tumbos y se detiene en el número; luego aparece en grande «¡Ana sacó 4!».

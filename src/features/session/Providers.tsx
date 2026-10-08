@@ -6,11 +6,13 @@ import { loadSettings } from "@/storage/settings";
 import { registerServiceWorker, subscribePwa } from "@/pwa/register";
 import { Button } from "@/components/ui";
 import { APP_NAME } from "@/domain/models/constants";
+import { configureSfx, sfx, unlockAudio } from "@/sound/sfx";
 
 const PAUSABLE = ["ready", "selecting", "playing", "awaitingActivityConsent", "awaitingLevelConsent", "roundReveal", "blocked"];
 
 export function applySettingsToDocument() {
   const s = loadSettings();
+  configureSfx(s);
   const root = document.documentElement;
   root.style.setProperty("--text-scale", String(s.textScale));
   if (s.reducedMotion === "on") root.dataset.motion = "reduce";
@@ -30,6 +32,19 @@ export function Providers({ children }: { children: ReactNode }) {
     void registerServiceWorker();
     return subscribePwa((p) => setUpdateReady(p.updateWaiting));
   }, [hydrate, setUpdateReady]);
+
+  useEffect(() => {
+    // Cada toque desbloquea el audio (requisito del navegador) y da un clic suave
+    // en los botones que no tienen su propio efecto (marcados con data-sfx).
+    const onPointer = (e: PointerEvent) => {
+      unlockAudio();
+      const el = e.target instanceof Element ? e.target.closest("button, a[href], [role='radio'], [role='switch']") : null;
+      if (!el || el.closest("[data-sfx]") || (el as HTMLButtonElement).disabled) return;
+      sfx("tap");
+    };
+    document.addEventListener("pointerdown", onPointer, { capture: true, passive: true });
+    return () => document.removeEventListener("pointerdown", onPointer, { capture: true });
+  }, []);
 
   useEffect(() => {
     // Al pasar a segundo plano: pausa y oculta el contenido. Al volver, pantalla neutral.

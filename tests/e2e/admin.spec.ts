@@ -176,11 +176,16 @@ test("administración: configurar la música de Spotify se guarda en el reposito
   expect(gh.puts.at(-1)!.message).toContain("música");
 });
 
-test("ajustes: sin configuración de Spotify no se ofrece conectar", async ({ page }) => {
+test("ajustes: «Conectar con Spotify» solo aparece si la música está configurada", async ({ page }) => {
+  const published = JSON.parse(readFileSync("src/data/custom/cartas.json", "utf8")) as { musica?: { clientId?: string } };
   await page.goto("/ajustes/");
   await expect(page.getByRole("heading", { name: /Música con Spotify/ })).toBeVisible();
-  await expect(page.getByText(/Aún no está configurada/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toHaveCount(0);
+  if (published.musica?.clientId) {
+    await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toBeVisible();
+  } else {
+    await expect(page.getByText(/Aún no está configurada/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toHaveCount(0);
+  }
 });
 
 test("administración: «Probar» abre cualquier juego directo y se vuelve al panel", async ({ page }) => {

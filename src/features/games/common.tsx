@@ -10,6 +10,7 @@ import { useSession } from "@/stores/session";
 import { Button, GameEmblem, Icon, ParticipantTag, cx } from "@/components/ui";
 import { Tilt } from "@/components/ui/tilt";
 import { GAME_THEME, LEVEL_MARK, themeStyle, type ThemeKey } from "@/components/ui/visuals";
+import { haptic, sfx } from "@/sound/sfx";
 
 /** Tema visual de la carta: Verdad y Reto tienen colores propios. */
 export function cardTheme(game: Turn["game"], activity: Activity): ThemeKey {
@@ -71,6 +72,11 @@ export function ActivityCard({
   const isFav = favorites.includes(activity.id);
   const implicated = peopleOf(session, turn.implicated);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // La carta se voltea: un roce de papel y un brillo.
+  useEffect(() => {
+    sfx("flip");
+    haptic(15);
+  }, [turn.id]);
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
   }, [turn.id]);
@@ -174,13 +180,42 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
   return (
     <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-[1fr_1fr_1.4fr] gap-2 rounded-t-[28px] px-4 pt-3">
       {extra}
-      <Button variant="secondary" icon="skip" className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm" onClick={pass}>
+      <Button
+        variant="secondary"
+        icon="skip"
+        data-sfx="pass"
+        className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm"
+        onClick={() => {
+          sfx("pass");
+          pass();
+        }}
+      >
         Pasar
       </Button>
-      <Button variant="secondary" icon="refresh" className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm" onClick={change}>
+      <Button
+        variant="secondary"
+        icon="refresh"
+        data-sfx="swap"
+        className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm"
+        onClick={() => {
+          sfx("swap");
+          change();
+        }}
+      >
         Cambiar
       </Button>
-      <Button icon="check" size="lg" className="!min-h-14 pulse-glow" onClick={complete} disabled={!canComplete}>
+      <Button
+        icon="check"
+        size="lg"
+        data-sfx="done"
+        className="!min-h-14 pulse-glow"
+        onClick={() => {
+          sfx("done");
+          haptic([20, 40, 20]);
+          complete();
+        }}
+        disabled={!canComplete}
+      >
         {completeLabel}
       </Button>
     </div>
@@ -216,14 +251,26 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
   const remaining = timer ? timerRemaining(session, nowTick) : 0;
 
   useEffect(() => {
-    if (timer?.running && remaining <= 0) timerFinished();
+    if (timer?.running && remaining <= 0) {
+      sfx("timerEnd");
+      haptic([200, 100, 200]);
+      timerFinished();
+    }
   }, [remaining, timer?.running, timerFinished]);
+
+  // Últimos 5 segundos: un tic por segundo.
+  const lastSecond = timer?.running && remaining > 0 && remaining <= 5_000 ? Math.ceil(remaining / 1000) : null;
+  useEffect(() => {
+    if (lastSecond !== null) sfx("count");
+  }, [lastSecond]);
 
   useEffect(() => {
     if (prep === null) return;
+    sfx("count");
     const id = setTimeout(() => {
       if (prep <= 1) {
         setPrep(null);
+        sfx("go");
         startTimer(choice * 1000);
       } else setPrep(prep - 1);
     }, 1000);

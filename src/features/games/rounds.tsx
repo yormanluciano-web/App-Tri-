@@ -11,6 +11,7 @@ import { CATALOG, getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { Button, Card, Notice, ParticipantTag } from "@/components/ui";
 import { ActionBar, ActivityCard, TimerControl, peopleOf, useNow } from "./common";
+import { haptic, sfx, spinTicks } from "@/sound/sfx";
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return true;
@@ -38,9 +39,12 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
   const seg = 360 / segments.length;
   const spinTo = 360 * 4 + (360 - (targetIndex * seg + seg / 2));
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), prefersReducedMotion() ? 50 : 1900);
+    const reduced = prefersReducedMotion();
+    // Un tic por cada gajo que pasa bajo la flecha, cada vez más lentos.
+    if (!reduced) spinTicks(1.8, Math.round(spinTo / seg));
+    const t = setTimeout(() => setDone(true), reduced ? 50 : 1900);
     return () => clearTimeout(t);
-  }, []);
+  }, [spinTo, seg]);
   if (done) return <StandardRound session={session} turn={turn} activity={activity} />;
   const colors = [...PARTICIPANT_COLORS, "#8f8aa6"];
   return (
@@ -86,7 +90,15 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
 export function DiceRound({ session, turn, activity }: { session: SessionState; turn: Turn; activity: Activity }) {
   const [done, setDone] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), prefersReducedMotion() ? 50 : 1600);
+    const reduced = prefersReducedMotion();
+    if (!reduced) sfx("diceRoll", { duration: 1.25 });
+    const t = setTimeout(() => {
+      if (!reduced) {
+        sfx("diceLand");
+        haptic(30);
+      }
+      setDone(true);
+    }, reduced ? 50 : 1600);
     return () => clearTimeout(t);
   }, []);
   const who = turn.protagonist ? session.config.participants.find((p) => p.id === turn.protagonist) : null;
@@ -154,6 +166,7 @@ export function SurpriseRound({ session, turn, activity }: { session: SessionSta
     return ids.map((id) => getActivity(id)!);
   }, [effect, session]);
   const games = enabledBaseGames(session).filter((g) => g !== turn.game);
+  useEffect(() => sfx("special"), [turn.id]);
 
   let body: React.ReactNode = null;
   if (effect === "elegir_companero") {

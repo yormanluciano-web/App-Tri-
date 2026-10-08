@@ -2,11 +2,13 @@
 export interface AppSettings {
   reducedMotion: "system" | "on" | "off";
   textScale: 1 | 1.15 | 1.3;
-  sound: boolean;
+  /** Efectos de sonido (encendidos por defecto). */
+  sfx: boolean;
+  sfxVolume: "bajo" | "medio" | "alto";
   vibration: boolean;
 }
 
-export const DEFAULT_SETTINGS: AppSettings = { reducedMotion: "system", textScale: 1, sound: false, vibration: false };
+export const DEFAULT_SETTINGS: AppSettings = { reducedMotion: "system", textScale: 1, sfx: true, sfxVolume: "medio", vibration: false };
 
 const KEY = "trio:settings";
 
@@ -18,7 +20,8 @@ export function loadSettings(): AppSettings {
     return {
       reducedMotion: v.reducedMotion === "on" || v.reducedMotion === "off" ? v.reducedMotion : "system",
       textScale: v.textScale === 1.15 || v.textScale === 1.3 ? v.textScale : 1,
-      sound: v.sound === true,
+      sfx: v.sfx !== false,
+      sfxVolume: v.sfxVolume === "bajo" || v.sfxVolume === "alto" ? v.sfxVolume : "medio",
       vibration: v.vibration === true,
     };
   } catch {
