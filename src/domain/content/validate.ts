@@ -99,6 +99,7 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     for (const ph of new Set(placeholders)) if (!a.roles.includes(ph as never)) err(a.id, `placeholder {${ph}} sin rol declarado`);
     for (const r of a.roles) if (!placeholders.includes(r) && !a.titulo.includes(`{${r}}`)) warn(a.id, `rol ${r} sin placeholder en el texto`);
     if (new Set(a.roles).size !== a.roles.length) err(a.id, "roles repetidos");
+    if (a.parejaMixta && a.soloGenero) err(a.id, "una carta no puede ser mixta y de un solo género a la vez");
     switch (a.tipoInteraccion) {
       case "solo":
         if (a.parejaMixta) err(a.id, "parejaMixta solo vale para actividades de pareja ({p1} y {p2})");

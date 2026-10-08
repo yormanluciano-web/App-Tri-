@@ -123,6 +123,12 @@ export function evaluateAssignment(activity: Activity, assignment: Assignment, c
     const g2 = ctx.participants.find((p) => p.id === assignment.p2)?.gender;
     if (activity.roles.join() !== "p1,p2" || !g1 || !g2 || g1 === g2) return { ok: false, reason: "invalid" };
   }
+  // «Solo hombres» / «Solo mujeres»: todas las personas implicadas con ese género declarado.
+  if (activity.soloGenero) {
+    for (const pid of implicated) {
+      if (ctx.participants.find((p) => p.id === pid)?.gender !== activity.soloGenero) return { ok: false, reason: "invalid" };
+    }
+  }
 
   const askees = new Set<ParticipantId>();
   const check = (light: Light, who: ParticipantId[]): boolean => {

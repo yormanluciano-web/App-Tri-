@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — 2026-10-08
+- Cartas propias sin programar: `src/data/custom/cartas.json` añade cartas y oculta cartas base; se carga en el catálogo y pasa por el mismo validador (guía en docs/CONTENIDO.md).
+- Nuevo atributo «solo un género» (`genero: "hombre" | "mujer"`): todas las personas de la carta deben tener ese género; sin género declarado no sale.
+- Las metas editoriales se miden sobre las cartas base, así que agregar u ocultar cartas propias no rompe las pruebas.
+
 ## 0.8.0 — 2026-10-08
 - Al registrar a cada persona se elige «Hombre» o «Mujer» (obligatorio).
 - Nuevo atributo de carta `mixta: true` («solo hombre y mujer»): el motor solo la asigna a una pareja de un hombre y una mujer, en cualquier orden; nunca a dos hombres, dos mujeres o alguien sin género registrado (sesiones antiguas).

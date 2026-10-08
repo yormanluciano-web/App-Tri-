@@ -4,6 +4,7 @@ import {
   SCHEMA_VERSION,
   type Category,
   type Format,
+  type Gender,
   type GameId,
   type Intensity,
   type Interaction,
@@ -49,6 +50,8 @@ export interface CardInput {
   opts?: string[];
   /** Solo entre un hombre y una mujer (en cualquier orden). Requiere {p1} y {p2}. */
   mixta?: boolean;
+  /** Solo para personas de este género (todas las implicadas). */
+  genero?: Gender;
   status?: Activity["editorialStatus"];
 }
 
@@ -128,6 +131,7 @@ export function defineCards(
       ...(c.eff ? { effect: c.eff } : {}),
       ...(c.opts ? { opciones: c.opts } : {}),
       ...(c.mixta ? { parejaMixta: true } : {}),
+      ...(c.genero ? { soloGenero: c.genero } : {}),
     } satisfies Activity;
   });
 }

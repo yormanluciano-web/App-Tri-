@@ -5,8 +5,8 @@ import { ALL_ACTIVITIES, CATALOG, PACKS } from "@/data/catalog";
 describe("contratos de catálogo", () => {
   it("lee el catálogo local", async () => {
     const repo = new LocalCatalogRepository(CATALOG, PACKS);
-    expect((await repo.list()).length).toBe(1109);
-    expect((await repo.get("l2-001"))?.id).toBe("l2-001");
+    expect((await repo.list()).length).toBe(CATALOG.length);
+    expect((await repo.get(CATALOG[0].id))?.id).toBe(CATALOG[0].id);
   });
   it("un paquete importado se valida, no reutiliza IDs y entra como borrador", () => {
     const ids = new Set(ALL_ACTIVITIES.map((a) => a.id));

@@ -76,3 +76,37 @@ Estados editoriales: {"reviewed":1109}
 4. Registrar el lote en `src/data/<nivel>/index.ts`.
 5. `npm run content:validate -- --similar` y `npm run test`.
 6. Si cambia el texto o metadatos de una carta existente, subir `CONTENT_VERSION` en `src/data/catalog.ts`.
+
+## Cartas propias sin programar (`src/data/custom/cartas.json`)
+Además de los lotes en código, la app carga `src/data/custom/cartas.json`. Se puede editar desde la web de GitHub (también en el celular: abrir el archivo → lápiz «Edit» → «Commit changes»). Vercel vuelve a publicar la app con cada cambio. Si el archivo queda mal escrito o una carta rompe una regla, el build falla y la versión publicada anterior sigue funcionando.
+
+```json
+{
+  "version": 1,
+  "cartas": [
+    { "id": "baile0001", "nivel": "picante", "t": "Baile a ciegas", "x": "{p1}, con los ojos cerrados, baila una canción lenta con {p2}.",
+      "c": "baile", "f": "reto", "s": 50, "i": "directed_pair", "req": ["musica", "ojos_cerrados"], "pair": ["baile_cercano"], "mixta": true, "d": [60, 30, 120] }
+  ],
+  "ocultas": ["l2-001"]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `id` | 4 a 20 letras minúsculas o números, único. La carta queda como `c-<id>`. |
+| `nivel` | `leve`, `picante` o `perverso`. |
+| `t` / `x` | Título y texto. `{p1}`, `{p2}`, `{p3}` = a quién le toca. Sin ellos, es para todo el grupo. |
+| `c` | Categoría (`preguntas`, `retos`, `baile`, `pareja`, `conexion`…). |
+| `f` | `pregunta` o `reto`. |
+| `s` | Intensidad: Leve 0–30, Picante 31–65, Perverso 66–100. |
+| `i` | Con `{p1}` y `{p2}`: `directed_pair` (p1 hacia p2) o se omite (los dos juntos). Con `{p3}`: `group` y `"sizes": [3]`. |
+| `req` / `pair` | Permisos que pide. Contacto, besos y tiempo a solas van en `pair`; el resto en `req`. Prendas: también `"aud": ["quitarse_prenda"], "audScope": "sesion"`. |
+| `mixta` | `true` = solo entre un hombre y una mujer. |
+| `genero` | `"hombre"` o `"mujer"` = solo personas de ese género (todas las de la carta). |
+| `sizes` | `[2]`, `[3]` o se omite (ambas). |
+| `d` | Reloj opcional en segundos: `[sugerida, mínima, máxima]`. |
+| `g` | Juegos donde sale (se omite = todos los compatibles). |
+| `ocultas` | IDs de cartas base que dejan de salir (sin borrarlas del código). |
+
+Pasa por el mismo validador que el resto (`npm run content:validate`).
+

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CATEGORIES,
   FORMATS,
+  GENDERS,
   GAMES,
   INTENSITIES,
   INTERACTIONS,
@@ -67,6 +68,8 @@ export const activitySchema = z.object({
   effect: z.enum(SURPRISE_EFFECTS).optional(),
   /** Solo para una pareja hombre y mujer (en cualquier orden). Exige tipo pareja. */
   parejaMixta: z.boolean().optional(),
+  /** Solo para personas de un género: todas las implicadas deben tenerlo. */
+  soloGenero: z.enum(GENDERS).optional(),
   /** Opciones cerradas para «Quién me conoce mejor» (coincidencia exacta normalizada). */
   opciones: z.array(z.string().trim().min(1).max(40)).min(2).max(6).optional(),
 });
