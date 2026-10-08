@@ -28,6 +28,7 @@ export function Tilt({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef<number | null>(null);
+  const pressed = useRef(false);
 
   const reset = () => {
     const el = ref.current;
@@ -42,10 +43,10 @@ export function Tilt({
   const update = (e: PointerEvent<HTMLDivElement>) => {
     const el = ref.current;
     if (!el || motionReduced()) return;
-    if (ignoreInteractive && (e.target as Element).closest("button, a, input, textarea, select, [role='radio']")) {
-      reset();
-      return;
-    }
+    // Sobre un control interno o con el dedo presionado, la carta se queda quieta
+    // para que el toque caiga exactamente donde se apuntó.
+    if (pressed.current) return;
+    if (ignoreInteractive && (e.target as Element).closest("button, a, input, textarea, select, [role='radio']")) return;
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
@@ -62,7 +63,21 @@ export function Tilt({
 
   return (
     <div className={"scene-3d " + (className ?? "")}>
-      <div ref={ref} className="tilt-3d relative rounded-[28px]" onPointerMove={update} onPointerLeave={reset} onPointerUp={reset} onPointerCancel={reset}>
+      <div
+        ref={ref}
+        className="tilt-3d relative rounded-[28px]"
+        onPointerMove={update}
+        onPointerDown={() => (pressed.current = true)}
+        onPointerLeave={() => {
+          pressed.current = false;
+          reset();
+        }}
+        onPointerUp={() => (pressed.current = false)}
+        onPointerCancel={() => {
+          pressed.current = false;
+          reset();
+        }}
+      >
         {children}
         <span className="sheen" aria-hidden />
       </div>

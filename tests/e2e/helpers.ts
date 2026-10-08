@@ -94,3 +94,13 @@ export async function instrumentStorage(page: Page) {
 export async function writes(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as unknown as { __writes: string[] }).__writes ?? []);
 }
+
+/** Espera a que terminen las animaciones finitas (volteo de carta, dados) antes de tocar. */
+export async function settle(page: Page) {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => {
+      const it = a.effect?.getTiming().iterations;
+      return it === Infinity || a.playState !== "running";
+    }),
+  );
+}

@@ -473,6 +473,7 @@ html[data-motion="reduce"] *::after {
 .flip-3d > .face-back {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   transform: rotateY(180deg);
   border-radius: 28px;
   overflow: hidden;
@@ -597,4 +598,20 @@ html[data-motion="reduce"] *::after {
 .wheel-3d {
   transform: rotateX(28deg);
   transform-style: preserve-3d;
+}
+
+/* Con «reducir movimiento», las animaciones 3D no se reproducen ni un fotograma. */
+@media (prefers-reduced-motion: reduce) {
+  .flip-3d,
+  .cube.rolling,
+  .logo-3d,
+  .animate-deal {
+    animation: none !important;
+  }
+}
+html[data-motion="reduce"] .flip-3d,
+html[data-motion="reduce"] .cube.rolling,
+html[data-motion="reduce"] .logo-3d,
+html[data-motion="reduce"] .animate-deal {
+  animation: none !important;
 }

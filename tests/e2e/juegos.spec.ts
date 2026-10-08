@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { setupSession } from "./helpers";
+import { settle, setupSession } from "./helpers";
 
 const ALLOW = ["Escritura privada", "Revelación al grupo", "Preguntas personales", "Roles de juego"];
 
@@ -18,6 +18,7 @@ for (const size of [2, 3] as const) {
       await page.getByRole("button", { name: /Rompehielo/ }).click();
       await page.getByRole("button", { name: "Sacar carta" }).click();
       await card(page);
+      await settle(page);
       await page.getByRole("button", { name: /Guardar en favoritas/ }).click();
       await expect(page.getByRole("button", { name: /En favoritas/ })).toBeVisible();
       await page.getByRole("button", { name: "Cumplido" }).click();
