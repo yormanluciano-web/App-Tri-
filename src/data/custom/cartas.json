@@ -109,5 +109,11 @@
     "v2-013",
     "v2-016",
     "v2-020"
-  ]
+  ],
+  "musica": {
+    "clientId": "eacef6c4326844f787dd0e5d4b0f07e2",
+    "listas": {
+      "leve": "spotify:playlist:37i9dQZF1E38Z7QfCz2Ynp"
+    }
+  }
 }
