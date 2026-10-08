@@ -70,6 +70,7 @@ export const PERMISSIONS = [
   "caricias",
   "quitarse_prenda",
   "tiempo_a_solas",
+  "desnudez",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -97,6 +98,7 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   caricias: "Caricias sobre la ropa",
   quitarse_prenda: "Quitarse prendas",
   tiempo_a_solas: "Tiempo a solas",
+  desnudez: "Ropa interior y desnudez",
 };
 
 export const PERMISSION_HINT: Record<Permission, string> = {
@@ -123,6 +125,7 @@ export const PERMISSION_HINT: Record<Permission, string> = {
   caricias: "Caricias en brazos, espalda, cintura o piernas, siempre por encima de la ropa.",
   quitarse_prenda: "Quitarse una prenda en un reto, nunca la ropa interior.",
   tiempo_a_solas: "Ir unos minutos a otra habitación con una persona.",
+  desnudez: "Quitarse la ropa interior o quedar sin ropa. Solo entra con «Acepto todo».",
 };
 
 /** Permisos que implican contacto físico. Nunca se activan en silencio. */

@@ -168,7 +168,11 @@ export interface CardForm {
 /** Permisos que el validador exige declarar «por pareja». */
 const PAIR_ONLY: readonly Permission[] = [...CONTACT_PERMISSIONS, "tiempo_a_solas"];
 
-const ALL_GROUP_PERMS: Permission[] = [...new Set(PERMISSION_GROUPS.flatMap((g) => g.items))];
+/** «Acepto todo»: todas las categorías y además ropa interior y desnudez (que no tiene menú propio). */
+const ALL_GROUP_PERMS: Permission[] = [...new Set([...PERMISSION_GROUPS.flatMap((g) => g.items), "desnudez" as Permission])];
+
+/** Permisos que también debe aceptar toda la audiencia (ocurren ante el grupo). */
+const AUDIENCE_PERMS: readonly Permission[] = ["quitarse_prenda", "desnudez"];
 
 /** Cartas de una sola persona (solo {p1} y sin grupo): no admiten contacto ni tiempo a solas. */
 function isSoloText(form: Pick<CardForm, "texto" | "titulo"> & { grupo?: boolean }): boolean {
@@ -259,7 +263,7 @@ export function buildCustomCard(form: CardForm, id: string, now = new Date()): C
   const solo = onlyP1 && !form.grupo;
   const pair = solo ? [] : perms.filter((p) => PAIR_ONLY.includes(p));
   const req = perms.filter((p) => !pair.includes(p));
-  const prenda = perms.includes("quitarse_prenda");
+  const aud = perms.filter((p) => AUDIENCE_PERMS.includes(p));
   const gender: Gender | undefined = form.para === "hombres" ? "hombre" : form.para === "mujeres" ? "mujer" : undefined;
   const d = form.duracion && form.duracion > 0 ? Math.min(600, Math.max(10, Math.round(form.duracion))) : null;
   const card: CustomCard = {
@@ -276,7 +280,7 @@ export function buildCustomCard(form: CardForm, id: string, now = new Date()): C
     ...(roles.includes("p3") ? { i: "group" as const, sizes: [3 as const] } : form.sizes.length === 1 ? { sizes: [...form.sizes] } : {}),
     ...(req.length ? { req } : {}),
     ...(pair.length ? { pair } : {}),
-    ...(prenda ? { aud: ["quitarse_prenda" as Permission], audScope: "sesion" as const } : {}),
+    ...(aud.length ? { aud, audScope: "sesion" as const } : {}),
     ...(d ? { d: [d, Math.max(10, Math.round(d / 2)), Math.min(600, d * 2)] as [number, number, number] } : {}),
     ...(form.juegos.length ? { g: [...form.juegos] } : {}),
     ...(form.para === "mixta" ? { mixta: true } : {}),

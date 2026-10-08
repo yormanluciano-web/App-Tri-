@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 — 2026-10-08
+- Nuevo permiso **«Ropa interior y desnudez»**, incluido solo en **«Acepto todo»** (sin menú propio). «Acepto todo» ahora dice claramente: «Todo está permitido, sin límites: incluye ropa interior y desnudez».
+- Las cartas «Solo a quien acepta todo» del editor lo exigen. Como ocurre ante el grupo, toda la sesión debe haber elegido «Acepto todo»: en un trío no sale si la tercera persona aceptó solo una parte.
+- «Acepto parcialmente» no lo incluye aunque se marquen todas las categorías, y las sesiones guardadas antes de esta versión lo cuentan como no aceptado.
+- En esas cartas, el aviso «Nunca la ropa interior» se reemplaza por «Solo entre quienes aceptaron todo. Cualquiera puede pasar o parar en cualquier momento».
+
 ## 1.3.3 — 2026-10-08
 - Editar una carta original ahora **reescribe directamente esa carta en el código** (su línea en `src/data/<nivel>/v2-NN.ts`). No queda versión aparte: desaparecen la etiqueta «Editada», el filtro «Editadas» y «Volver al original».
 - Se conservan el ID, la familia, las etiquetas, el peso y el enfriamiento de la carta; el nivel de una carta original no se cambia.

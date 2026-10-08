@@ -31,7 +31,7 @@ export function Help() {
           </li>
           <li>Cada persona elige en privado: «Acepto todo», «Acepto parcialmente» (por temas) o «No acepto». Quien no acepta solo recibe charla, música y juegos sin contacto.</li>
           <li>Lo que cada persona acepta al inicio ya no se vuelve a preguntar en cada carta. Quien quiera que le pregunten cada vez puede marcar «Preguntar antes» en opciones avanzadas.</li>
-          <li>Prendas: nunca la ropa interior. Cualquiera puede pasar o parar en cualquier momento.</li>
+          <li>Prendas: nunca la ropa interior, salvo para quienes eligieron «Acepto todo», que incluye ropa interior y desnudez. Cualquiera puede pasar o parar en cualquier momento.</li>
           <li>Pasar, cambiar, pausar y detener son normales y nunca se penalizan.</li>
           <li>Subir la intensidad requiere el sí privado de todas las personas; bajar es inmediato.</li>
           <li>Nadie ve quién rechazó algo ni cuántas personas lo hicieron.</li>

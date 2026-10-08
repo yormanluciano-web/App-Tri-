@@ -293,7 +293,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 const IMPLICA: { id: Exclude<Implica, "detalle">; label: string; hint: string }[] = [
   { id: "todos", label: "A todos", hint: "Carta suave: sale incluso a quien eligió «No acepto»." },
   { id: "categorias", label: "Por categoría", hint: "Solo a quien aceptó la categoría que elijas (como «Acepto parcialmente»)." },
-  { id: "acepta_todo", label: "Solo a quien acepta todo", hint: "Solo a quien eligió «Acepto todo» al empezar." },
+  { id: "acepta_todo", label: "Solo a quien acepta todo", hint: "Solo a quien eligió «Acepto todo» al empezar (incluye ropa interior y desnudez). Úsala para cartas sin límites." },
 ];
 
 function implicaLabel(form: CardForm): string {

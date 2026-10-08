@@ -83,7 +83,7 @@ const MODES: { mode: AcceptMode; title: string; desc: string; icon: IconName }[]
   {
     mode: "todo",
     title: "Acepto todo",
-    desc: "Cualquier carta puede aparecer sin volver a preguntarte. Igual puedes pasar cuando quieras.",
+    desc: "Todo está permitido, sin límites: incluye ropa interior y desnudez. Ninguna carta te vuelve a preguntar, y aun así puedes pasar o parar cuando quieras.",
     icon: "flame",
   },
   { mode: "parcial", title: "Acepto parcialmente", desc: "Eliges qué sí y qué no, por temas.", icon: "sparkle" },

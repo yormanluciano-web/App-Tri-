@@ -149,7 +149,8 @@ export function ActivityCard({
 function SafetyNotes({ activity }: { activity: Activity }) {
   const perms = activityPermissions(activity);
   const notes: string[] = [];
-  if (perms.includes("quitarse_prenda")) notes.push("Nunca la ropa interior. Puedes pasar sin dar explicaciones.");
+  if (perms.includes("desnudez")) notes.push("Solo entre quienes aceptaron todo. Cualquiera puede pasar o parar en cualquier momento, sin dar explicaciones.");
+  else if (perms.includes("quitarse_prenda")) notes.push("Nunca la ropa interior. Puedes pasar sin dar explicaciones.");
   if (perms.includes("tiempo_a_solas")) notes.push("Pueden volver cuando quieran. A solas, todo sigue siendo voluntario y cualquiera puede parar.");
   if (perms.includes("beso_intenso") || perms.includes("caricias")) notes.push("Cualquiera puede parar en cualquier momento.");
   if (notes.length === 0) return null;

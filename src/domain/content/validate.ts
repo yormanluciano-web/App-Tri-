@@ -164,6 +164,9 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     const allPerms = activityPermissions(a);
     if (allPerms.includes("quitarse_prenda") && (a.audienceScope !== "sesion" || !r.audiencia.includes("quitarse_prenda")))
       err(a.id, "quitarse_prenda requiere audienceScope «sesion» y el permiso en audiencia");
+    // Ropa interior y desnudez: ocurre ante el grupo, así que toda la sesión debe haberlo aceptado.
+    if (allPerms.includes("desnudez") && (a.audienceScope !== "sesion" || !r.audiencia.includes("desnudez")))
+      err(a.id, "desnudez requiere audienceScope «sesion» y el permiso en audiencia");
     // Tiempo a solas: siempre como permiso por pareja.
     if (allPerms.includes("tiempo_a_solas") && !r.pareja.includes("tiempo_a_solas")) err(a.id, "tiempo_a_solas requiere permiso en «pareja»");
     if (activityPermissions(a).length === 0) err(a.id, "actividad sin permisos declarados");
