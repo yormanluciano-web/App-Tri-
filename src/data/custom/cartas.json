@@ -52,6 +52,56 @@
       ],
       "mixta": true,
       "creada": "2026-10-08"
+    },
+    {
+      "id": "sbc8ciku",
+      "nivel": "perverso",
+      "t": "Oral a ciegas",
+      "x": "{p1} debes cubrir tus ojos, {p2} y {p3}  te van a hacer un oral cada una de 15s, debes adivinar cuál fue el orden",
+      "c": "retos",
+      "f": "reto",
+      "s": 90,
+      "i": "group",
+      "sizes": [
+        3
+      ],
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        60,
+        30,
+        120
+      ],
+      "creada": "2026-10-08"
     }
   ],
   "ocultas": [
