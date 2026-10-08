@@ -8,6 +8,8 @@ import {
   INTENSITIES,
   INTENSITY_RANGE,
   PERMISSIONS,
+  PERMISSION_GROUPS,
+  SAFE_BASE_GREEN,
   type Category,
   type GameId,
   type Gender,
@@ -90,6 +92,15 @@ export function customActivityId(card: Pick<CustomCard, "id">): string {
 
 export type Audience = "todos" | "mixta" | "hombres" | "mujeres";
 
+/**
+ * Qué pide la carta, con las mismas tres opciones del inicio del juego:
+ * - `todos`: apta incluso para quien eligió «No acepto» (base segura).
+ * - `categorias`: solo para quien aceptó esas categorías («Acepto parcialmente»).
+ * - `acepta_todo`: solo para quien aceptó todo.
+ * - `detalle`: permisos elegidos uno por uno (opción avanzada).
+ */
+export type Implica = "todos" | "categorias" | "acepta_todo" | "detalle";
+
 export interface CardForm {
   nivel: Intensity;
   formato: "pregunta" | "reto";
@@ -101,6 +112,10 @@ export interface CardForm {
   para: Audience;
   /** Tamaños de sesión donde puede salir. */
   sizes: (2 | 3)[];
+  implica: Implica;
+  /** IDs de PERMISSION_GROUPS (con `implica: "categorias"`). */
+  grupos: string[];
+  /** Solo con `implica: "detalle"`. */
   permisos: Permission[];
   /** Segundos; null = sin reloj. */
   duracion: number | null;
@@ -110,6 +125,49 @@ export interface CardForm {
 
 /** Permisos que el validador exige declarar «por pareja». */
 const PAIR_ONLY: readonly Permission[] = [...CONTACT_PERMISSIONS, "tiempo_a_solas"];
+
+const ALL_GROUP_PERMS: Permission[] = [...new Set(PERMISSION_GROUPS.flatMap((g) => g.items))];
+
+function isPairText(form: Pick<CardForm, "texto" | "titulo">): boolean {
+  const roles = placeholdersIn(form.texto + " " + form.titulo);
+  return roles.includes("p2") && !roles.includes("p3");
+}
+
+/**
+ * Permisos que exige la carta según la opción elegida. «Acepto todo» exige
+ * todas las categorías; en cartas que no son de pareja, el contacto y el
+ * tiempo a solas no aplican (no hay con quién), así que se omiten.
+ */
+export function formPermissions(form: CardForm): Permission[] {
+  switch (form.implica) {
+    case "todos":
+      return ["conversacion_ligera"];
+    case "categorias":
+      return [...new Set(PERMISSION_GROUPS.filter((g) => form.grupos.includes(g.id)).flatMap((g) => g.items))];
+    case "acepta_todo":
+      return isPairText(form) ? [...ALL_GROUP_PERMS] : ALL_GROUP_PERMS.filter((p) => !PAIR_ONLY.includes(p));
+    case "detalle":
+      return [...new Set(form.permisos)];
+  }
+}
+
+function sameSet<T>(a: readonly T[], b: readonly T[]): boolean {
+  const sa = new Set(a);
+  const sb = new Set(b);
+  return sa.size === sb.size && [...sa].every((x) => sb.has(x));
+}
+
+/** Reconstruye la opción del formulario a partir de los permisos de una carta. */
+export function implicaFromPermissions(perms: readonly Permission[], pair: boolean): Pick<CardForm, "implica" | "grupos" | "permisos"> {
+  const permisos = [...new Set(perms)];
+  if (permisos.every((p) => SAFE_BASE_GREEN.includes(p))) return { implica: "todos", grupos: [], permisos };
+  const all = pair ? ALL_GROUP_PERMS : ALL_GROUP_PERMS.filter((p) => !PAIR_ONLY.includes(p));
+  if (sameSet(permisos, all)) return { implica: "acepta_todo", grupos: [], permisos };
+  const grupos = PERMISSION_GROUPS.filter((g) => g.items.every((p) => permisos.includes(p))).map((g) => g.id);
+  const union = PERMISSION_GROUPS.filter((g) => grupos.includes(g.id)).flatMap((g) => g.items);
+  if (grupos.length && sameSet(permisos, union)) return { implica: "categorias", grupos, permisos };
+  return { implica: "detalle", grupos: [], permisos };
+}
 
 export function defaultIntensity(nivel: Intensity): number {
   const [lo, hi] = INTENSITY_RANGE[nivel];
@@ -126,6 +184,8 @@ export function newCardForm(): CardForm {
     dirigida: true,
     para: "todos",
     sizes: [2, 3],
+    implica: "todos",
+    grupos: [],
     permisos: ["conversacion_ligera"],
     duracion: null,
     juegos: [],
@@ -147,7 +207,7 @@ export function randomCardId(rand: () => number = Math.random): string {
 export function buildCustomCard(form: CardForm, id: string, now = new Date()): CustomCard {
   const roles = placeholdersIn(form.texto + " " + form.titulo);
   const isPair = roles.includes("p2") && !roles.includes("p3");
-  const perms = [...new Set(form.permisos)];
+  const perms = formPermissions(form);
   const pair = isPair ? perms.filter((p) => PAIR_ONLY.includes(p)) : [];
   const req = perms.filter((p) => !pair.includes(p));
   const prenda = perms.includes("quitarse_prenda");
@@ -187,7 +247,7 @@ export function formFromCustomCard(c: CustomCard): CardForm {
     dirigida: c.i === "directed_pair",
     para: c.mixta ? "mixta" : c.genero === "hombre" ? "hombres" : c.genero === "mujer" ? "mujeres" : "todos",
     sizes: c.sizes ?? [2, 3],
-    permisos: [...new Set([...(c.req ?? []), ...(c.pair ?? []), ...(c.aud ?? [])])],
+    ...implicaFromPermissions([...(c.req ?? []), ...(c.pair ?? []), ...(c.aud ?? [])], isPairText({ texto: c.x, titulo: c.t })),
     duracion: c.d ? c.d[0] : null,
     juegos: c.g ?? [],
     intensidad: c.s,

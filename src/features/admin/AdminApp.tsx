@@ -10,6 +10,7 @@ import {
   INTENSITY_LABEL,
   INTENSITY_RANGE,
   PERMISSIONS,
+  PERMISSION_GROUPS,
   PERMISSION_HINT,
   PERMISSION_LABEL,
   type GameId,
@@ -25,10 +26,13 @@ import {
   customCardsToActivities,
   defaultIntensity,
   formFromCustomCard,
+  formPermissions,
+  implicaFromPermissions,
   newCardForm,
   randomCardId,
   type Audience,
   type CardForm,
+  type Implica,
   type CustomCard,
 } from "@/data/custom";
 import { useAdmin, savedRepo } from "@/admin/store";
@@ -219,6 +223,22 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
+const IMPLICA: { id: Exclude<Implica, "detalle">; label: string; hint: string }[] = [
+  { id: "todos", label: "A todos", hint: "Carta suave: sale incluso a quien eligió «No acepto»." },
+  { id: "categorias", label: "Por categoría", hint: "Solo a quien aceptó la categoría que elijas (como «Acepto parcialmente»)." },
+  { id: "acepta_todo", label: "Solo a quien acepta todo", hint: "Solo a quien eligió «Acepto todo» al empezar." },
+];
+
+function implicaLabel(form: CardForm): string {
+  if (form.implica === "todos") return "a todos";
+  if (form.implica === "acepta_todo") return "solo a quien acepta todo";
+  if (form.implica === "categorias") {
+    const names = PERMISSION_GROUPS.filter((g) => form.grupos.includes(g.id)).map((g) => g.title);
+    return names.length ? names.join(", ") : "elige una categoría";
+  }
+  return form.permisos.map((p) => PERMISSION_LABEL[p]).join(", ") || "sin permisos";
+}
+
 const MIXTA_SIN_PAREJA =
   "Una carta «Hombre y mujer» es de pareja: el texto debe nombrar a Persona 1 y Persona 2 (pueden ser cualquiera de los jugadores; la app pone al hombre y a la mujer).";
 
@@ -259,6 +279,7 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
   const built = useMemo(() => {
     try {
       if (mixtaSinPareja) return { card: null, problem: MIXTA_SIN_PAREJA };
+      if (form.implica === "categorias" && form.grupos.length === 0) return { card: null, problem: "Elige al menos una categoría en «¿A quién le puede salir?»." };
       return { card: buildCustomCard(form, id), problem: null as string | null };
     } catch {
       return { card: null, problem: "Completa el título (2 a 60 letras) y el texto (10 a 320)." };
@@ -272,7 +293,8 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
   const insert = (token: string) => set("texto", (form.texto.trimEnd() + " " + token + " ").replace(/^\s+/, ""));
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const [lo, hi] = INTENSITY_RANGE[form.nivel];
-  const contactWithoutPair = !isPair && form.permisos.some((p) => CONTACT_PERMISSIONS.includes(p) || p === "tiempo_a_solas");
+  const perms = formPermissions(form);
+  const contactWithoutPair = !isPair && perms.some((p) => CONTACT_PERMISSIONS.includes(p) || p === "tiempo_a_solas");
 
   return (
     <div className="space-y-4">
@@ -401,19 +423,72 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
           </select>
         </Section>
 
-        <Section title="¿Qué implica?" hint="Marca todo lo que la carta pide. Solo saldrá a quienes lo aceptaron al empezar.">
-          <div className="grid gap-2">
-            {PERMISSIONS.filter((p) => p !== "escritura_privada" && p !== "revelacion_grupo").map((p) => (
-              <label key={p} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-white/5 p-3">
-                <input type="checkbox" className="mt-1 size-5 accent-[var(--accent)]" checked={form.permisos.includes(p)} onChange={() => set("permisos", toggle(form.permisos, p))} />
-                <span>
-                  <span className="font-semibold">{PERMISSION_LABEL[p]}</span>
-                  <span className="block text-sm text-muted">{PERMISSION_HINT[p]}</span>
-                </span>
-              </label>
+        <Section title="¿A quién le puede salir?" hint="Las mismas opciones que cada persona elige al empezar a jugar.">
+          <div className="grid gap-2" role="radiogroup" aria-label="A quién le puede salir">
+            {IMPLICA.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                role="radio"
+                aria-checked={form.implica === o.id}
+                onClick={() => set("implica", o.id)}
+                className={cx("glass rounded-2xl p-3 text-left transition", form.implica === o.id ? "glow-border" : "hover:bg-white/5")}
+              >
+                <span className="font-semibold">{o.label}</span>
+                <span className="block text-sm text-muted">{o.hint}</span>
+              </button>
             ))}
           </div>
-          {contactWithoutPair && <Notice tone="warn">El contacto y el tiempo a solas solo pueden ir en cartas de pareja (Persona 1 y Persona 2).</Notice>}
+          {form.implica === "categorias" && (
+            <div className="space-y-2 pt-1">
+              <p className="text-sm font-semibold">¿De qué categoría es? (puedes marcar varias)</p>
+              <div className="grid gap-2">
+                {PERMISSION_GROUPS.map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    aria-pressed={form.grupos.includes(g.id)}
+                    onClick={() => set("grupos", toggle(form.grupos, g.id))}
+                    className={cx(
+                      "flex items-start gap-3 rounded-2xl border p-3 text-left transition",
+                      form.grupos.includes(g.id) ? "border-transparent bg-gradient-to-r from-accent/25 to-accent-2/25 ring-1 ring-accent" : "border-line bg-white/5",
+                    )}
+                  >
+                    <span className={cx("mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border", form.grupos.includes(g.id) ? "border-transparent bg-accent text-accent-ink" : "border-line")}>
+                      {form.grupos.includes(g.id) && <Icon name="check" className="size-4" />}
+                    </span>
+                    <span>
+                      <span className="font-semibold">{g.title}</span>
+                      <span className="block text-sm text-muted">{g.hint}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {form.implica === "detalle" && (
+            <div className="grid gap-2 pt-1">
+              {PERMISSIONS.filter((p) => p !== "escritura_privada" && p !== "revelacion_grupo").map((p) => (
+                <label key={p} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-white/5 p-3">
+                  <input type="checkbox" className="mt-1 size-5 accent-[var(--accent)]" checked={form.permisos.includes(p)} onChange={() => set("permisos", toggle(form.permisos, p))} />
+                  <span>
+                    <span className="font-semibold">{PERMISSION_LABEL[p]}</span>
+                    <span className="block text-sm text-muted">{PERMISSION_HINT[p]}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+          {form.implica !== "detalle" ? (
+            <Button variant="quiet" onClick={() => setForm((f) => ({ ...f, implica: "detalle", permisos: formPermissions(f) }))}>
+              Opción avanzada: elegir permisos uno por uno
+            </Button>
+          ) : (
+            <Button variant="quiet" onClick={() => setForm((f) => ({ ...f, ...implicaFromPermissions(f.permisos, isPair) }))}>
+              Volver a las tres opciones
+            </Button>
+          )}
+          {contactWithoutPair && <Notice tone="warn">El contacto, los besos y el tiempo a solas solo pueden ir en cartas de pareja (Persona 1 y Persona 2).</Notice>}
         </Section>
 
         <Section title="Juegos donde aparece" hint="Sin marcar = todos los compatibles.">
@@ -449,7 +524,7 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
         <h2 className="text-2xl font-semibold italic">{previewText(form.titulo) || "Título"}</h2>
         <p className="text-lg">{previewText(form.texto) || "Texto de la carta"}</p>
         <p className="text-sm text-muted">
-          {AUDIENCES.find((a) => a.id === para)?.label} · {form.permisos.map((p) => PERMISSION_LABEL[p]).join(", ") || "sin permisos"}
+          {AUDIENCES.find((a) => a.id === para)?.label} · {implicaLabel(form)}
           {form.duracion ? ` · ${form.duracion} s` : ""}
         </p>
         {para === "mixta" && isPair && (

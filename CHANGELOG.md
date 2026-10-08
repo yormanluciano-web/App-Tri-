@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.2 — 2026-10-08
+- Editor de cartas: «¿A quién le puede salir?» con las mismas tres opciones del inicio del juego: «A todos» (incluso «No acepto»), «Por categoría» (las categorías de «Acepto parcialmente») y «Solo a quien acepta todo». La lista de permisos uno por uno queda como opción avanzada.
+
 ## 0.9.1 — 2026-10-08
 - Editor de cartas: «Hombre y mujer» siempre visible. Explica que Persona 1, 2 y 3 no son jugadores fijos. Si falta la pareja en el texto, ofrece añadir «Persona 1 y Persona 2». La vista previa muestra a quién puede salir en un trío.
 - Prueba que fija el reparto: en un trío de un hombre y dos mujeres, el hombre se turna con ambas y en ambos sentidos.

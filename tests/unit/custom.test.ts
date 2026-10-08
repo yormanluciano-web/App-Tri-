@@ -9,8 +9,12 @@ import {
   formFromCustomCard,
   newCardForm,
   parseCustomFile,
+  formPermissions,
+  implicaFromPermissions,
   EMPTY_CUSTOM_FILE,
+  type CardForm,
 } from "@/data/custom";
+import { PERMISSION_GROUPS, PERMISSIONS, type Light, type Permission } from "@/domain/models/constants";
 import { ALL_ACTIVITIES, BASE_ACTIVITIES, CUSTOM_FILE } from "@/data/catalog";
 import type { Gender } from "@/domain/models/constants";
 import type { Participant } from "@/domain/models/session";
@@ -67,6 +71,7 @@ describe("archivo de cartas propias", () => {
         nivel: "perverso",
         titulo: "Prueba",
         texto: "{p1}, quítate una prenda exterior y baila pegado con {p2}.",
+        implica: "detalle",
         permisos: ["quitarse_prenda", "baile_cercano", "musica"],
         para: "mixta",
         intensidad: 80,
@@ -117,3 +122,57 @@ describe("archivo de cartas propias", () => {
     expect(f).toEqual(EMPTY_CUSTOM_FILE);
   });
 });
+
+describe("«¿A quién le puede salir?» con las tres opciones del inicio", () => {
+  const pairText = { titulo: "Beso", texto: "{p1}, dale un beso en la mejilla a {p2}." };
+  const lightsFor = (groups: string[] | "todo" | "nada"): Partial<Record<Permission, Light>> => {
+    const green = new Set<Permission>(
+      groups === "todo" ? PERMISSIONS : groups === "nada" ? ["conversacion_ligera", "musica", "adivinanzas", "baile_individual"] : PERMISSION_GROUPS.filter((g) => groups.includes(g.id)).flatMap((g) => g.items),
+    );
+    return Object.fromEntries(PERMISSIONS.map((p) => [p, green.has(p) ? "green" : "red"])) as Record<Permission, Light>;
+  };
+  const playable = (form: Partial<CardForm>, a: ReturnType<typeof lightsFor>, b: ReturnType<typeof lightsFor>) => {
+    const card = buildCustomCard({ ...newCardForm(), nivel: "picante", intensidad: 45, ...pairText, ...form }, "prueba01");
+    const [activity] = customCardsToActivities([card]);
+    expect(validateCatalog([activity]).errors).toEqual([]);
+    const x = participant("x", a);
+    const y = participant("y", b);
+    return evaluateAssignment(activity, { p1: x.id, p2: y.id }, { participants: [x, y], sharedLimits: allLights("green") }).ok;
+  };
+
+  it("«A todos» sale incluso a quien eligió «No acepto»", () => {
+    expect(playable({ implica: "todos" }, lightsFor("nada"), lightsFor("nada"))).toBe(true);
+  });
+
+  it("«Por categoría» sale solo a quien aceptó esa categoría", () => {
+    expect(playable({ implica: "categorias", grupos: ["besos"] }, lightsFor(["besos"]), lightsFor(["besos", "charla"]))).toBe(true);
+    expect(playable({ implica: "categorias", grupos: ["besos"] }, lightsFor(["besos"]), lightsFor(["charla"]))).toBe(false);
+    expect(playable({ implica: "categorias", grupos: ["besos"] }, lightsFor("nada"), lightsFor("todo"))).toBe(false);
+  });
+
+  it("«Solo a quien acepta todo» no sale si alguien aceptó solo una parte", () => {
+    expect(playable({ implica: "acepta_todo" }, lightsFor("todo"), lightsFor("todo"))).toBe(true);
+    const allButSolas = PERMISSION_GROUPS.map((g) => g.id).filter((g) => g !== "a_solas");
+    expect(playable({ implica: "acepta_todo" }, lightsFor("todo"), lightsFor(allButSolas))).toBe(false);
+  });
+
+  it("en cartas de una persona, «acepta todo» omite lo que necesita pareja y la carta es válida", () => {
+    const form: CardForm = { ...newCardForm(), nivel: "picante", intensidad: 45, titulo: "Solo", texto: "{p1}, cuenta tu fantasía más atrevida.", implica: "acepta_todo" };
+    const perms = formPermissions(form);
+    expect(perms).toContain("fantasias");
+    expect(perms).not.toContain("caricias");
+    const [activity] = customCardsToActivities([buildCustomCard(form, "solo0001")]);
+    expect(validateCatalog([activity]).errors).toEqual([]);
+  });
+
+  it("al editar, la carta vuelve a la misma opción", () => {
+    for (const f of [{ implica: "todos" as const }, { implica: "categorias" as const, grupos: ["besos", "coqueteo"] }, { implica: "acepta_todo" as const }]) {
+      const card = buildCustomCard({ ...newCardForm(), nivel: "picante", intensidad: 45, ...pairText, ...f }, "ida00001");
+      const back = formFromCustomCard(card);
+      expect(back.implica).toBe(f.implica);
+      if (f.implica === "categorias") expect(back.grupos.sort()).toEqual(["besos", "coqueteo"]);
+    }
+    expect(implicaFromPermissions(["beso", "musica"], true).implica).toBe("detalle");
+  });
+});
+

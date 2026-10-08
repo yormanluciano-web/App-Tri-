@@ -51,13 +51,18 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   await page.getByRole("button", { name: "+ Persona 2" }).click();
   await expect(page.getByText("pareja (2 personas)")).toBeVisible();
   await page.getByRole("radio", { name: /Hombre y mujer/ }).click();
-  await page.getByRole("checkbox", { name: /Música/ }).check();
+  // Mismas tres opciones del inicio: aquí, por categoría.
+  await page.getByRole("radio", { name: /Por categoría/ }).click();
+  await page.getByRole("button", { name: "Publicar carta" }).click();
+  await expect(page.getByText(/Elige al menos una categoría/)).toBeVisible();
+  await page.getByRole("button", { name: /^Coqueteo y juegos/ }).click();
   await page.getByRole("button", { name: "Publicar carta" }).click();
   await expect(page.getByText(/guardada en el repositorio/)).toBeVisible();
 
   let file = JSON.parse(gh.text);
   expect(file.cartas).toHaveLength(1);
   expect(file.cartas[0]).toMatchObject({ t: "Baile de prueba", mixta: true, nivel: "picante", f: "reto", i: "directed_pair" });
+  expect(file.cartas[0].req).toEqual(expect.arrayContaining(["coqueteo", "miradas", "musica", "baile_individual", "roles_juego", "ojos_cerrados"]));
   expect(file.cartas[0].x).toContain("{p1}");
   expect(gh.puts[0].branch).toBe("main");
 
@@ -105,7 +110,8 @@ test("administración: una llave inválida no entra y el editor no publica carta
   await page.getByRole("radio", { name: /Cualquiera/ }).click();
   await page.getByLabel("Título").fill("Corta");
   await page.getByLabel("Texto de la carta").fill("{p1}, abraza a alguien del grupo.");
-  await page.getByRole("checkbox", { name: /^Abrazo/ }).check();
+  await page.getByRole("radio", { name: /Por categoría/ }).click();
+  await page.getByRole("button", { name: /^Contacto y caricias/ }).click();
   await expect(page.getByText(/solo pueden ir en cartas de pareja/)).toBeVisible();
   await page.getByRole("button", { name: "Publicar carta" }).click();
   await expect(page.getByText("Hay que corregir:")).toBeVisible();
