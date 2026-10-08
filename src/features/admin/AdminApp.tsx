@@ -19,7 +19,7 @@ import {
 import type { Activity } from "@/domain/models/activity";
 import { validateCatalog, normalizeText } from "@/domain/content/validate";
 import { placeholdersIn } from "@/data/define";
-import { BASE_ACTIVITIES } from "@/data/catalog";
+import { BASE_ACTIVITIES, CUSTOM_FILE } from "@/data/catalog";
 import {
   buildCustomCard,
   customActivityId,
@@ -133,7 +133,15 @@ type Tab = "nueva" | "cartas" | "cuenta";
 function AdminPanel() {
   const [tab, setTab] = useState<Tab>("nueva");
   const [editing, setEditing] = useState<CustomCard | null>(null);
-  const [done, setDone] = useState<string | null>(null);
+  const [result, setResult] = useState<PublishOutcome | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+  const finish = (r: PublishOutcome) => {
+    setResult(r);
+    if (r.ok) {
+      setEditing(null);
+      setEditorKey((k) => k + 1);
+    }
+  };
 
   return (
     <Screen>
@@ -167,24 +175,8 @@ function AdminPanel() {
           </button>
         ))}
       </div>
-      {done && (
-        <Notice>
-          {done}{" "}
-          <button className="underline" onClick={() => setDone(null)}>
-            Cerrar
-          </button>
-        </Notice>
-      )}
       {tab === "nueva" && (
-        <CardEditor
-          key={editing?.id ?? "nueva"}
-          editing={editing}
-          onPublished={(msg) => {
-            setDone(msg);
-            setEditing(null);
-          }}
-          onCancel={() => setEditing(null)}
-        />
+        <CardEditor key={`${editing?.id ?? "nueva"}-${editorKey}`} editing={editing} onResult={finish} onCancel={() => setEditing(null)} />
       )}
       {tab === "cartas" && (
         <CardList
@@ -192,11 +184,66 @@ function AdminPanel() {
             setEditing(c);
             setTab("nueva");
           }}
-          onDone={setDone}
+          onDone={finish}
         />
       )}
       {tab === "cuenta" && <Account />}
+      <ResultDialog
+        result={result}
+        onClose={() => setResult(null)}
+        onSeeCards={() => {
+          setResult(null);
+          setTab("cartas");
+        }}
+      />
     </Screen>
+  );
+}
+
+/** Resultado de publicar, borrar, ocultar o restaurar: se muestra en un diálogo imposible de pasar por alto. */
+interface PublishOutcome {
+  ok: boolean;
+  title: string;
+  message: string;
+  commitUrl?: string | null;
+}
+
+function ResultDialog({ result, onClose, onSeeCards }: { result: PublishOutcome | null; onClose: () => void; onSeeCards: () => void }) {
+  if (!result) return null;
+  return (
+    <Dialog open title={result.title} onClose={onClose}>
+      <div className="flex justify-center" aria-hidden>
+        <span
+          className={cx(
+            "flex size-20 items-center justify-center rounded-full animate-pop",
+            result.ok ? "bg-gradient-to-br from-[#34d399] to-[#10b981] text-white shadow-[0_0_40px_rgba(52,211,153,0.55)]" : "bg-gradient-to-br from-[#ff7a8a] to-[#e8457a] text-white",
+          )}
+        >
+          <Icon name={result.ok ? "check" : "x"} className="size-10" strokeWidth={2.6} />
+        </span>
+      </div>
+      <p className="text-center text-muted" role="status">
+        {result.message}
+      </p>
+      {result.ok && (
+        <ol className="space-y-1 rounded-2xl bg-white/5 p-3 text-sm text-muted">
+          <li>✓ Guardada en el repositorio.</li>
+          <li>⏳ Vercel está publicando la nueva versión (1 a 3 minutos).</li>
+          <li>↻ Después, cierra y abre la app para verla.</li>
+        </ol>
+      )}
+      {result.ok && result.commitUrl && (
+        <a href={result.commitUrl} target="_blank" rel="noreferrer noopener" className="block text-center text-sm text-muted underline">
+          Ver el cambio en GitHub
+        </a>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Button variant="secondary" onClick={onSeeCards}>
+          Ver mis cartas
+        </Button>
+        <Button onClick={onClose}>{result.ok ? "Crear otra" : "Entendido"}</Button>
+      </div>
+    </Dialog>
   );
 }
 
@@ -261,7 +308,7 @@ function checkCard(card: CustomCard, editingId: string | null): { activity: Acti
   return { activity, errors, warnings };
 }
 
-function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | null; onPublished: (msg: string) => void; onCancel: () => void }) {
+function CardEditor({ editing, onResult, onCancel }: { editing: CustomCard | null; onResult: (r: PublishOutcome) => void; onCancel: () => void }) {
   const publish = useAdmin((s) => s.publish);
   const busy = useAdmin((s) => s.busy);
   const error = useAdmin((s) => s.error);
@@ -559,12 +606,17 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
             setTried(true);
             if (!canPublish || !built.card) return;
             const exists = !!file?.cartas.some((c) => c.id === id);
-            void publish({ kind: editing && exists ? "update" : "add", card: built.card }, built.card.t).then((r) => {
-              if (r) onPublished(`Carta «${built.card!.t}» guardada en el repositorio. Aparecerá en la app cuando Vercel termine de publicar (1 a 3 minutos).`);
+            const title = built.card.t;
+            void publish({ kind: editing && exists ? "update" : "add", card: built.card }, title).then((r) => {
+              onResult(
+                r
+                  ? { ok: true, title: editing ? "¡Cambios guardados!" : "¡Carta publicada!", message: `«${title}» ya está en el repositorio.`, commitUrl: r.commitUrl }
+                  : { ok: false, title: "No se pudo publicar", message: useAdmin.getState().error ?? "Algo salió mal. Revisa tu conexión y vuelve a intentarlo." },
+              );
             });
           }}
         >
-          {busy ? "Guardando…" : editing ? "Guardar cambios" : "Publicar carta"}
+          {busy ? "Publicando en GitHub…" : editing ? "Guardar cambios" : "Publicar carta"}
         </Button>
         {editing && (
           <Button variant="ghost" onClick={onCancel}>
@@ -587,7 +639,7 @@ interface Row {
   hidden: boolean;
 }
 
-function CardList({ onEdit, onDone }: { onEdit: (c: CustomCard) => void; onDone: (msg: string) => void }) {
+function CardList({ onEdit, onDone }: { onEdit: (c: CustomCard) => void; onDone: (r: PublishOutcome) => void }) {
   const file = useAdmin((s) => s.file);
   const publish = useAdmin((s) => s.publish);
   const reload = useAdmin((s) => s.reload);
@@ -627,7 +679,12 @@ function CardList({ onEdit, onDone }: { onEdit: (c: CustomCard) => void; onDone:
     const change = row.custom ? { kind: "delete" as const, id: row.custom.id } : row.hidden ? { kind: "unhide" as const, activityId: row.id } : { kind: "hide" as const, activityId: row.id };
     void publish(change, title).then((r) => {
       setConfirm(null);
-      if (r) onDone(`${row.custom ? "Carta borrada" : row.hidden ? "Carta restaurada" : "Carta ocultada"}: «${title}». Se verá en la app en 1 a 3 minutos.`);
+      const verb = row.custom ? "borrada" : row.hidden ? "restaurada" : "ocultada";
+      onDone(
+        r
+          ? { ok: true, title: `¡Carta ${verb}!`, message: `«${title}» quedó ${verb} en el repositorio.`, commitUrl: r.commitUrl }
+          : { ok: false, title: "No se pudo guardar", message: useAdmin.getState().error ?? "Algo salió mal. Revisa tu conexión y vuelve a intentarlo." },
+      );
     });
   };
 
@@ -673,6 +730,12 @@ function CardList({ onEdit, onDone }: { onEdit: (c: CustomCard) => void; onDone:
               <span>·</span>
               <span>{r.activity.formato}</span>
               {r.custom && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-accent">Mía</span>}
+              {r.custom &&
+                (inThisVersion(r.custom) ? (
+                  <span className="rounded-full bg-ok/15 px-2 py-0.5 text-ok">En la app</span>
+                ) : (
+                  <span className="rounded-full bg-warn/15 px-2 py-0.5 text-warn">Publicándose</span>
+                ))}
               {r.hidden && <span className="rounded-full bg-white/10 px-2 py-0.5">Oculta</span>}
               {r.activity.parejaMixta && <span className="rounded-full bg-white/10 px-2 py-0.5">Hombre y mujer</span>}
               {r.activity.soloGenero && <span className="rounded-full bg-white/10 px-2 py-0.5">Solo {r.activity.soloGenero === "hombre" ? "hombres" : "mujeres"}</span>}
@@ -722,6 +785,12 @@ function CardList({ onEdit, onDone }: { onEdit: (c: CustomCard) => void; onDone:
       </Dialog>
     </div>
   );
+}
+
+/** ¿Esta versión de la app ya trae la carta tal cual está en el repositorio? */
+function inThisVersion(card: CustomCard): boolean {
+  const bundled = CUSTOM_FILE.cartas.find((c) => c.id === card.id);
+  return !!bundled && JSON.stringify(bundled) === JSON.stringify(card);
 }
 
 // ------------------------------------------------------------------ cuenta

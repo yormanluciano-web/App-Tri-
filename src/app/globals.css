@@ -125,6 +125,11 @@ h2,
     0 20px 50px -24px rgba(0, 0, 0, 0.8);
 }
 
+/* Paneles de diálogo: opacos para que no se lea lo que hay detrás. */
+.glass.dialog-panel {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 40%), #1c0b1a;
+}
+
 /* Borde con degradado del nivel (para tarjetas destacadas). */
 .glow-border {
   position: relative;
@@ -294,10 +299,16 @@ h2,
   animation: drift-3 30s ease-in-out infinite alternate;
 }
 
-/* El contenido de cada pantalla queda por encima de la aurora (especificidad cero para no pisar utilidades). */
-:where(main > :not(.aurora)) {
-  position: relative;
-  z-index: 1;
+/*
+ * El contenido de cada pantalla queda por encima de la aurora. Va en la capa
+ * base para que las utilidades (fixed, sticky, z-50…) siempre ganen: fuera de
+ * capa, esta regla pisaba «fixed» y los diálogos aparecían al final de la página.
+ */
+@layer base {
+  :where(main > :not(.aurora)) {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .safe-top {

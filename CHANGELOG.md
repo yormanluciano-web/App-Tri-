@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — 2026-10-08
+- Panel de administración: al publicar, borrar, ocultar o restaurar aparece un aviso grande de éxito (con los pasos: guardada, Vercel publicando, abrir la app) o de error. Tras publicar, el formulario queda vacío para crear otra.
+- La lista marca cada carta propia como «En la app» o «Publicándose».
+- Las peticiones a GitHub tienen un tiempo máximo (25 s): con mala señal avisa en vez de quedarse cargando.
+- Corrige los diálogos de toda la app, que aparecían al final de la página en lugar de encima, y las barras superiores, que no quedaban fijas al desplazarse. Los diálogos ahora son opacos.
+
 ## 1.0.0 — 2026-10-08
 - Rediseño «mesa de juego moderna»: fondo de terciopelo vino con textura, emblemas (medallones) y mezcla de colores propia para cada juego y para Verdad / Reto por separado.
 - La carta es un naipe: marco con el degradado del juego, filete dorado, índices de esquina (nivel y palo), ornamento central y reverso con rombos y emblema.

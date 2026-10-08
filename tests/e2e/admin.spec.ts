@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 /** GitHub simulado: guarda el archivo de cartas en memoria del test. */
 async function mockGithub(page: Page, opts: { validToken?: string } = {}) {
-  const state = { text: JSON.stringify({ version: 1, cartas: [], ocultas: [] }), sha: 1, puts: [] as { message: string; branch: string }[] };
+  const state = { failPut: false, text: JSON.stringify({ version: 1, cartas: [], ocultas: [] }), sha: 1, puts: [] as { message: string; branch: string }[] };
   const valid = opts.validToken ?? "github_pat_prueba";
   await page.route("https://api.github.com/**", async (route) => {
     const req = route.request();
@@ -17,6 +17,7 @@ async function mockGithub(page: Page, opts: { validToken?: string } = {}) {
         return route.fulfill({ json: { sha: `sha${state.sha}`, content } });
       }
       if (req.method() === "PUT") {
+        if (state.failPut) return route.fulfill({ status: 422, body: "{}" });
         const body = req.postDataJSON() as { content: string; sha?: string; message: string; branch: string };
         if (body.sha !== `sha${state.sha}`) return route.fulfill({ status: 409, body: "{}" });
         state.text = Buffer.from(body.content, "base64").toString("utf8");
@@ -57,7 +58,13 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   await expect(page.getByText(/Elige al menos una categoría/)).toBeVisible();
   await page.getByRole("button", { name: /^Coqueteo y juegos/ }).click();
   await page.getByRole("button", { name: "Publicar carta" }).click();
-  await expect(page.getByText(/guardada en el repositorio/)).toBeVisible();
+  // Aviso grande de éxito y formulario vacío para crear otra.
+  const ok = page.getByRole("dialog", { name: "¡Carta publicada!" });
+  await expect(ok).toBeVisible();
+  await expect(ok.getByText("«Baile de prueba» ya está en el repositorio.")).toBeVisible();
+  await ok.getByRole("button", { name: "Crear otra" }).click();
+  await expect(ok).toHaveCount(0);
+  await expect(page.getByLabel("Título")).toHaveValue("");
 
   let file = JSON.parse(gh.text);
   expect(file.cartas).toHaveLength(1);
@@ -69,9 +76,11 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   // Aparece en «Mías» y se puede borrar.
   await page.getByRole("tab", { name: "Cartas" }).click();
   await expect(page.getByRole("button", { name: "Mías (1)" })).toBeVisible();
+  await expect(page.getByText("Publicándose")).toBeVisible();
   await page.getByRole("button", { name: "Borrar" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Borrar" }).click();
-  await expect(page.getByText(/Carta borrada/)).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "¡Carta borrada!" })).toBeVisible();
+  await page.getByRole("button", { name: "Ver mis cartas" }).click();
   file = JSON.parse(gh.text);
   expect(file.cartas).toHaveLength(0);
 
@@ -79,13 +88,15 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   await page.getByRole("button", { name: "Base", exact: true }).click();
   await page.getByRole("button", { name: "Ocultar" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Ocultar" }).click();
-  await expect(page.getByText(/Carta ocultada/)).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "¡Carta ocultada!" })).toBeVisible();
+  await page.getByRole("button", { name: "Ver mis cartas" }).click();
   file = JSON.parse(gh.text);
   expect(file.ocultas).toHaveLength(1);
   await page.getByRole("button", { name: "Ocultas (1)" }).click();
   await page.getByRole("button", { name: "Restaurar" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Restaurar" }).click();
-  await expect(page.getByText(/Carta restaurada/)).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "¡Carta restaurada!" })).toBeVisible();
+  await page.getByRole("button", { name: "Ver mis cartas" }).click();
   expect(JSON.parse(gh.text).ocultas).toHaveLength(0);
 
   // La llave nunca queda guardada en el dispositivo.
@@ -93,8 +104,8 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   expect(stored).not.toContain("github_pat_prueba");
 });
 
-test("administración: una llave inválida no entra y el editor no publica cartas inválidas", async ({ page }) => {
-  await mockGithub(page);
+test("administración: una llave inválida no entra, el editor no publica cartas inválidas y un fallo se avisa", async ({ page }) => {
+  const gh = await mockGithub(page);
   await login(page, "llave_equivocada");
   await expect(page.getByText(/no es válida o caducó/)).toBeVisible();
 
@@ -115,4 +126,15 @@ test("administración: una llave inválida no entra y el editor no publica carta
   await expect(page.getByText(/solo pueden ir en cartas de pareja/)).toBeVisible();
   await page.getByRole("button", { name: "Publicar carta" }).click();
   await expect(page.getByText("Hay que corregir:")).toBeVisible();
+
+  // Si GitHub rechaza el cambio, se avisa con un diálogo de error y el formulario se conserva.
+  await page.getByLabel("Texto de la carta").fill("{p1}, cuenta tu canción favorita en voz alta.");
+  await page.getByRole("radio", { name: /A todos/ }).click();
+  gh.failPut = true;
+  await page.getByRole("button", { name: "Publicar carta" }).click();
+  const err = page.getByRole("dialog", { name: "No se pudo publicar" });
+  await expect(err).toBeVisible();
+  await expect(err.getByText(/GitHub rechazó el cambio/)).toBeVisible();
+  await err.getByRole("button", { name: "Entendido" }).click();
+  await expect(page.getByLabel("Título")).toHaveValue("Corta");
 });

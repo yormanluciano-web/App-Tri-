@@ -32,12 +32,24 @@ function repoUrl(owner: string, repo: string, p = ""): string {
   return `${API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}${p}`;
 }
 
+/** Tiempo máximo por petición: con mala señal, mejor avisar que quedarse cargando. */
+export const REQUEST_TIMEOUT_MS = 25_000;
+
 async function call(url: string, init: RequestInit): Promise<Response> {
   let res: Response;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
   try {
-    res = await fetch(url, { ...init, cache: "no-store", referrerPolicy: "no-referrer" });
+    res = await fetch(url, { ...init, cache: "no-store", referrerPolicy: "no-referrer", signal: ctrl.signal });
   } catch {
-    throw new GithubError(0, "Sin conexión con GitHub. Revisa tu internet.");
+    throw new GithubError(
+      0,
+      ctrl.signal.aborted
+        ? "GitHub tardó demasiado en responder. Revisa tu conexión. Antes de repetir, mira en «Cartas» si el cambio ya se guardó."
+        : "Sin conexión con GitHub. Revisa tu internet.",
+    );
+  } finally {
+    clearTimeout(timer);
   }
   if (res.ok) return res;
   const messages: Record<number, string> = {
