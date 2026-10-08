@@ -1,5 +1,7 @@
 {
   "version": 1,
   "cartas": [],
-  "ocultas": []
+  "ocultas": [
+    "v2-001"
+  ]
 }
