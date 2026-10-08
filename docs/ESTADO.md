@@ -4,7 +4,7 @@
 
 **Último resultado verificado (2026-10-08):**
 - `npm run typecheck` y `npm run lint`: sin errores.
-- `npm run content:validate -- --similar`: 1.109 actividades, 0 errores, 0 avisos.
+- `npm run content:validate -- --similar`: 1.107 actividades, 0 errores, 0 avisos.
 - `npm test`: 116 pruebas en verde.
 - `npm run build`: exportación estática + `sw.js` con 91 recursos.
 - `npm run test:e2e`: 40 pruebas en verde (incluidas la demo, el panel, «Probar», la música y los minijuegos, con el Parqués) en Chromium (móvil).
