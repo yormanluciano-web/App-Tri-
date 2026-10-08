@@ -105,9 +105,8 @@ h2,
 /* ------------------------------------------------------------ superficies */
 
 .glass {
+  /* Sin backdrop-filter: el fondo ya es difuso y volver a desenfocarlo en cada fotograma traba el móvil. */
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 40%), var(--surface);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--border);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -139,9 +138,8 @@ h2,
   position: absolute;
   inset: 12% 8% -8% 8%;
   border-radius: inherit;
-  background: radial-gradient(60% 60% at 50% 100%, var(--glow), transparent 70%);
-  filter: blur(28px);
-  opacity: 0.55;
+  background: radial-gradient(70% 70% at 50% 100%, var(--glow), transparent 75%);
+  opacity: 0.45;
   z-index: -2;
   pointer-events: none;
 }
@@ -152,7 +150,6 @@ h2,
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gradient-shift 8s ease-in-out infinite;
 }
 
 .wordmark {
@@ -165,14 +162,12 @@ h2,
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gradient-shift 9s ease-in-out infinite;
 }
 
 /* ------------------------------------------------------------ botones */
 
 .btn-primary {
   position: relative;
-  overflow: hidden;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: var(--accent-ink);
   box-shadow:
@@ -183,20 +178,20 @@ h2,
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform 700ms ease;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%) no-repeat;
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  transition: background-position 700ms ease;
   pointer-events: none;
 }
 .btn-primary:hover::after,
 .btn-primary:focus-visible::after {
-  transform: translateX(120%);
+  background-position: 0% 0;
 }
 .btn-glass {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 .btn-glass:hover {
   background: rgba(255, 255, 255, 0.11);
@@ -209,7 +204,22 @@ h2,
 }
 
 .pulse-glow {
+  position: relative;
+  isolation: isolate;
+}
+.pulse-glow::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  box-shadow:
+    0 12px 44px -6px var(--glow),
+    0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
   animation: pulse-glow 2.8s ease-in-out infinite;
+  will-change: opacity;
 }
 
 /* ------------------------------------------------------------ fondo aurora */
@@ -220,20 +230,21 @@ h2,
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  contain: strict;
 }
 .aurora span {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
   opacity: 0.5;
   will-change: transform;
+  transform: translateZ(0);
 }
 .aurora span:nth-child(1) {
   width: 60vmax;
   height: 60vmax;
   left: -20vmax;
   top: -25vmax;
-  background: radial-gradient(circle, var(--accent), transparent 65%);
+  background: radial-gradient(circle, var(--accent), transparent 70%);
   animation: drift-1 22s ease-in-out infinite alternate;
 }
 .aurora span:nth-child(2) {
@@ -241,7 +252,7 @@ h2,
   height: 55vmax;
   right: -25vmax;
   top: 20vh;
-  background: radial-gradient(circle, var(--accent-2), transparent 65%);
+  background: radial-gradient(circle, var(--accent-2), transparent 70%);
   animation: drift-2 26s ease-in-out infinite alternate;
 }
 .aurora span:nth-child(3) {
@@ -249,7 +260,7 @@ h2,
   height: 50vmax;
   left: 5vmax;
   bottom: -30vmax;
-  background: radial-gradient(circle, var(--accent-3), transparent 65%);
+  background: radial-gradient(circle, var(--accent-3), transparent 70%);
   opacity: 0.28;
   animation: drift-3 30s ease-in-out infinite alternate;
 }
@@ -286,20 +297,15 @@ h2,
 @keyframes deal {
   0% {
     opacity: 0;
-    transform: perspective(900px) translateY(40px) rotateX(18deg) scale(0.94);
-    filter: blur(6px);
-  }
-  60% {
-    opacity: 1;
-    filter: blur(0);
+    transform: perspective(900px) translate3d(0, 40px, 0) rotateX(18deg) scale(0.94);
   }
   100% {
     opacity: 1;
-    transform: none;
+    transform: perspective(900px) translate3d(0, 0, 0);
   }
 }
 .animate-deal {
-  animation: deal 560ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both;
+  animation: deal 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes pop {
@@ -330,15 +336,10 @@ h2,
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow:
-      0 10px 30px -10px var(--glow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    opacity: 0;
   }
   50% {
-    box-shadow:
-      0 12px 44px -6px var(--glow),
-      0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    opacity: 1;
   }
 }
 
@@ -377,17 +378,17 @@ h2,
 
 @keyframes drift-1 {
   to {
-    transform: translate(12vmax, 10vmax) scale(1.15);
+    transform: translate3d(12vmax, 10vmax, 0) scale(1.15);
   }
 }
 @keyframes drift-2 {
   to {
-    transform: translate(-14vmax, -8vmax) scale(1.1);
+    transform: translate3d(-14vmax, -8vmax, 0) scale(1.1);
   }
 }
 @keyframes drift-3 {
   to {
-    transform: translate(10vmax, -12vmax) scale(1.2);
+    transform: translate3d(10vmax, -12vmax, 0) scale(1.2);
   }
 }
 
@@ -439,12 +440,11 @@ html[data-motion="reduce"] *::after {
 /* Inclinación con el puntero (variables escritas por useTilt). */
 .tilt-3d {
   transform-style: preserve-3d;
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: transform;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .tilt-3d.is-tilting {
-  transition: transform 60ms linear;
+  transition: none;
+  will-change: transform;
 }
 /* Reflejo holográfico que sigue al dedo. */
 .tilt-3d .sheen {
@@ -452,18 +452,21 @@ html[data-motion="reduce"] *::after {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.22), transparent 45%);
-  mix-blend-mode: soft-light;
-  opacity: var(--sheen, 0);
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.16), transparent 45%);
+  opacity: 0;
   transition: opacity 300ms ease;
   z-index: 3;
+}
+.tilt-3d.is-tilting .sheen {
+  opacity: 1;
 }
 
 /* Carta que se voltea: el reverso queda detrás y gira hacia el frente. */
 .flip-3d {
   position: relative;
   transform-style: preserve-3d;
-  animation: flip-reveal 900ms cubic-bezier(0.25, 0.9, 0.3, 1.05) both;
+  animation: flip-reveal 760ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+  will-change: transform, opacity;
 }
 .flip-3d > .face-front,
 .flip-3d > .face-back {
@@ -479,18 +482,12 @@ html[data-motion="reduce"] *::after {
   overflow: hidden;
 }
 @keyframes flip-reveal {
-  0% {
-    transform: translateY(30px) translateZ(-120px) rotateY(180deg) rotateZ(-4deg);
-    opacity: 0;
+  from {
+    transform: translate3d(0, 24px, -80px) rotateY(180deg) rotateZ(-3deg);
+    opacity: 0.4;
   }
-  15% {
-    opacity: 1;
-  }
-  55% {
-    transform: translateY(-10px) translateZ(60px) rotateY(80deg) rotateZ(2deg);
-  }
-  100% {
-    transform: none;
+  to {
+    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
     opacity: 1;
   }
 }
@@ -514,7 +511,8 @@ html[data-motion="reduce"] *::after {
   transform: rotateX(-12deg) rotateY(18deg);
 }
 .cube.rolling {
-  animation: cube-roll 1.3s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  animation: cube-roll 1.3s linear both;
+  will-change: transform;
 }
 .cube > div {
   position: absolute;
@@ -555,16 +553,19 @@ html[data-motion="reduce"] *::after {
 }
 @keyframes cube-roll {
   0% {
-    transform: translateY(-90px) rotateX(560deg) rotateY(-420deg) rotateZ(90deg);
+    transform: translate3d(0, -90px, 0) rotateX(560deg) rotateY(-420deg) rotateZ(90deg);
+    animation-timing-function: cubic-bezier(0.35, 0.1, 0.6, 1);
   }
-  65% {
-    transform: translateY(6px) rotateX(-20deg) rotateY(30deg) rotateZ(0deg);
+  72% {
+    transform: translate3d(0, 0, 0) rotateX(-20deg) rotateY(30deg) rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1);
   }
-  82% {
-    transform: translateY(-8px) rotateX(-8deg) rotateY(14deg);
+  86% {
+    transform: translate3d(0, -6px, 0) rotateX(-10deg) rotateY(14deg) rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.6, 1);
   }
   100% {
-    transform: rotateX(-12deg) rotateY(18deg);
+    transform: translate3d(0, 0, 0) rotateX(-12deg) rotateY(18deg) rotateZ(0deg);
   }
 }
 .cube-shadow {
@@ -579,6 +580,7 @@ html[data-motion="reduce"] *::after {
 .logo-3d {
   transform-style: preserve-3d;
   animation: logo-sway 9s ease-in-out infinite;
+  will-change: transform;
 }
 .logo-3d > * {
   position: absolute;

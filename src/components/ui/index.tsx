@@ -305,7 +305,7 @@ export function Dialog({
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center" role="presentation">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center" role="presentation">
       <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="glass glow-border w-full max-w-md space-y-4 rounded-[28px] p-6 animate-deal">
         <h2 className="text-2xl font-semibold">{title}</h2>
         {children}

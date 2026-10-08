@@ -100,7 +100,7 @@ export function Logo3D({ className }: { className?: string }) {
     <div className={"scene-3d " + (className ?? "")} aria-hidden>
       <div className="logo-3d relative size-full">
         {RINGS.map((r, i) => (
-          <svg key={i} viewBox="0 0 120 120" style={{ transform: `translateZ(${r.z}px)` }}>
+          <svg key={i} viewBox="0 0 120 120" style={{ transform: `translateZ(${r.z}px)`, filter: "drop-shadow(0 0 6px rgba(255,77,141,0.7))" }}>
             <defs>
               <linearGradient id={`l3d-g${i}`} x1="0" x2="1" y1="0" y2="1">
                 <stop offset="0" stopColor="#F3A6D0" />
@@ -116,11 +116,11 @@ export function Logo3D({ className }: { className?: string }) {
               stroke={`url(#l3d-g${i})`}
               strokeWidth="6"
               opacity={r.o}
-              style={{ filter: "drop-shadow(0 0 6px rgba(255,77,141,0.7))" }}
             />
           </svg>
         ))}
-        <svg viewBox="0 0 120 120" style={{ transform: "translateZ(56px)" }}>
+        <div style={{ transform: "translateZ(56px)" }}>
+        <svg viewBox="0 0 120 120" className="animate-heartbeat absolute inset-0 size-full" style={{ filter: "drop-shadow(0 0 8px rgba(255,77,141,0.9))", willChange: "transform" }}>
           <defs>
             <linearGradient id="l3d-heart" x1="0" x2="1" y1="0" y2="1">
               <stop offset="0" stopColor="#FFD1E6" />
@@ -128,12 +128,11 @@ export function Logo3D({ className }: { className?: string }) {
             </linearGradient>
           </defs>
           <path
-            className="animate-heartbeat"
             d="M60 68s-8-4.9-9.8-10c-1.3-3.8 1.3-7.1 4.8-7.1 2.2 0 3.9 1.1 5 3 1.1-1.9 2.8-3 5-3 3.5 0 6.1 3.3 4.8 7.1C68 63.1 60 68 60 68Z"
             fill="url(#l3d-heart)"
-            style={{ filter: "drop-shadow(0 0 8px rgba(255,77,141,0.9))" }}
           />
         </svg>
+        </div>
       </div>
     </div>
   );

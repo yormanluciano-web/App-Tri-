@@ -29,15 +29,14 @@ export function Tilt({
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef<number | null>(null);
   const pressed = useRef(false);
+  const sheenRef = useRef<HTMLSpanElement>(null);
 
   const reset = () => {
     const el = ref.current;
     if (!el) return;
     if (frame.current !== null) cancelAnimationFrame(frame.current);
     el.classList.remove("is-tilting");
-    el.style.setProperty("--rx", "0deg");
-    el.style.setProperty("--ry", "0deg");
-    el.style.setProperty("--sheen", "0");
+    el.style.transform = "";
   };
 
   const update = (e: PointerEvent<HTMLDivElement>) => {
@@ -52,12 +51,16 @@ export function Tilt({
     const y = (e.clientY - rect.top) / rect.height;
     if (frame.current !== null) cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
+      frame.current = null;
       el.classList.add("is-tilting");
-      el.style.setProperty("--ry", `${(x - 0.5) * 2 * max}deg`);
-      el.style.setProperty("--rx", `${(0.5 - y) * 2 * max}deg`);
-      el.style.setProperty("--mx", `${x * 100}%`);
-      el.style.setProperty("--my", `${y * 100}%`);
-      el.style.setProperty("--sheen", "1");
+      // Se escribe la transformación directamente (no variables CSS que se heredan
+      // a todo el contenido y obligan a recalcular estilos en cada movimiento).
+      el.style.transform = `rotateX(${((0.5 - y) * 2 * max).toFixed(2)}deg) rotateY(${((x - 0.5) * 2 * max).toFixed(2)}deg)`;
+      const sheen = sheenRef.current;
+      if (sheen) {
+        sheen.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
+        sheen.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
+      }
     });
   };
 
@@ -79,7 +82,7 @@ export function Tilt({
         }}
       >
         {children}
-        <span className="sheen" aria-hidden />
+        <span ref={sheenRef} className="sheen" aria-hidden />
       </div>
     </div>
   );

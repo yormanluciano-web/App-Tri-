@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1 — 2026-10-08
+- Animaciones más fluidas en el móvil: se quita el desenfoque de fondo (backdrop-filter) de las superficies de vidrio y de la aurora, el texto en degradado deja de repintarse, el brillo de los botones anima solo opacidad, la carta gira en un solo tramo sin frenarse a mitad, el dado tiene una curva por tramo y la inclinación escribe la transformación directamente.
+- Medido en Chromium con la CPU 4× más lenta: la mesa en reposo pasa de ~17 a 60 fps.
+
 ## 0.7.0 — 2026-10-08
 - «Ver demo» en el menú principal: entra directo a la mesa con dos personas ficticias (Ana y Leo), nivel Leve y cartas sin contacto, sin escribir nombres ni responder límites. Es privada (no guarda nada) y muestra la etiqueta «Demo».
 
