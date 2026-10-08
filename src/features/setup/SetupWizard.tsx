@@ -31,8 +31,8 @@ import { GAME_FORMATS } from "@/domain/engine/orchestrator";
 import { createSession, resolveInitialConsent } from "@/domain/state/session";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { useSession } from "@/stores/session";
-import { Button, Card, Chip, Icon, cx, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
-import { GAME_ICON, LEVEL_ICON } from "@/components/ui/visuals";
+import { Button, Card, Chip, GameEmblem, Icon, cx, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
+import { LEVEL_ICON } from "@/components/ui/visuals";
 import { ConsentRound, PrivateRound, type Person } from "@/features/session/PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "./LimitsEditor";
 
@@ -435,7 +435,7 @@ export function SetupWizard() {
                   key={g}
                   role="button"
                   selected={selected}
-                  icon={GAME_ICON[g]}
+                  emblem={<GameEmblem theme={g} className="size-12" />}
                   title={GAME_LABEL[g]}
                   description={GAME_DESCRIPTION[g]}
                   badge={!ok ? <span className="text-xs text-warn">Sin cartas con sus límites</span> : undefined}

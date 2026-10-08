@@ -36,6 +36,10 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
+export function iconPath(name: IconName): string {
+  return PATHS[name];
+}
+
 export function Icon({ name, className, ...rest }: { name: IconName } & SVGProps<SVGSVGElement>) {
   const filled = name === "play" || name === "skip";
   return (

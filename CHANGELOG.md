@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 — 2026-10-08
+- Rediseño «mesa de juego moderna»: fondo de terciopelo vino con textura, emblemas (medallones) y mezcla de colores propia para cada juego y para Verdad / Reto por separado.
+- La carta es un naipe: marco con el degradado del juego, filete dorado, índices de esquina (nivel y palo), ornamento central y reverso con rombos y emblema.
+- Los lanzadores son mazos con cartas asomando detrás; la portada muestra un abanico de cartas; la creación de sesión usa los emblemas.
+- Botones principales con mezcla intensa por nivel y texto blanco. Sin efectos costosos: el rendimiento se mantiene (60 fps en reposo).
+
 ## 0.9.2 — 2026-10-08
 - Editor de cartas: «¿A quién le puede salir?» con las mismas tres opciones del inicio del juego: «A todos» (incluso «No acepto»), «Por categoría» (las categorías de «Acepto parcialmente») y «Solo a quien acepta todo». La lista de permisos uno por uno queda como opción avanzada.
 

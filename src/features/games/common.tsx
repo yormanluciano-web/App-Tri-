@@ -7,9 +7,15 @@ import type { SessionState, Turn } from "@/domain/models/session";
 import { timerRemaining } from "@/domain/state/session";
 import { activityPermissions } from "@/domain/consent/limits";
 import { useSession } from "@/stores/session";
-import { Button, Card, Icon, Logo, ParticipantTag, cx } from "@/components/ui";
+import { Button, GameEmblem, Icon, ParticipantTag, cx } from "@/components/ui";
 import { Tilt } from "@/components/ui/tilt";
-import { GAME_ICON } from "@/components/ui/visuals";
+import { GAME_THEME, LEVEL_MARK, themeStyle, type ThemeKey } from "@/components/ui/visuals";
+
+/** Tema visual de la carta: Verdad y Reto tienen colores propios. */
+export function cardTheme(game: Turn["game"], activity: Activity): ThemeKey {
+  if (game === "verdad_reto") return activity.formato === "pregunta" ? "verdad" : "reto";
+  return game;
+}
 import type { Person } from "@/features/session/PrivateRound";
 
 export function peopleOf(s: SessionState, ids?: readonly string[]): Person[] {
@@ -65,52 +71,70 @@ export function ActivityCard({
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
   }, [turn.id]);
+  const theme = cardTheme(turn.game, activity);
+  const suit = GAME_THEME[theme].suit;
+  const corner = (pos: "tl" | "br") => (
+    <span className={`card-corner ${pos}`} aria-hidden>
+      <span className="text-2xl">{LEVEL_MARK[activity.intensidad]}</span>
+      <span className="text-base">{suit}</span>
+    </span>
+  );
   return (
     <Tilt max={6} ignoreInteractive>
-      <div className="flip-3d" key={turn.id}>
+      <div className="flip-3d" key={turn.id} style={themeStyle(theme)}>
         <div className="face-front">
-    <Card glow className="space-y-5 py-6">
-      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent to-accent-2 px-3 py-1 text-accent-ink">
-          <Icon name={GAME_ICON[turn.game]} className="size-3.5" />
-          {GAME_LABEL[turn.game]}
-        </span>
-        <span className="rounded-full border border-line px-3 py-1 text-muted">{CATEGORY_LABEL[activity.categoria]}</span>
-        <span className="text-gradient">{INTENSITY_LABEL[activity.intensidad]}</span>
-        {turn.chainStage !== undefined && <span className="text-muted">Etapa {turn.chainStage + 1} de 3</span>}
-      </div>
-      <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold italic leading-tight">
-        <RoleText text={activity.titulo} session={session} turn={turn} />
-      </h2>
-      {!hideText && (
-        <p className="text-[1.375rem] leading-relaxed text-ink" data-testid="activity-text">
-          <RoleText text={activity.texto} session={session} turn={turn} />
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-        <span>Participan:</span>
-        {activity.tipoInteraccion === "group" ? (
-          <span>todas las personas</span>
-        ) : (
-          implicated.map((p) => <ParticipantTag key={p.id} alias={p.alias} slot={p.slot} />)
-        )}
-      </div>
-      <SafetyNotes activity={activity} />
-      {children}
-      <button
-        type="button"
-        onClick={() => void toggleFavorite(activity.id)}
-        aria-pressed={isFav}
-        className={cx("inline-flex min-h-11 items-center gap-2 text-sm transition hover:text-ink", isFav ? "text-gold" : "text-muted")}
-      >
-        <Icon name="star" className={cx("size-5 transition", isFav && "fill-current animate-pop")} />
-        {isFav ? "En favoritas" : "Guardar en favoritas"}
-        {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
-      </button>
-    </Card>
+          <section className="play-card space-y-5 px-6 pb-12 pt-6">
+            {corner("tl")}
+            {corner("br")}
+            <div className="flex flex-col items-center gap-2 text-center">
+              <GameEmblem theme={theme} className="size-16 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]" />
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--g3)]">
+                {theme === "verdad" ? "Verdad" : theme === "reto" ? "Reto" : GAME_LABEL[turn.game]}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
+                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-muted">{CATEGORY_LABEL[activity.categoria]}</span>
+                <span className="foil-text">{INTENSITY_LABEL[activity.intensidad]}</span>
+                {turn.chainStage !== undefined && <span className="text-muted">Etapa {turn.chainStage + 1} de 3</span>}
+              </div>
+            </div>
+            <h2 ref={headingRef} tabIndex={-1} className="text-center text-3xl font-semibold italic leading-tight">
+              <RoleText text={activity.titulo} session={session} turn={turn} />
+            </h2>
+            <p className="card-ornament text-sm" aria-hidden>
+              {suit}
+            </p>
+            {!hideText && (
+              <p className="text-center text-[1.375rem] leading-relaxed text-ink" data-testid="activity-text">
+                <RoleText text={activity.texto} session={session} turn={turn} />
+              </p>
+            )}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted">
+              <span>Participan:</span>
+              {activity.tipoInteraccion === "group" ? (
+                <span>todas las personas</span>
+              ) : (
+                implicated.map((p) => <ParticipantTag key={p.id} alias={p.alias} slot={p.slot} />)
+              )}
+            </div>
+            <SafetyNotes activity={activity} />
+            {children}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => void toggleFavorite(activity.id)}
+                aria-pressed={isFav}
+                className={cx("inline-flex min-h-11 items-center gap-2 text-sm transition hover:text-ink", isFav ? "text-gold" : "text-muted")}
+              >
+                <Icon name="star" className={cx("size-5 transition", isFav && "fill-current animate-pop")} />
+                {isFav ? "En favoritas" : "Guardar en favoritas"}
+                {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
+              </button>
+            </div>
+          </section>
         </div>
-        <div className="face-back card-back flex items-center justify-center" aria-hidden>
-          <Logo still className="size-28 opacity-90" />
+        <div className="face-back card-back flex flex-col items-center justify-center gap-3" aria-hidden>
+          <GameEmblem theme={theme} className="size-28" />
+          <span className="font-display text-3xl font-semibold italic text-white/90">Cómplice</span>
         </div>
       </div>
     </Tilt>

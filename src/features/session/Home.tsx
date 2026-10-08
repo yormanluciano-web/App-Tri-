@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "@/stores/session";
 import { APP_NAME, APP_PROMISE, APP_SUBTITLE, INTENSITY_LABEL } from "@/domain/models/constants";
-import { Button, Dialog, LinkButton, Logo3D, Notice, Screen } from "@/components/ui";
+import { Button, Dialog, GameEmblem, LinkButton, Logo3D, Notice, Screen } from "@/components/ui";
+import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { OfflineBadge } from "./OfflineBadge";
 import { InstallButton } from "./InstallPanel";
 import { demoConfig } from "./demo";
@@ -48,6 +49,8 @@ export function Home() {
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-accent animate-in">{APP_SUBTITLE}</p>
           <p className="mx-auto max-w-xs font-display text-lg italic text-muted animate-in">{APP_PROMISE}</p>
         </header>
+
+        <CardFan />
 
         <nav aria-label="Principal" className="space-y-3 animate-in">
           <LinkButton href="/crear/" block size="xl" icon="flame" className="pulse-glow">
@@ -129,3 +132,35 @@ export function Home() {
     </Screen>
   );
 }
+
+const FAN: { theme: ThemeKey; label: string; rot: number; y: number }[] = [
+  { theme: "verdad", label: "Verdad", rot: -14, y: 10 },
+  { theme: "ruleta", label: "Ruleta", rot: -5, y: 0 },
+  { theme: "reto", label: "Reto", rot: 5, y: 0 },
+  { theme: "dados", label: "Dados", rot: 14, y: 10 },
+];
+
+/** Abanico decorativo de cartas, como una baraja sobre la mesa. */
+function CardFan() {
+  return (
+    <div aria-hidden className="relative mx-auto flex h-36 w-full max-w-xs items-end justify-center animate-in">
+      {FAN.map((c, i) => (
+        <div
+          key={c.theme}
+          className="deck-face absolute bottom-0 flex h-32 w-[5.25rem] flex-col items-center justify-center gap-1 transition duration-300 hover:-translate-y-2"
+          style={{
+            ...themeStyle(c.theme),
+            left: `calc(50% - 2.625rem + ${(i - 1.5) * 4.3}rem)`,
+            transform: `translateY(${c.y}px) rotate(${c.rot}deg)`,
+            borderRadius: 16,
+          }}
+        >
+          <span className="absolute left-2 top-1.5 font-display text-xs font-bold text-white/85">{GAME_THEME[c.theme].suit}</span>
+          <GameEmblem theme={c.theme} className="size-10" />
+          <span className="font-display text-sm font-semibold italic">{c.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+

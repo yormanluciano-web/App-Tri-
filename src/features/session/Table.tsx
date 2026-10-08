@@ -17,8 +17,8 @@ import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression
 import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
-import { Button, Card, Chip, Dialog, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx, type IconName } from "@/components/ui";
-import { LEVEL_ICON } from "@/components/ui/visuals";
+import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
+import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
@@ -48,9 +48,7 @@ function TopBar({ session }: { session: SessionState }) {
     <header className="glass sticky top-0 z-20 -mx-4 space-y-2 rounded-b-[28px] px-4 pb-3 safe-top">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent-2 text-accent-ink shadow-[0_0_20px_var(--glow)]">
-            <Icon name={LEVEL_ICON[session.level]} className="size-5" />
-          </span>
+          <GameEmblem theme={isNight ? "noche" : session.currentGame} className="size-11 shrink-0" />
           <div className="min-w-0 leading-tight">
             <p className="flex items-center gap-2 font-display text-lg font-semibold italic text-gradient">
               {INTENSITY_LABEL[session.level]}
@@ -89,26 +87,34 @@ function TopBar({ session }: { session: SessionState }) {
   );
 }
 
-/** Botón grande tipo carta para lanzar una ronda. */
-function BigDraw({ label, hint, icon, onClick, className }: { label: string; hint?: string; icon: IconName; onClick: () => void; className?: string }) {
+/** Mazo para lanzar una ronda: carta con el color y el emblema del juego, y cartas asomando detrás. */
+function BigDraw({ label, hint, theme, onClick, className }: { label: string; hint?: string; theme: ThemeKey; onClick: () => void; className?: string }) {
   return (
-    <Tilt max={10} className="w-full">
-    <button
-      type="button"
-      onClick={onClick}
-      className={cx(
-        "btn-primary group relative flex min-h-40 w-full flex-col items-center justify-center gap-2 rounded-[28px] p-5 text-center transition duration-200 active:scale-[0.97]",
-        className,
-      )}
-    >
-      <Icon name={icon} className="size-10 transition duration-300 group-hover:scale-110 group-hover:rotate-6" />
-      <span className="font-display text-3xl font-semibold italic">{label}</span>
-      {hint && (
-        <span aria-hidden className="text-sm opacity-80">
-          {hint}
-        </span>
-      )}
-    </button>
+    <Tilt max={10} className="w-full px-2 pb-2">
+      <div className="deck" style={themeStyle(theme)}>
+        <button
+          type="button"
+          onClick={onClick}
+          className={cx(
+            "deck-face group relative flex min-h-44 w-full flex-col items-center justify-center gap-2 p-5 text-center transition duration-200 active:scale-[0.97]",
+            className,
+          )}
+        >
+          <span aria-hidden className="absolute left-4 top-3 font-display text-lg font-bold text-white/85">
+            {GAME_THEME[theme].suit}
+          </span>
+          <span aria-hidden className="absolute bottom-3 right-4 rotate-180 font-display text-lg font-bold text-white/85">
+            {GAME_THEME[theme].suit}
+          </span>
+          <GameEmblem theme={theme} className="size-16 transition duration-300 group-hover:scale-110 group-hover:rotate-6" />
+          <span className="font-display text-3xl font-semibold italic">{label}</span>
+          {hint && (
+            <span aria-hidden className="text-sm font-medium uppercase tracking-[0.2em] text-white/85">
+              {hint}
+            </span>
+          )}
+        </button>
+      </div>
     </Tilt>
   );
 }
@@ -128,7 +134,7 @@ function Launcher({ session }: { session: SessionState }) {
     return (
       <div className="flex flex-1 flex-col justify-center gap-4 animate-in">
         <p className="text-center text-muted">{night ? "La noche elige el juego de cada ronda." : "Caos elige juego, persona y carta sin patrón fijo."}</p>
-        <BigDraw label="Siguiente ronda" hint={night ? "Noche completa" : "Caos"} icon={night ? "moon" : "shuffle"} onClick={() => draw()} className="pulse-glow" />
+        <BigDraw label="Siguiente ronda" hint={night ? "Noche completa" : "Caos"} theme={night ? "noche" : "caos"} onClick={() => draw()} />
       </div>
     );
   }
@@ -138,14 +144,14 @@ function Launcher({ session }: { session: SessionState }) {
       case "verdad_reto":
         return (
           <div className="grid grid-cols-2 gap-3">
-            <BigDraw label="Verdad" hint="Pregunta" icon="eye" onClick={() => draw({ game: "verdad_reto", formats: ["pregunta"] })} />
-            <BigDraw label="Reto" hint="Desafío" icon="flame" onClick={() => draw({ game: "verdad_reto", formats: ["reto"] })} />
+            <BigDraw label="Verdad" hint="Pregunta" theme="verdad" onClick={() => draw({ game: "verdad_reto", formats: ["pregunta"] })} />
+            <BigDraw label="Reto" hint="Desafío" theme="reto" onClick={() => draw({ game: "verdad_reto", formats: ["reto"] })} />
           </div>
         );
       case "ruleta":
-        return <BigDraw label="Girar la ruleta" icon="wheel" onClick={() => draw({ game: "ruleta" })} className="pulse-glow" />;
+        return <BigDraw label="Girar la ruleta" theme="ruleta" onClick={() => draw({ game: "ruleta" })} />;
       case "dados":
-        return <BigDraw label="Lanzar los dados" icon="dice" onClick={() => draw({ game: "dados" })} className="pulse-glow" />;
+        return <BigDraw label="Lanzar los dados" theme="dados" onClick={() => draw({ game: "dados" })} />;
       case "tarjetas":
         return (
           <div className="space-y-4">
@@ -157,11 +163,11 @@ function Launcher({ session }: { session: SessionState }) {
                 </Chip>
               ))}
             </div>
-            <BigDraw label="Sacar carta" icon="cards" onClick={() => draw({ game: "tarjetas", categories: cats, strictGame: cats.length > 0 })} className="pulse-glow" />
+            <BigDraw label="Sacar carta" theme="tarjetas" onClick={() => draw({ game: "tarjetas", categories: cats, strictGame: cats.length > 0 })} />
           </div>
         );
       case "temporizador":
-        return <BigDraw label="Siguiente reto con reloj" icon="timer" onClick={() => draw({ game: "temporizador" })} className="pulse-glow" />;
+        return <BigDraw label="Siguiente reto con reloj" theme="temporizador" onClick={() => draw({ game: "temporizador" })} />;
       case "cadena":
         return (
           <div className="space-y-3">
@@ -177,7 +183,7 @@ function Launcher({ session }: { session: SessionState }) {
               ))}
             </div>
             <p className="text-center text-muted">{session.chain ? `Etapa ${session.chain.stage + 1} de 3` : "Tres etapas progresivas. Cada una se puede pasar."}</p>
-            <BigDraw label={session.chain ? "Siguiente etapa" : "Empezar cadena"} icon="chain" onClick={() => draw({ game: "cadena" })} className="pulse-glow" />
+            <BigDraw label={session.chain ? "Siguiente etapa" : "Empezar cadena"} theme="cadena" onClick={() => draw({ game: "cadena" })} />
             {session.chain && (
               <Button variant="ghost" block onClick={exitChain}>
                 Salir de la cadena
@@ -186,14 +192,14 @@ function Launcher({ session }: { session: SessionState }) {
           </div>
         );
       default:
-        return <BigDraw label="Siguiente" icon="sparkle" onClick={() => draw()} />;
+        return <BigDraw label="Siguiente" theme="sorpresa" onClick={() => draw()} />;
     }
   })();
 
   return (
     <div className="flex flex-1 flex-col justify-center gap-5 animate-in">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Tu turno</p>
+        <p className="foil-text text-xs font-semibold uppercase tracking-[0.3em]">Tu turno</p>
         <h2 className="text-3xl font-semibold italic">{GAME_LABEL[effective]}</h2>
         <p className="text-sm text-muted">{GAME_DESCRIPTION[effective]}</p>
       </div>

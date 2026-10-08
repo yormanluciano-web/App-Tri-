@@ -6,6 +6,7 @@ import { PARTICIPANT_COLORS, PARTICIPANT_MARKS } from "@/domain/models/constants
 import { Icon, type IconName } from "./icons";
 
 export { Icon, Logo, Logo3D, type IconName } from "./icons";
+export { GameEmblem } from "./emblem";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
 type Size = "md" | "lg" | "xl";
@@ -187,6 +188,7 @@ export function OptionTile({
   title,
   description,
   icon,
+  emblem,
   role = "radio",
   level,
   badge,
@@ -196,6 +198,8 @@ export function OptionTile({
   title: ReactNode;
   description?: ReactNode;
   icon?: IconName;
+  /** Emblema en lugar del icono (p. ej. el medallón de un juego). */
+  emblem?: ReactNode;
   role?: "radio" | "button";
   level?: string;
   badge?: ReactNode;
@@ -212,7 +216,8 @@ export function OptionTile({
         selected ? "glow-border" : "hover:bg-white/5",
       )}
     >
-      {icon && (
+      {emblem && <span className={cx("shrink-0 transition duration-300", selected ? "scale-105" : "opacity-80 grayscale-[35%]")}>{emblem}</span>}
+      {!emblem && icon && (
         <span
           className={cx(
             "flex size-12 shrink-0 items-center justify-center rounded-2xl transition",
