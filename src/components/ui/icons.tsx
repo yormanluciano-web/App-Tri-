@@ -57,7 +57,7 @@ export function Icon({ name, className, ...rest }: { name: IconName } & SVGProps
 }
 
 /** Logotipo: tres anillos entrelazados con brillo. */
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, still }: { className?: string; /** Sin latido (p. ej. dentro de una carta que gira). */ still?: boolean }) {
   return (
     <svg aria-hidden viewBox="0 0 120 120" className={className}>
       <defs>
@@ -80,7 +80,7 @@ export function Logo({ className }: { className?: string }) {
         <circle cx="60" cy="75" r="25" opacity="0.75" />
       </g>
       <path
-        className="animate-heartbeat"
+        className={still ? undefined : "animate-heartbeat"}
         d="M60 66s-7-4.3-8.6-8.8c-1.1-3.3 1.1-6.2 4.2-6.2 1.9 0 3.4 1 4.4 2.6 1-1.6 2.5-2.6 4.4-2.6 3.1 0 5.3 2.9 4.2 6.2C67 61.7 60 66 60 66Z"
         fill="url(#logo-g)"
       />

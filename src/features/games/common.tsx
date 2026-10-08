@@ -63,7 +63,7 @@ export function ActivityCard({
   const implicated = peopleOf(session, turn.implicated);
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
   }, [turn.id]);
   return (
     <Tilt max={6} ignoreInteractive>
@@ -110,7 +110,7 @@ export function ActivityCard({
     </Card>
         </div>
         <div className="face-back card-back flex items-center justify-center" aria-hidden>
-          <Logo className="size-28 opacity-90 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]" />
+          <Logo still className="size-28 opacity-90" />
         </div>
       </div>
     </Tilt>

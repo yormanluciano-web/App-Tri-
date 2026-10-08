@@ -461,34 +461,52 @@ html[data-motion="reduce"] *::after {
   opacity: 1;
 }
 
-/* Carta que se voltea: el reverso queda detrás y gira hacia el frente. */
+/*
+ * Carta que se voltea, en dos piezas independientes que nunca se ocultan con
+ * backface-visibility: el reverso gira de 0° a 90° acelerando y el frente
+ * entra de -90° a 0° frenando, con la misma velocidad en el relevo. Ambas
+ * capas se pintan desde el primer fotograma, así que no hay que dibujar nada
+ * a mitad del giro (eso era lo que trababa la carta en el teléfono).
+ */
 .flip-3d {
   position: relative;
   transform-style: preserve-3d;
-  animation: flip-reveal 760ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
-  will-change: transform, opacity;
 }
-.flip-3d > .face-front,
-.flip-3d > .face-back {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+.flip-3d > .face-front {
+  transform-origin: 50% 50%;
+  animation: flip-front 480ms cubic-bezier(0.15, 0.9, 0.3, 1) 280ms both;
+  will-change: transform;
 }
 .flip-3d > .face-back {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transform: rotateY(180deg);
   border-radius: 28px;
   overflow: hidden;
+  transform-origin: 50% 50%;
+  animation: flip-back 280ms cubic-bezier(0.3, 0, 0.8, 0.45) both;
+  will-change: transform;
 }
-@keyframes flip-reveal {
+@keyframes flip-back {
+  0% {
+    transform: translate3d(0, 18px, 0) rotateY(0deg) scale(0.97);
+    opacity: 1;
+  }
+  99% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 6px, 0) rotateY(90deg) scale(0.985);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes flip-front {
   from {
-    transform: translate3d(0, 24px, -80px) rotateY(180deg) rotateZ(-3deg);
-    opacity: 0.4;
+    transform: translate3d(0, 6px, 0) rotateY(-90deg) scale(0.985);
   }
   to {
-    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
-    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateY(0deg) scale(1);
   }
 }
 
@@ -604,16 +622,24 @@ html[data-motion="reduce"] *::after {
 
 /* Con «reducir movimiento», las animaciones 3D no se reproducen ni un fotograma. */
 @media (prefers-reduced-motion: reduce) {
-  .flip-3d,
+  .flip-3d > .face-front,
   .cube.rolling,
   .logo-3d,
   .animate-deal {
     animation: none !important;
   }
 }
-html[data-motion="reduce"] .flip-3d,
+html[data-motion="reduce"] .flip-3d > .face-front,
 html[data-motion="reduce"] .cube.rolling,
 html[data-motion="reduce"] .logo-3d,
 html[data-motion="reduce"] .animate-deal {
   animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-3d > .face-back {
+    display: none;
+  }
+}
+html[data-motion="reduce"] .flip-3d > .face-back {
+  display: none;
 }

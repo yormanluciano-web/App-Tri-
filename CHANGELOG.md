@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2 — 2026-10-08
+- La carta ya no se traba a mitad del giro: el reverso y el frente son dos piezas que giran por separado (el reverso sale acelerando y el frente entra frenando), sin `backface-visibility`, así que el teléfono no tiene que dibujar el frente justo a mitad del giro.
+- El logo del reverso ya no late dentro de la carta que gira, y enfocar el título de la carta no desplaza la pantalla.
+
 ## 0.7.1 — 2026-10-08
 - Animaciones más fluidas en el móvil: se quita el desenfoque de fondo (backdrop-filter) de las superficies de vidrio y de la aurora, el texto en degradado deja de repintarse, el brillo de los botones anima solo opacidad, la carta gira en un solo tramo sin frenarse a mitad, el dado tiene una curva por tramo y la inclinación escribe la transformación directamente.
 - Medido en Chromium con la CPU 4× más lenta: la mesa en reposo pasa de ~17 a 60 fps.
