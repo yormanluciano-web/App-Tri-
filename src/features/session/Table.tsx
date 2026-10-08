@@ -19,6 +19,7 @@ import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
 import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
+import { MusicDirector, MusicStatus } from "@/music/ui";
 import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
@@ -505,6 +506,7 @@ function Closing({ session }: { session: SessionState }) {
   const completed = Object.values(session.stats.completed).reduce((a, b) => a + b, 0);
   return (
     <Screen level={session.level} className="justify-center text-center">
+      <MusicDirector session={session} />
       <div className="relative mx-auto size-28">
         <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
         <Logo3D className="relative size-28 animate-float" />
@@ -667,6 +669,8 @@ export function Table() {
   return (
     <Screen level={session.level} className="gap-4">
       <TopBar session={session} />
+      <MusicDirector session={session} />
+      <MusicStatus />
       {session.config.demo && session.turnCounter === 0 && session.status === "ready" && (
         <Notice>Demo con dos personas ficticias (Ana y Leo) y cartas suaves sin contacto. Nada se guarda.</Notice>
       )}

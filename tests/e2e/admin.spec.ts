@@ -138,3 +138,28 @@ test("administración: una llave inválida no entra, el editor no publica cartas
   await err.getByRole("button", { name: "Entendido" }).click();
   await expect(page.getByLabel("Título")).toHaveValue("Corta");
 });
+
+test("administración: configurar la música de Spotify se guarda en el repositorio", async ({ page }) => {
+  const gh = await mockGithub(page);
+  await login(page, "github_pat_prueba");
+  await page.getByRole("tab", { name: "Música" }).click();
+  await expect(page.getByText("/spotify/", { exact: false }).first()).toBeVisible();
+  await page.getByLabel("Client ID de Spotify").fill("0123456789abcdef0123456789abcdef");
+  await page.getByLabel("Lista para Leve").fill("https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO?si=x1");
+  await page.getByLabel("Lista para Baile").fill("https://open.spotify.com/track/no-es-lista");
+  await page.getByRole("button", { name: "Guardar música" }).click();
+  await expect(page.getByText(/El enlace de «Baile» no es una lista/)).toBeVisible();
+  await page.getByLabel("Lista para Baile").fill("");
+  await page.getByRole("button", { name: "Guardar música" }).click();
+  await expect(page.getByRole("dialog", { name: "¡Música guardada!" })).toBeVisible();
+  const file = JSON.parse(gh.text);
+  expect(file.musica).toEqual({ clientId: "0123456789abcdef0123456789abcdef", listas: { leve: "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO" } });
+  expect(gh.puts.at(-1)!.message).toContain("música");
+});
+
+test("ajustes: sin configuración de Spotify no se ofrece conectar", async ({ page }) => {
+  await page.goto("/ajustes/");
+  await expect(page.getByRole("heading", { name: /Música con Spotify/ })).toBeVisible();
+  await expect(page.getByText(/Aún no está configurada/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toHaveCount(0);
+});

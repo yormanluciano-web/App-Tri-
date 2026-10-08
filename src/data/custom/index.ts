@@ -17,6 +17,7 @@ import {
   type Permission,
 } from "@/domain/models/constants";
 import { defineCards, placeholdersIn, type CardInput } from "../define";
+import { MUSIC_MOMENTS } from "@/music/moments";
 
 /**
  * Cartas creadas desde el panel de administración. Viven en
@@ -54,11 +55,25 @@ export const customCardSchema = z.object({
 });
 export type CustomCard = z.infer<typeof customCardSchema>;
 
+/** URI de Spotify de una lista, álbum o artista. */
+export const SPOTIFY_URI = /^spotify:(playlist|album|artist):[A-Za-z0-9]{10,40}$/;
+
+/** Música con Spotify: Client ID público de la app registrada y una lista por momento. */
+export const musicConfigSchema = z.object({
+  clientId: z
+    .string()
+    .regex(/^[A-Za-z0-9]{32}$/)
+    .optional(),
+  listas: z.partialRecord(z.enum(MUSIC_MOMENTS), z.string().regex(SPOTIFY_URI)).default({}),
+});
+export type MusicConfig = z.infer<typeof musicConfigSchema>;
+
 export const customFileSchema = z.object({
   version: z.literal(1),
   cartas: z.array(customCardSchema),
   /** IDs de cartas base que no deben salir en la app. */
   ocultas: z.array(z.string().max(64)),
+  musica: musicConfigSchema.optional(),
 });
 export type CustomFile = z.infer<typeof customFileSchema>;
 
@@ -261,7 +276,8 @@ export type CustomChange =
   | { kind: "update"; card: CustomCard }
   | { kind: "delete"; id: string }
   | { kind: "hide"; activityId: string }
-  | { kind: "unhide"; activityId: string };
+  | { kind: "unhide"; activityId: string }
+  | { kind: "music"; musica: MusicConfig };
 
 export function applyCustomChange(file: CustomFile, change: CustomChange): CustomFile {
   switch (change.kind) {
@@ -277,10 +293,13 @@ export function applyCustomChange(file: CustomFile, change: CustomChange): Custo
       return file.ocultas.includes(change.activityId) ? file : { ...file, ocultas: [...file.ocultas, change.activityId] };
     case "unhide":
       return { ...file, ocultas: file.ocultas.filter((x) => x !== change.activityId) };
+    case "music":
+      return { ...file, musica: musicConfigSchema.parse(change.musica) };
   }
 }
 
 export function describeChange(change: CustomChange, title: string): string {
+  if (change.kind === "music") return "Actualiza la música de Spotify desde el panel";
   const verb = { add: "Añade", update: "Edita", delete: "Borra", hide: "Oculta", unhide: "Restaura" }[change.kind];
   return `${verb} carta desde el panel: ${title}`.slice(0, 120);
 }

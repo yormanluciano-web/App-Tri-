@@ -59,3 +59,12 @@ El almacenamiento local pertenece al origen: al cambiar de dominio las sesiones 
 3. Esa rama debe contener este código (el panel y `src/data/custom/cartas.json`); si Vercel publica `main`, primero hay que fusionar la rama de trabajo en `main`.
 4. Cada cambio crea un commit en `src/data/custom/cartas.json`; Vercel vuelve a publicar en 1 a 3 minutos. Si un cambio rompiera el build, Vercel mantiene la versión anterior.
 5. Si la llave se pierde o se filtra: bórrala en GitHub y crea otra. Nunca la pegues en chats ni documentos.
+
+## Música con Spotify
+Requisitos (reglas de Spotify en 2026): la dueña de la app en Spotify debe tener **Premium**; en modo de desarrollo se admiten hasta **5 usuarios** autorizados y cada uno necesita Premium para controlar la música.
+1. Entra a **developer.spotify.com/dashboard** → **Create app**. Nombre «Cómplice», marca **Web API**.
+2. **Redirect URIs**: `https://<tu-dominio-de-vercel>/spotify/` (exacto, con la barra final). El panel de la app la muestra con un botón «Copiar».
+3. Copia el **Client ID** (es público; no se usa el Client secret).
+4. **User Management**: añade el correo de Spotify de cada persona que vaya a conectarse.
+5. En Cómplice: **Panel de administración → Música**: pega el Client ID y los enlaces de las listas (Compartir → Copiar enlace) para cada momento → **Guardar música**. Vercel publica en 1 a 3 minutos.
+6. Cada persona: **Ajustes → Música con Spotify → Conectar con Spotify** (antes de empezar una sesión privada) y **Probar** con Spotify abierto en el teléfono.

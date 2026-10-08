@@ -7,11 +7,12 @@ import { useSession } from "@/stores/session";
 import { loadSettings, saveSettings, type AppSettings } from "@/storage/settings";
 import { applySettingsToDocument } from "@/features/session/Providers";
 import { Button, Card, Dialog, LinkButton, Notice, Screen, Title, Toggle, cx } from "@/components/ui";
+import { MusicSettings } from "@/music/ui";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 
-export const APP_VERSION = "1.0.1";
+export const APP_VERSION = "1.1.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -106,6 +107,8 @@ export function Settings() {
         </Button>
         {result && <Notice>{result}</Notice>}
       </Card>
+
+      <MusicSettings />
 
       <Card className="space-y-2">
         <h2 className="text-xl font-bold">Administración</h2>

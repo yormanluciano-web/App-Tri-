@@ -36,6 +36,7 @@ import {
   type CustomCard,
 } from "@/data/custom";
 import { useAdmin, savedRepo } from "@/admin/store";
+import { MusicAdmin } from "./MusicAdmin";
 import { Button, Card, Chip, Dialog, Icon, LinkButton, Notice, Screen, Title, cx } from "@/components/ui";
 
 /** Juegos que el formulario ofrece (los meta-juegos toman cartas de estos). */
@@ -128,7 +129,7 @@ function AdminLogin() {
 
 // ------------------------------------------------------------------ panel
 
-type Tab = "nueva" | "cartas" | "cuenta";
+type Tab = "nueva" | "cartas" | "musica" | "cuenta";
 
 function AdminPanel() {
   const [tab, setTab] = useState<Tab>("nueva");
@@ -151,11 +152,12 @@ function AdminPanel() {
         </LinkButton>
         <span className="rounded-full border border-gold/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-gold">Administración</span>
       </div>
-      <div role="tablist" aria-label="Secciones" className="grid grid-cols-3 gap-2">
+      <div role="tablist" aria-label="Secciones" className="grid grid-cols-4 gap-1.5">
         {(
           [
-            ["nueva", editing ? "Editar" : "Nueva carta", "sparkle"],
+            ["nueva", editing ? "Editar" : "Nueva", "sparkle"],
             ["cartas", "Cartas", "cards"],
+            ["musica", "Música", "play"],
             ["cuenta", "Cuenta", "settings"],
           ] as const
         ).map(([id, label, icon]) => (
@@ -166,7 +168,7 @@ function AdminPanel() {
             aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={cx(
-              "flex min-h-12 items-center justify-center gap-1.5 rounded-2xl border text-sm transition",
+              "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border text-xs transition",
               tab === id ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink" : "border-line bg-white/5",
             )}
           >
@@ -187,6 +189,7 @@ function AdminPanel() {
           onDone={finish}
         />
       )}
+      {tab === "musica" && <MusicAdmin onResult={finish} />}
       {tab === "cuenta" && <Account />}
       <ResultDialog
         result={result}

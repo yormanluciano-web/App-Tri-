@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 — 2026-10-08
+- Música con Spotify (opcional, cuentas Premium): cada persona conecta su cuenta en Ajustes y la música cambia sola por momentos: Leve, Picante, Perverso, Baile, Calma y Cierre. Si un momento no tiene lista, suena la del nivel. La línea «Sonando» en la mesa permite pausar o activar el cambio automático.
+- Panel de administración: nueva pestaña «Música» para el Client ID de Spotify y los enlaces de las listas, guardados en `cartas.json`.
+- Conexión segura PKCE, sin secreto ni servidor. Spotify solo recibe qué lista poner. CSP: `accounts.spotify.com` y `api.spotify.com`.
+
 ## 1.0.1 — 2026-10-08
 - Panel de administración: al publicar, borrar, ocultar o restaurar aparece un aviso grande de éxito (con los pasos: guardada, Vercel publicando, abrir la app) o de error. Tras publicar, el formulario queda vacío para crear otra.
 - La lista marca cada carta propia como «En la app» o «Publicándose».
