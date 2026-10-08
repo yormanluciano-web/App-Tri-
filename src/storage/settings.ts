@@ -5,10 +5,12 @@ export interface AppSettings {
   /** Efectos de sonido (encendidos por defecto). */
   sfx: boolean;
   sfxVolume: "bajo" | "medio" | "alto";
+  /** iPhone: sonar aunque el interruptor de silencio esté activado. */
+  sfxOverSilent: boolean;
   vibration: boolean;
 }
 
-export const DEFAULT_SETTINGS: AppSettings = { reducedMotion: "system", textScale: 1, sfx: true, sfxVolume: "medio", vibration: false };
+export const DEFAULT_SETTINGS: AppSettings = { reducedMotion: "system", textScale: 1, sfx: true, sfxVolume: "medio", sfxOverSilent: true, vibration: false };
 
 const KEY = "trio:settings";
 
@@ -22,6 +24,7 @@ export function loadSettings(): AppSettings {
       textScale: v.textScale === 1.15 || v.textScale === 1.3 ? v.textScale : 1,
       sfx: v.sfx !== false,
       sfxVolume: v.sfxVolume === "bajo" || v.sfxVolume === "alto" ? v.sfxVolume : "medio",
+      sfxOverSilent: v.sfxOverSilent !== false,
       vibration: v.vibration === true,
     };
   } catch {

@@ -7,8 +7,12 @@ import { create } from "zustand";
  * - El volumen y el encendido vienen de Ajustes (`configureSfx`).
  * - «Silenciar» desde la mesa solo vive en memoria (no escribe nada, ni en
  *   sesión privada).
- * - En iPhone el audio se desbloquea con el primer toque (`unlockAudio`) y se
- *   declara «ambient» para mezclarse con Spotify sin cortarlo.
+ * - El navegador solo deja sonar después de un gesto: `unlockAudio` se llama
+ *   al levantar el dedo (en iPhone, tocar sin soltar no cuenta) y cada efecto
+ *   reintenta reanudar el audio si quedó suspendido o «interrumpido».
+ * - En iPhone, «sonar aunque esté en silencio» declara la sesión de audio como
+ *   «playback» (ignora el interruptor, pero puede pausar música de otras apps);
+ *   si no, «ambient» (se mezcla con Spotify y respeta el interruptor).
  */
 
 export type SfxName =
@@ -54,6 +58,7 @@ let audio: Audio | null = null;
 let enabled = true;
 let volume: number = SFX_VOLUMES.medio;
 let vibrationOn = false;
+let overSilent = true;
 
 /** Silencio temporal desde la mesa (solo memoria). */
 export const useSfxMute = create<{ muted: boolean; toggle(): void }>((set) => ({
@@ -61,11 +66,24 @@ export const useSfxMute = create<{ muted: boolean; toggle(): void }>((set) => ({
   toggle: () => set((s) => ({ muted: !s.muted })),
 }));
 
-export function configureSfx(cfg: { sfx: boolean; sfxVolume: SfxVolume; vibration: boolean }): void {
+export function configureSfx(cfg: { sfx: boolean; sfxVolume: SfxVolume; vibration: boolean; sfxOverSilent?: boolean }): void {
   enabled = cfg.sfx;
   volume = SFX_VOLUMES[cfg.sfxVolume] ?? SFX_VOLUMES.medio;
   vibrationOn = cfg.vibration;
+  overSilent = cfg.sfxOverSilent !== false;
   if (audio) audio.out.gain.value = volume;
+  setSessionType();
+}
+
+/** Tipo de sesión de audio en Safari 16.4+ (en otros navegadores no existe y no hace nada). */
+function setSessionType(): void {
+  try {
+    const nav = navigator as Navigator & { audioSession?: { type: string } };
+    const type = overSilent ? "playback" : "ambient";
+    if (nav.audioSession && nav.audioSession.type !== type) nav.audioSession.type = type;
+  } catch {
+    /* opcional */
+  }
 }
 
 function ensure(): Audio | null {
@@ -92,24 +110,50 @@ function ensure(): Audio | null {
   }
 }
 
-/** Llamar en cada toque: el navegador solo deja sonar después de un gesto. */
+let primed = false;
+
+/** Llamar dentro de un gesto (al soltar el dedo, clic o tecla): desbloquea el audio. */
 export function unlockAudio(): void {
   if (!enabled) return;
-  try {
-    const nav = navigator as Navigator & { audioSession?: { type: string } };
-    if (nav.audioSession && nav.audioSession.type !== "ambient") nav.audioSession.type = "ambient";
-  } catch {
-    /* opcional */
-  }
+  setSessionType();
   const a = ensure();
-  if (a && a.ctx.state === "suspended") void a.ctx.resume().catch(() => undefined);
+  if (!a) return;
+  if (a.ctx.state !== "running") void a.ctx.resume().catch(() => undefined);
+  if (!primed) {
+    // iPhone antiguos: un sonido mudo dentro del gesto termina de desbloquear el audio.
+    try {
+      const src = a.ctx.createBufferSource();
+      src.buffer = a.ctx.createBuffer(1, 1, 22050);
+      src.connect(a.ctx.destination);
+      src.start(0);
+      primed = true;
+    } catch {
+      /* opcional */
+    }
+  }
 }
 
-function ready(): Audio | null {
-  if (!enabled || useSfxMute.getState().muted) return null;
+/** Ejecuta `fn` con el audio listo; si quedó suspendido o interrumpido, lo reanuda primero. */
+function withAudio(fn: (a: Audio) => void): void {
+  if (!enabled || useSfxMute.getState().muted) return;
   const a = ensure();
-  if (!a || a.ctx.state !== "running") return null;
-  return a;
+  if (!a) return;
+  const run = () => {
+    try {
+      fn(a);
+    } catch {
+      /* un efecto nunca debe romper el juego */
+    }
+  };
+  if (a.ctx.state === "running") return run();
+  const asked = performance.now();
+  void a.ctx
+    .resume()
+    .then(() => {
+      // Si tardó demasiado, el momento ya pasó: mejor no sonar tarde.
+      if (a.ctx.state === "running" && performance.now() - asked < 400) run();
+    })
+    .catch(() => undefined);
 }
 
 // ------------------------------------------------------------------ piezas
@@ -191,13 +235,7 @@ function click(a: Audio, t: number, g = 0.25): void {
 
 /** Reproduce un efecto. `duration` en segundos para los que duran (dado, suspenso); `step` sube el tono. */
 export function sfx(name: SfxName, opts: { duration?: number; step?: number } = {}): void {
-  const a = ready();
-  if (!a) return;
-  try {
-    play(a, name, opts);
-  } catch {
-    /* un efecto nunca debe romper el juego */
-  }
+  withAudio((a) => play(a, name, opts));
 }
 
 function play(a: Audio, name: SfxName, { duration, step = 0 }: { duration?: number; step?: number }): void {
@@ -344,18 +382,14 @@ function play(a: Audio, name: SfxName, { duration, step = 0 }: { duration?: numb
  * de giro, cada vez más espaciados. `ticks` = cuántos tramos recorre.
  */
 export function spinTicks(durationSec: number, ticks: number): void {
-  const a = ready();
-  if (!a) return;
-  try {
+  withAudio((a) => {
     for (let k = 1; k <= ticks; k++) {
       // Giro con frenado tipo «ease-out» cúbico: ángulo = 1 − (1 − t)³.
       const t = durationSec * (1 - Math.cbrt(1 - k / ticks));
       click(a, t, 0.12 + 0.12 * (k / ticks));
     }
     tone(a, { f: 880, t: durationSec, d: 0.45, g: 0.1 });
-  } catch {
-    /* sin efecto */
-  }
+  });
 }
 
 /** Vibración corta, solo si está activada en Ajustes y el dispositivo la admite. */

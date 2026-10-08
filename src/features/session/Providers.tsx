@@ -34,16 +34,22 @@ export function Providers({ children }: { children: ReactNode }) {
   }, [hydrate, setUpdateReady]);
 
   useEffect(() => {
-    // Cada toque desbloquea el audio (requisito del navegador) y da un clic suave
-    // en los botones que no tienen su propio efecto (marcados con data-sfx).
+    // El navegador solo deja activar el audio al terminar un gesto (en iPhone,
+    // al levantar el dedo), así que se desbloquea en esos eventos.
+    const unlock = () => unlockAudio();
+    const unlockEvents = ["pointerup", "touchend", "click", "keydown"] as const;
+    for (const ev of unlockEvents) document.addEventListener(ev, unlock, { capture: true, passive: true });
+    // Clic suave en los botones que no tienen su propio efecto (marcados con data-sfx).
     const onPointer = (e: PointerEvent) => {
-      unlockAudio();
       const el = e.target instanceof Element ? e.target.closest("button, a[href], [role='radio'], [role='switch']") : null;
       if (!el || el.closest("[data-sfx]") || (el as HTMLButtonElement).disabled) return;
       sfx("tap");
     };
     document.addEventListener("pointerdown", onPointer, { capture: true, passive: true });
-    return () => document.removeEventListener("pointerdown", onPointer, { capture: true });
+    return () => {
+      for (const ev of unlockEvents) document.removeEventListener(ev, unlock, { capture: true });
+      document.removeEventListener("pointerdown", onPointer, { capture: true });
+    };
   }, []);
 
   useEffect(() => {

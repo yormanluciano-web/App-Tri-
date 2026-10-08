@@ -46,3 +46,10 @@ test("Ajustes: efectos encendidos por defecto, con volumen", async ({ page }) =>
   await expect(toggle).not.toBeChecked();
   await expect(page.getByRole("button", { name: "Alto", exact: true })).toHaveCount(0);
 });
+
+test("Ajustes: «Probar sonido» suena con un toque en la pantalla", async ({ page }) => {
+  await page.goto("/ajustes/");
+  await page.getByRole("button", { name: "Probar sonido" }).tap();
+  await expect.poll(() => played(page)).toBeGreaterThan(0);
+  await expect(page.getByRole("checkbox", { name: /Sonar aunque el iPhone esté en silencio/ })).toBeChecked();
+});

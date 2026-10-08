@@ -72,12 +72,20 @@ describe("efectos de sonido", () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("no suena nada antes del primer toque y luego todos los efectos se programan sin errores", async () => {
+  it("si el audio está suspendido (iPhone tras un gesto o al volver a la app), lo reanuda y suena", async () => {
     const m = await import("@/sound/sfx");
-    m.sfx("tap");
+    m.sfx("deal");
     expect(starts).toHaveLength(0);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(starts.length).toBeGreaterThan(0);
+  });
+
+  it("todos los efectos se programan sin errores", async () => {
+    const m = await import("@/sound/sfx");
     m.unlockAudio();
     await Promise.resolve();
+    starts = [];
     for (const n of NAMES) {
       const before = starts.length;
       m.sfx(n, { duration: 1, step: 3 });
@@ -90,6 +98,7 @@ describe("efectos de sonido", () => {
     const m = await import("@/sound/sfx");
     m.unlockAudio();
     await Promise.resolve();
+    starts = [];
     m.configureSfx({ sfx: false, sfxVolume: "medio", vibration: false });
     m.sfx("win");
     expect(starts).toHaveLength(0);
@@ -107,12 +116,23 @@ describe("efectos de sonido", () => {
     const m = await import("@/sound/sfx");
     m.unlockAudio();
     await Promise.resolve();
+    starts = [];
     m.spinTicks(5.5, 20);
     // Cada tic programa ruido + tono a la vez: tomar un instante por tic.
     const times = [...new Set(starts.map((t) => t.toFixed(4)))].map(Number).sort((a, b) => a - b);
     const gaps = times.slice(1).map((t, i) => t - times[i]);
     expect(times.at(-1)).toBeCloseTo(5.5, 5);
     expect(gaps.at(-1)!).toBeGreaterThan(gaps[0] * 5);
+  });
+
+  it("iPhone: «sonar aunque esté en silencio» usa la sesión de audio «playback»; si no, «ambient»", async () => {
+    const session = { type: "auto" };
+    vi.stubGlobal("navigator", { audioSession: session });
+    const m = await import("@/sound/sfx");
+    m.configureSfx({ sfx: true, sfxVolume: "medio", vibration: false, sfxOverSilent: true });
+    expect(session.type).toBe("playback");
+    m.configureSfx({ sfx: true, sfxVolume: "medio", vibration: false, sfxOverSilent: false });
+    expect(session.type).toBe("ambient");
   });
 
   it("la vibración solo si está activada", async () => {
@@ -136,7 +156,7 @@ describe("ajustes de sonido", () => {
 
   it("los efectos vienen encendidos y a volumen medio; ajustes viejos también", async () => {
     const { loadSettings } = await import("@/storage/settings");
-    expect(loadSettings()).toMatchObject({ sfx: true, sfxVolume: "medio" });
+    expect(loadSettings()).toMatchObject({ sfx: true, sfxVolume: "medio", sfxOverSilent: true });
     window.localStorage.setItem("trio:settings", JSON.stringify({ textScale: 1.15, sound: false }));
     expect(loadSettings()).toMatchObject({ sfx: true, sfxVolume: "medio", textScale: 1.15 });
     window.localStorage.setItem("trio:settings", JSON.stringify({ sfx: false, sfxVolume: "alto" }));

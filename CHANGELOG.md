@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 — 2026-10-08
+- Corregido: en el teléfono no sonaban los efectos. El audio se intentaba activar al tocar la pantalla, y Safari en iPhone solo lo permite al levantar el dedo; ahora se activa al soltar el dedo y al terminar el toque. Además, si el audio quedó suspendido (por ejemplo, al volver a la app tras una llamada), cada efecto lo reanuda.
+- Nueva opción en Ajustes, encendida por defecto: **«Sonar aunque el iPhone esté en silencio»**. Si escuchas Spotify en el mismo iPhone y los efectos pausan la música, apágala.
+- Nuevo botón **«Probar sonido»** en Ajustes.
+
 ## 1.6.0 — 2026-10-08
 - **Efectos de sonido** en toda la app, encendidos por defecto. Se generan en el propio teléfono (Web Audio), sin archivos ni internet, así que funcionan sin conexión.
 - Cartas: sacar carta (barajada), la carta al voltearse (roce de papel y brillo), Cumplido (acorde alegre), Pasar y Cambiar.
