@@ -32,6 +32,7 @@ const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   torre: ["pregunta", "reto"],
   botella: ["pregunta", "reto"],
   rasca: ["pregunta", "reto"],
+  parques: ["pregunta", "reto"],
   sorpresa: ["sorpresa"],
   // Noche completa y Caos delegan en los juegos base; no se asignan directamente.
   noche: [],

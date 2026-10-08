@@ -1,5 +1,5 @@
 import type { Activity } from "../models/activity";
-import { BASE_GAMES, type Format, type GameId, type Category } from "../models/constants";
+import { BASE_GAMES, type Format, type GameId, type Category, type Interaction } from "../models/constants";
 import type { SessionState } from "../models/session";
 import { nextLevel } from "./progression";
 import { pickOne, shuffle, type Rng } from "./rng";
@@ -24,6 +24,7 @@ export const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   torre: ["pregunta", "reto"],
   botella: ["pregunta", "reto"],
   rasca: ["pregunta", "reto"],
+  parques: ["pregunta", "reto"],
   sorpresa: ["sorpresa"],
   noche: [],
   caos: [],
@@ -100,6 +101,8 @@ export interface DrawRequest {
   skipSurprise?: boolean;
   /** Forzar intento sobre exactamente este juego, sin alternativas. */
   strictGame?: boolean;
+  /** Preferir estos tipos de interacción (p. ej. una casilla «Pareja»); si no hay ninguna compatible, cualquiera. */
+  interactions?: readonly Interaction[];
 }
 
 export interface DrawOutcome {
@@ -199,8 +202,9 @@ export function draw(catalog: readonly Activity[], state: SessionState, rng: Rng
     }
     const opts = optionsFor(working, game, req);
     // La botella prefiere cartas de pareja (apunta a alguien); si no hay, cualquier carta compatible.
-    res = game === "botella" ? selectCandidate(catalog, working, { ...opts, interactions: ["pair", "directed_pair"] }, rng, now) : selectCandidate(catalog, working, opts, rng, now);
-    if (!res.ok && game === "botella") res = selectCandidate(catalog, working, opts, rng, now);
+    const prefer = req.interactions ?? (game === "botella" ? (["pair", "directed_pair"] as const) : undefined);
+    res = prefer ? selectCandidate(catalog, working, { ...opts, interactions: prefer }, rng, now) : selectCandidate(catalog, working, opts, rng, now);
+    if (!res.ok && prefer) res = selectCandidate(catalog, working, opts, rng, now);
     if (res.ok) {
       const next = offerTurn({ ...working, currentGame: game }, res.candidate, { game, focusable: res.focusable }, now);
       return { state: next, candidate: res.candidate };

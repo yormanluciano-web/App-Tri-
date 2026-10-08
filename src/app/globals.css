@@ -788,6 +788,23 @@ html[data-motion="reduce"] *::after {
   }
 }
 
+/* Parqués: el dado da tumbos mientras sale el número. */
+.parques-die-roll {
+  animation: parques-die-roll 0.3s ease-in-out infinite;
+}
+@keyframes parques-die-roll {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-18deg) scale(1.08);
+  }
+  75% {
+    transform: rotate(16deg) scale(0.94);
+  }
+}
+
 /* Texto dorado de lámina. */
 .foil-text {
   background: linear-gradient(100deg, #b8862e, #fff3c4 35%, #f5c76b 55%, #b8862e 90%);
@@ -902,6 +919,7 @@ html[data-motion="reduce"] *::after {
   .flip-3d > .face-front,
   .cube.rolling,
   .logo-3d,
+  .parques-die-roll,
   .animate-deal {
     animation: none !important;
   }
@@ -909,6 +927,7 @@ html[data-motion="reduce"] *::after {
 html[data-motion="reduce"] .flip-3d > .face-front,
 html[data-motion="reduce"] .cube.rolling,
 html[data-motion="reduce"] .logo-3d,
+html[data-motion="reduce"] .parques-die-roll,
 html[data-motion="reduce"] .animate-deal {
   animation: none !important;
 }

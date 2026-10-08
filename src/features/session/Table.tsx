@@ -22,7 +22,7 @@ import { useStartGate } from "@/pwa/StartGate";
 import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
-import { BottleLauncher, BottleRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
+import { BottleLauncher, BottleRound, ParquesLauncher, ParquesRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
 import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
@@ -197,6 +197,8 @@ function Launcher({ session }: { session: SessionState }) {
         return <TowerLauncher session={session} />;
       case "botella":
         return <BottleLauncher session={session} />;
+      case "parques":
+        return <ParquesLauncher session={session} />;
       case "rasca":
         return <BigDraw label="Sacar carta" hint="y rasparla" theme="rasca" onClick={() => draw({ game: "rasca", strictGame: true })} />;
       default:
@@ -229,6 +231,7 @@ function Round({ session }: { session: SessionState }) {
   if (turn.game === "torre") return <TowerRound key={turn.id} {...props} />;
   if (turn.game === "botella") return <BottleRound key={turn.id} {...props} />;
   if (turn.game === "rasca") return <ScratchRound key={turn.id} {...props} />;
+  if (turn.game === "parques") return <ParquesRound key={turn.id} {...props} />;
   return <StandardRound key={turn.id} {...props} />;
 }
 

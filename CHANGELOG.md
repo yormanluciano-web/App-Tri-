@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0 — 2026-10-08
+- Nuevo minijuego **Parqués de la pasión**: tablero circular de 24 casillas con el corazón al centro. Cada persona tira el dado en su turno y su ficha avanza casilla por casilla.
+- Casillas: Verdad (pregunta), Reto, Pareja (carta de pareja si la hay), Comodín (cualquier carta), Avanza/Retrocede (movimiento extra una sola vez) y Descanso (sin carta, pasa el turno).
+- La carta es para quien cayó en la casilla; todas pasan por el mismo motor de consentimiento (si no hay una compatible para esa persona, el motor elige otra).
+- Quien llega al corazón elige a quién le toca el próximo reto y las fichas vuelven a la salida.
+- Está en la lista de juegos, en las rondas especiales, en Noche/Caos y en «Probar» del panel.
+
 ## 1.4.0 — 2026-10-08
 - Nuevo permiso **«Ropa interior y desnudez»**, incluido solo en **«Acepto todo»** (sin menú propio). «Acepto todo» ahora dice claramente: «Todo está permitido, sin límites: incluye ropa interior y desnudez».
 - Las cartas «Solo a quien acepta todo» del editor lo exigen. Como ocurre ante el grupo, toda la sesión debe haber elegido «Acepto todo»: en un trío no sale si la tercera persona aceptó solo una parte.

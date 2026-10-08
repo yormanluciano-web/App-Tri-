@@ -49,7 +49,7 @@ function resolveGames(game: GameId): { games: GameId[]; durationMin: number | nu
   return { games: [game], durationMin: null };
 }
 
-const BASE_FOR_TEST: GameId[] = ["verdad_reto", "ruleta", "dados", "tarjetas", "temporizador", "cadena", "torre", "botella", "rasca"];
+const BASE_FOR_TEST: GameId[] = ["verdad_reto", "ruleta", "dados", "tarjetas", "temporizador", "cadena", "torre", "botella", "rasca", "parques"];
 
 /**
  * Prueba de un juego desde el panel de administración: personas ficticias

@@ -216,6 +216,7 @@ export const GAMES = [
   "torre",
   "botella",
   "rasca",
+  "parques",
   "noche",
   "caos",
   "sorpresa",
@@ -232,6 +233,7 @@ export const GAME_LABEL: Record<GameId, string> = {
   torre: "Torre del deseo",
   botella: "La botella",
   rasca: "Rasca y descubre",
+  parques: "Parqués de la pasión",
   noche: "Noche completa",
   caos: "Caos",
   sorpresa: "Carta sorpresa",
@@ -247,6 +249,7 @@ export const GAME_DESCRIPTION: Record<GameId, string> = {
   torre: "Saquen bloques por turnos. A quien tumbe la torre le toca carta: el color de ese bloque decide verdad, reto o comodín.",
   botella: "Gírala tú: da varias vueltas y se detiene apuntando a la pareja del reto, siempre entre quienes lo aceptaron.",
   rasca: "Raspa la carta con el dedo para descubrir, poco a poco, lo que te toca.",
+  parques: "Tiren el dado por turnos y avancen por el tablero: cada casilla trae verdad, reto, pareja o sorpresa. Quien llegue al corazón elige a quién le toca el próximo reto.",
   noche: "60 minutos: apertura, desarrollo y cierre con mezcla automática.",
   caos: "Cada ronda elige juego, asignación y carta sin patrón fijo.",
   sorpresa: "Cada 4 a 7 rondas aparece un evento sorpresa compatible.",
@@ -263,13 +266,14 @@ export const BASE_GAMES: readonly GameId[] = [
   "torre",
   "botella",
   "rasca",
+  "parques",
 ];
 
 /** Minijuegos: reparten cartas de otro mazo con su propia dinámica y pueden salir como ronda especial. */
-export const MINI_GAMES: readonly GameId[] = ["torre", "botella", "rasca"];
+export const MINI_GAMES: readonly GameId[] = ["torre", "botella", "rasca", "parques"];
 
 /** Mazo del que cada minijuego toma sus cartas (las cartas no necesitan declarar los minijuegos). */
-export const CARD_POOL: Partial<Record<GameId, GameId>> = { torre: "tarjetas", rasca: "tarjetas", botella: "verdad_reto" };
+export const CARD_POOL: Partial<Record<GameId, GameId>> = { torre: "tarjetas", rasca: "tarjetas", botella: "verdad_reto", parques: "tarjetas" };
 
 export function cardPoolGame(game: GameId): GameId {
   return CARD_POOL[game] ?? game;
