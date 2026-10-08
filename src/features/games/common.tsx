@@ -55,12 +55,15 @@ export function ActivityCard({
   activity,
   children,
   hideText,
+  cover,
 }: {
   session: SessionState;
   turn: Turn;
   activity: Activity;
   children?: ReactNode;
   hideText?: boolean;
+  /** Capa encima de la carta (p. ej. Rasca y descubre). */
+  cover?: ReactNode;
 }) {
   const favorites = useSession((s) => s.favorites);
   const favoritesMode = useSession((s) => s.favoritesMode);
@@ -86,6 +89,7 @@ export function ActivityCard({
           <section className="play-card space-y-5 px-6 pb-12 pt-6">
             {corner("tl")}
             {corner("br")}
+            {cover}
             <div className="flex flex-col items-center gap-2 text-center">
               <GameEmblem theme={theme} className="size-16 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]" />
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--g3)]">

@@ -210,6 +210,9 @@ export const GAMES = [
   "tarjetas",
   "temporizador",
   "cadena",
+  "torre",
+  "botella",
+  "rasca",
   "noche",
   "caos",
   "sorpresa",
@@ -223,6 +226,9 @@ export const GAME_LABEL: Record<GameId, string> = {
   tarjetas: "Tarjetas",
   temporizador: "Temporizador",
   cadena: "Cadena de retos",
+  torre: "Torre del deseo",
+  botella: "La botella",
+  rasca: "Rasca y descubre",
   noche: "Noche completa",
   caos: "Caos",
   sorpresa: "Carta sorpresa",
@@ -235,6 +241,9 @@ export const GAME_DESCRIPTION: Record<GameId, string> = {
   tarjetas: "Cartas con filtro por categoría. Guarda tus favoritas.",
   temporizador: "Actividades con reloj de 30 s a 3 min. Pausar congela el tiempo.",
   cadena: "Tres etapas progresivas. Cada una se valida y se puede pasar.",
+  torre: "Saca un bloque de la torre: su color decide verdad o reto. Si la torre se cae, reto para quien la tumbó.",
+  botella: "Gira la botella: apunta a la pareja del reto, siempre entre quienes lo aceptaron.",
+  rasca: "Raspa la carta con el dedo para descubrir, poco a poco, lo que te toca.",
   noche: "60 minutos: apertura, desarrollo y cierre con mezcla automática.",
   caos: "Cada ronda elige juego, asignación y carta sin patrón fijo.",
   sorpresa: "Cada 4 a 7 rondas aparece un evento sorpresa compatible.",
@@ -248,7 +257,20 @@ export const BASE_GAMES: readonly GameId[] = [
   "tarjetas",
   "temporizador",
   "cadena",
+  "torre",
+  "botella",
+  "rasca",
 ];
+
+/** Minijuegos: reparten cartas de otro mazo con su propia dinámica y pueden salir como ronda especial. */
+export const MINI_GAMES: readonly GameId[] = ["torre", "botella", "rasca"];
+
+/** Mazo del que cada minijuego toma sus cartas (las cartas no necesitan declarar los minijuegos). */
+export const CARD_POOL: Partial<Record<GameId, GameId>> = { torre: "tarjetas", rasca: "tarjetas", botella: "verdad_reto" };
+
+export function cardPoolGame(game: GameId): GameId {
+  return CARD_POOL[game] ?? game;
+}
 
 export const FORMATS = ["pregunta", "reto", "sorpresa"] as const;
 export type Format = (typeof FORMATS)[number];

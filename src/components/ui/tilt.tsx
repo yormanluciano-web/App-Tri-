@@ -45,7 +45,7 @@ export function Tilt({
     // Sobre un control interno o con el dedo presionado, la carta se queda quieta
     // para que el toque caiga exactamente donde se apuntó.
     if (pressed.current) return;
-    if (ignoreInteractive && (e.target as Element).closest("button, a, input, textarea, select, [role='radio']")) return;
+    if (ignoreInteractive && (e.target as Element).closest("button, a, input, textarea, select, [role='radio'], [data-no-tilt]")) return;
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;

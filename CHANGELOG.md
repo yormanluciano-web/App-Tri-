@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-10-08
+- Tres minijuegos nuevos (primera tanda):
+  - **Torre del deseo** (tipo Jenga): sacas un bloque y su color decide verdad (violeta), reto (rojo) o comodín (dorado). La torre tiembla más con cada bloque y, si cae, sale un reto para quien la tumbó.
+  - **La botella**: gira entre los jugadores y apunta a la pareja del reto (prefiere cartas de pareja; si no hay compatibles, cualquiera permitida).
+  - **Rasca y descubre**: la carta sale cubierta de dorado y se raspa con el dedo; el reto se revela al descubrir más de la mitad (o con «Descubrir todo»).
+- **Rondas especiales**: cada 6 rondas se ofrece uno de los minijuegos (¡A jugar! / Ahora no) y al terminar se vuelve al juego anterior. También entran en Noche completa, Caos y la demo.
+- Los minijuegos usan el mismo mazo y el mismo filtro de límites (Torre y Rasca: cartas de Tarjetas; Botella: de Verdad o reto), así que respetan lo aceptado y también reparten las cartas creadas en el panel.
+
 ## 1.1.0 — 2026-10-08
 - Música con Spotify (opcional, cuentas Premium): cada persona conecta su cuenta en Ajustes y la música cambia sola por momentos: Leve, Picante, Perverso, Baile, Calma y Cierre. Si un momento no tiene lista, suena la del nivel. La línea «Sonando» en la mesa permite pausar o activar el cambio automático.
 - Panel de administración: nueva pestaña «Música» para el Client ID de Spotify y los enlaces de las listas, guardados en `cartas.json`.

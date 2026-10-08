@@ -663,6 +663,97 @@ html[data-motion="reduce"] *::after {
   text-shadow: 0 2px 12px rgba(20, 4, 18, 0.45);
 }
 
+/* ------------------------------------------------------------ minijuegos */
+
+/* Torre del deseo: vista frontal en perspectiva, capas alternas como un Jenga. */
+.tower {
+  position: relative;
+  display: flex;
+  width: 236px;
+  flex-direction: column;
+  gap: 4px;
+  transform: rotateX(10deg) rotateY(-16deg);
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+.tower-layer {
+  display: grid;
+  height: 36px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.tower-layer.cross {
+  gap: 12px;
+  padding: 0 6px;
+}
+.tower-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: #5b1a2c;
+  font-size: 0.8rem;
+  box-shadow:
+    inset 0 -4px 0 rgba(20, 4, 18, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 4px 8px -2px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.5s cubic-bezier(0.3, 0.7, 0.2, 1),
+    opacity 0.5s ease;
+}
+.tower-layer.cross .tower-block {
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 3px rgba(20, 4, 18, 0.18),
+    inset 0 -4px 0 rgba(20, 4, 18, 0.28),
+    0 4px 8px -2px rgba(0, 0, 0, 0.5);
+}
+.tower-block:not(:disabled):active {
+  transform: translateX(6px);
+}
+.tower-block.pulling {
+  transform: translate3d(70px, -6px, 40px) rotate(6deg);
+  opacity: 0;
+}
+.tower-block.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+.tower-base {
+  height: 12px;
+  margin: 2px -14px 0;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f5c76b, #8a5a1c);
+  box-shadow: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+}
+.tower-wobble {
+  animation: tower-wobble 2.4s ease-in-out infinite;
+}
+@keyframes tower-wobble {
+  0%,
+  100% {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(calc(var(--wobble, 1deg) * -1));
+  }
+  50% {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(var(--wobble, 1deg));
+  }
+}
+.tower-fall .tower-block:not(.gone) {
+  animation: block-fall 1s cubic-bezier(0.5, 0, 0.75, 0.4) var(--fall-d, 0ms) forwards;
+}
+@keyframes block-fall {
+  to {
+    transform: translate3d(var(--fall-x, 0), 280px, 0) rotate(var(--fall-r, 20deg));
+    opacity: 0;
+  }
+}
+
+/* La botella gira y se detiene apuntando a la persona ya validada. */
+.bottle-spin {
+  animation: spin-wheel 2.2s cubic-bezier(0.12, 0.7, 0.15, 1) forwards;
+  will-change: transform;
+}
+
 /* Texto dorado de lámina. */
 .foil-text {
   background: linear-gradient(100deg, #b8862e, #fff3c4 35%, #f5c76b 55%, #b8862e 90%);

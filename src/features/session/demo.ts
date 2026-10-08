@@ -36,7 +36,7 @@ export function demoConfig(): SessionConfig {
     relationship: null,
     initialLevel: "leve",
     durationMin: null,
-    games: ["verdad_reto", "ruleta", "dados", "tarjetas", "temporizador"],
+    games: ["verdad_reto", "torre", "botella", "rasca", "ruleta", "dados", "tarjetas", "temporizador"],
     sharedLimits: demoPermissions(),
     demo: true,
   };

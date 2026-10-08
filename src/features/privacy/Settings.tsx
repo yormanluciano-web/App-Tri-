@@ -12,7 +12,7 @@ import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);

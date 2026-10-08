@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, type GameId, type Intensity, type Light, type Permission } from "../models/constants";
+import { MINI_GAMES, SCHEMA_VERSION, type GameId, type Intensity, type Light, type Permission } from "../models/constants";
 import type {
   LimitProfile,
   ParticipantId,
@@ -429,7 +429,8 @@ function afterLimitChange(prev: SessionState, next: SessionState, now: number): 
 // ---------------------------------------------------------------- juego y efectos
 
 export function setGame(state: SessionState, game: GameId, now: number): SessionState {
-  if (!state.config.games.includes(game) && !(state.config.games.includes("caos") || state.config.games.includes("noche"))) return state;
+  // Los minijuegos también pueden jugarse como ronda especial aunque no se eligieran al empezar.
+  if (!state.config.games.includes(game) && !MINI_GAMES.includes(game) && !(state.config.games.includes("caos") || state.config.games.includes("noche"))) return state;
   const s = cancelCurrent(tick(state, now));
   const status: SessionStatus = state.status === "paused" ? "paused" : "ready";
   const next = { ...s, currentGame: game, chain: game === "cadena" ? { stage: 0, lastScore: -1 } : null };

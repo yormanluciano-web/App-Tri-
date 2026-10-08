@@ -21,6 +21,9 @@ export const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   tarjetas: ["pregunta", "reto"],
   temporizador: ["pregunta", "reto"],
   cadena: ["pregunta", "reto"],
+  torre: ["pregunta", "reto"],
+  botella: ["pregunta", "reto"],
+  rasca: ["pregunta", "reto"],
   sorpresa: ["sorpresa"],
   noche: [],
   caos: [],
@@ -194,7 +197,10 @@ export function draw(catalog: readonly Activity[], state: SessionState, rng: Rng
       lastReason = res.reason;
       continue;
     }
-    res = selectCandidate(catalog, working, optionsFor(working, game, req), rng, now);
+    const opts = optionsFor(working, game, req);
+    // La botella prefiere cartas de pareja (apunta a alguien); si no hay, cualquier carta compatible.
+    res = game === "botella" ? selectCandidate(catalog, working, { ...opts, interactions: ["pair", "directed_pair"] }, rng, now) : selectCandidate(catalog, working, opts, rng, now);
+    if (!res.ok && game === "botella") res = selectCandidate(catalog, working, opts, rng, now);
     if (res.ok) {
       const next = offerTurn({ ...working, currentGame: game }, res.candidate, { game, focusable: res.focusable }, now);
       return { state: next, candidate: res.candidate };

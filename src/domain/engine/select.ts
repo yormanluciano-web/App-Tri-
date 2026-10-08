@@ -1,5 +1,5 @@
 import type { Activity } from "../models/activity";
-import type { Category, Format, GameId, Intensity, RoleId } from "../models/constants";
+import { cardPoolGame, type Category, type Format, type GameId, type Intensity, type Interaction, type RoleId } from "../models/constants";
 import type { Assignment, OfferRecord, Participant, ParticipantId, SessionState } from "../models/session";
 import { evaluateAssignment, type LimitContext } from "../consent/limits";
 import { pickOne, pickWeighted, type Rng } from "./rng";
@@ -44,6 +44,8 @@ export interface SelectOptions {
   level?: Intensity;
   /** Prefiere actividades de grupo (por ejemplo, apertura de Noche completa). */
   preferGroup?: boolean;
+  /** Solo estos tipos de interacción (p. ej. la botella busca parejas). */
+  interactions?: readonly Interaction[];
   /** Tags preferidos en esta ronda. */
   preferTags?: readonly string[];
 }
@@ -101,7 +103,8 @@ export function staticallyEligible(activity: Activity, state: SessionState, opts
   const level = opts.level ?? state.level;
   const n = state.config.participants.length;
   if (!activity.active || activity.editorialStatus !== "reviewed") return false;
-  if (!activity.gameModes.includes(opts.game)) return false;
+  if (!activity.gameModes.includes(cardPoolGame(opts.game))) return false;
+  if (opts.interactions && !opts.interactions.includes(activity.tipoInteraccion)) return false;
   if (activity.intensidad !== level) return false;
   if (!activity.sessionSizes.includes(n as 2 | 3)) return false;
   if (activity.participantesMinimos > n) return false;

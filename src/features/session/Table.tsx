@@ -20,6 +20,7 @@ import { applyUpdate } from "@/pwa/register";
 import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
+import { BottleRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
 import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
@@ -192,6 +193,12 @@ function Launcher({ session }: { session: SessionState }) {
             )}
           </div>
         );
+      case "torre":
+        return <TowerLauncher session={session} />;
+      case "botella":
+        return <BigDraw label="Girar la botella" hint="¿A quién apuntará?" theme="botella" onClick={() => draw({ game: "botella", strictGame: true })} />;
+      case "rasca":
+        return <BigDraw label="Sacar carta" hint="y rasparla" theme="rasca" onClick={() => draw({ game: "rasca", strictGame: true })} />;
       default:
         return <BigDraw label="Siguiente" theme="sorpresa" onClick={() => draw()} />;
     }
@@ -199,6 +206,7 @@ function Launcher({ session }: { session: SessionState }) {
 
   return (
     <div className="flex flex-1 flex-col justify-center gap-5 animate-in">
+      <SpecialRound session={session} />
       <div className="text-center">
         <p className="foil-text text-xs font-semibold uppercase tracking-[0.3em]">Tu turno</p>
         <h2 className="text-3xl font-semibold italic">{GAME_LABEL[effective]}</h2>
@@ -218,6 +226,9 @@ function Round({ session }: { session: SessionState }) {
   if (turn.game === "sorpresa") return <SurpriseRound key={turn.id} {...props} />;
   if (turn.game === "ruleta") return <RouletteRound key={turn.id} {...props} />;
   if (turn.game === "dados") return <DiceRound key={turn.id} {...props} />;
+  if (turn.game === "torre") return <TowerRound key={turn.id} {...props} />;
+  if (turn.game === "botella") return <BottleRound key={turn.id} {...props} />;
+  if (turn.game === "rasca") return <ScratchRound key={turn.id} {...props} />;
   return <StandardRound key={turn.id} {...props} />;
 }
 
