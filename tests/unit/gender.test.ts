@@ -8,7 +8,10 @@ import { defineCards } from "@/data/define";
 import type { Gender } from "@/domain/models/constants";
 import type { Participant } from "@/domain/models/session";
 import { toPersisted, fromPersisted } from "@/storage/serialize";
-import { allLights, config, participant, readySession } from "../helpers";
+import { allLights, config, participant, readySession, syntheticCatalog } from "../helpers";
+import { draw } from "@/domain/engine/orchestrator";
+import { closeTurn } from "@/domain/state/session";
+import { seededRng } from "@/domain/engine/rng";
 
 const [mixed] = defineCards("leve", "gt", "test", [
   { id: "001", t: "Mixta", x: "{p1} y {p2}, actividad de prueba solo para hombre y mujer.", c: "pareja", f: "reto", s: 10, req: ["conversacion_ligera"], mixta: true },
@@ -51,6 +54,27 @@ describe("cartas solo hombre y mujer", () => {
       const g = [c.assignment.p1, c.assignment.p2].map((id) => people.find((p) => p.id === id)!.gender);
       expect(new Set(g).size).toBe(2);
     }
+  });
+
+  it("en un trío de un hombre y dos mujeres, el hombre se turna con las dos, en ambos sentidos", () => {
+    const people = [person("h", "hombre"), person("m1", "mujer"), person("m2", "mujer")];
+    const cat = syntheticCatalog("leve", 160, { mixta: true });
+    let s = readySession(config(people, { initialLevel: "leve", games: ["tarjetas"] }));
+    const rng = seededRng(5);
+    const pairs: Record<string, number> = {};
+    let now = 1000;
+    for (let i = 0; i < 90; i++) {
+      now += 60_000;
+      s = draw(cat, s, rng, now).state;
+      const t = s.currentTurn;
+      if (!t || t.status === "closed") continue;
+      if (t.assignment.p2) pairs[`${t.assignment.p1}>${t.assignment.p2}`] = (pairs[`${t.assignment.p1}>${t.assignment.p2}`] ?? 0) + 1;
+      s = closeTurn(s, t.id, "cumplido", now + 1000);
+    }
+    expect(Object.keys(pairs).sort()).toEqual(["h>m1", "h>m2", "m1>h", "m2>h"]);
+    const withM1 = (pairs["h>m1"] ?? 0) + (pairs["m1>h"] ?? 0);
+    const withM2 = (pairs["h>m2"] ?? 0) + (pairs["m2>h"] ?? 0);
+    expect(Math.abs(withM1 - withM2)).toBeLessThanOrEqual(Math.max(withM1, withM2) * 0.3);
   });
 
   it("dos personas del mismo género nunca reciben cartas mixtas", () => {

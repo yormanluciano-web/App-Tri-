@@ -37,9 +37,13 @@ import { Button, Card, Chip, Dialog, Icon, LinkButton, Notice, Screen, Title, cx
 /** Juegos que el formulario ofrece (los meta-juegos toman cartas de estos). */
 const FORM_GAMES: GameId[] = ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", "temporizador"];
 
-const AUDIENCES: { id: Audience; label: string; hint: string; pairOnly?: boolean }[] = [
+const AUDIENCES: { id: Audience; label: string; hint: string }[] = [
   { id: "todos", label: "Cualquiera", hint: "Sale con cualquier combinación de personas." },
-  { id: "mixta", label: "Hombre y mujer", hint: "Solo una pareja de un hombre y una mujer, en cualquier orden.", pairOnly: true },
+  {
+    id: "mixta",
+    label: "Hombre y mujer",
+    hint: "Le sale a un hombre con una mujer, en cualquier orden. En un trío con un hombre y dos mujeres, la app elige al hombre y lo turna con las dos (y al revés). Nunca a dos personas del mismo género.",
+  },
   { id: "mujeres", label: "Solo mujeres", hint: "Todas las personas de la carta deben ser mujeres." },
   { id: "hombres", label: "Solo hombres", hint: "Todas las personas de la carta deben ser hombres." },
 ];
@@ -215,6 +219,9 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
+const MIXTA_SIN_PAREJA =
+  "Una carta «Hombre y mujer» es de pareja: el texto debe nombrar a Persona 1 y Persona 2 (pueden ser cualquiera de los jugadores; la app pone al hombre y a la mujer).";
+
 const PLACEHOLDER_LABEL: Record<string, string> = { "{p1}": "Persona 1", "{p2}": "Persona 2", "{p3}": "Persona 3" };
 
 function previewText(text: string): string {
@@ -246,15 +253,17 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
   const roles = placeholdersIn(form.texto + " " + form.titulo);
   const kind = roles.includes("p3") ? "trio" : roles.includes("p2") ? "pareja" : roles.includes("p1") ? "solo" : "grupo";
   const isPair = kind === "pareja";
-  const para = !isPair && form.para === "mixta" ? "todos" : form.para;
+  const para = form.para;
+  const mixtaSinPareja = para === "mixta" && !isPair;
 
   const built = useMemo(() => {
     try {
-      return { card: buildCustomCard({ ...form, para }, id), problem: null as string | null };
+      if (mixtaSinPareja) return { card: null, problem: MIXTA_SIN_PAREJA };
+      return { card: buildCustomCard(form, id), problem: null as string | null };
     } catch {
       return { card: null, problem: "Completa el título (2 a 60 letras) y el texto (10 a 320)." };
     }
-  }, [form, para, id]);
+  }, [form, mixtaSinPareja, id]);
   const check = useMemo(() => (built.card ? checkCard(built.card, editing ? customActivityId(editing) : null) : null), [built.card, editing]);
   const errors = built.problem ? [built.problem] : (check?.errors ?? []);
   const canPublish = !busy && errors.length === 0 && !!built.card;
@@ -300,7 +309,10 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
         </Field>
 
         <div className="space-y-2">
-          <Field label="Texto de la carta" hint="Toca un botón para insertar a quién le toca. Sin personas = carta para todo el grupo.">
+          <Field
+            label="Texto de la carta"
+            hint="Persona 1, 2 y 3 no son jugadores fijos: en cada turno la app elige entre todos quién ocupa cada lugar. Sin personas = carta para todo el grupo."
+          >
             <textarea
               className={INPUT + " min-h-28 py-3"}
               value={form.texto}
@@ -328,7 +340,7 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
           <Section title="¿Quién hace la acción?">
             <div className="grid grid-cols-2 gap-2">
               <Chip selected={form.dirigida} onClick={() => set("dirigida", true)}>
-                Persona 1 a Persona 2
+                Persona 1 hacia Persona 2
               </Chip>
               <Chip selected={!form.dirigida} onClick={() => set("dirigida", false)}>
                 Los dos juntos
@@ -339,7 +351,7 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
 
         <Section title="¿Para quién es?">
           <div className="grid gap-2">
-            {AUDIENCES.filter((a) => !a.pairOnly || isPair).map((a) => (
+            {AUDIENCES.map((a) => (
               <button
                 key={a.id}
                 type="button"
@@ -353,7 +365,14 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
               </button>
             ))}
           </div>
-          {!isPair && <p className="text-sm text-muted">«Hombre y mujer» aparece cuando el texto tiene Persona 1 y Persona 2.</p>}
+          {mixtaSinPareja && (
+            <Notice tone="warn">
+              {MIXTA_SIN_PAREJA}{" "}
+              <button type="button" className="underline" onClick={() => setForm((f) => ({ ...f, texto: `{p1} y {p2}, ${f.texto.trim()}`.trim() }))}>
+                Añadirlas al inicio
+              </button>
+            </Notice>
+          )}
         </Section>
 
         {kind !== "trio" && (
@@ -433,6 +452,13 @@ function CardEditor({ editing, onPublished, onCancel }: { editing: CustomCard | 
           {AUDIENCES.find((a) => a.id === para)?.label} · {form.permisos.map((p) => PERMISSION_LABEL[p]).join(", ") || "sin permisos"}
           {form.duracion ? ` · ${form.duracion} s` : ""}
         </p>
+        {para === "mixta" && isPair && (
+          <p className="rounded-2xl bg-white/5 p-3 text-sm text-muted">
+            En un trío de un hombre y dos mujeres puede salir: <b className="text-ink">Hombre → Mujer 1</b>, <b className="text-ink">Hombre → Mujer 2</b>,{" "}
+            <b className="text-ink">Mujer 1 → Hombre</b> o <b className="text-ink">Mujer 2 → Hombre</b>
+            {form.dirigida ? "" : " (los dos juntos)"}. Nunca entre las dos mujeres.
+          </p>
+        )}
       </Card>
 
       {tried && errors.length > 0 && (

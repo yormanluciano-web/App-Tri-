@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 — 2026-10-08
+- Editor de cartas: «Hombre y mujer» siempre visible. Explica que Persona 1, 2 y 3 no son jugadores fijos. Si falta la pareja en el texto, ofrece añadir «Persona 1 y Persona 2». La vista previa muestra a quién puede salir en un trío.
+- Prueba que fija el reparto: en un trío de un hombre y dos mujeres, el hombre se turna con ambas y en ambos sentidos.
+
 ## 0.9.0 — 2026-10-08
 - Panel de administración (Ajustes → Panel de administración): entrar con una llave de GitHub, crear y editar cartas con vista previa y validación, borrar cartas propias y ocultar o restaurar cartas base. Cada cambio se guarda en `src/data/custom/cartas.json` del repositorio y Vercel vuelve a publicar.
 - La llave solo vive en memoria mientras dura la sesión (el llavero del sistema puede autocompletarla); en el dispositivo solo queda el nombre del repositorio y la rama.

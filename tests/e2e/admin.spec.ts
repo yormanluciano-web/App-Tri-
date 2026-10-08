@@ -95,6 +95,14 @@ test("administración: una llave inválida no entra y el editor no publica carta
 
   await page.getByLabel("Llave de acceso de GitHub").fill("github_pat_prueba");
   await page.getByRole("button", { name: "Entrar como administrador" }).click();
+  // «Hombre y mujer» siempre visible; sin Persona 1 y 2 explica qué falta y ofrece añadirlas.
+  await page.getByLabel("Texto de la carta").fill("bailen una canción lenta muy juntos.");
+  await page.getByRole("radio", { name: /Hombre y mujer/ }).click();
+  await expect(page.getByText(/es de pareja: el texto debe nombrar a Persona 1 y Persona 2/)).toBeVisible();
+  await page.getByRole("button", { name: "Añadirlas al inicio" }).click();
+  await expect(page.getByLabel("Texto de la carta")).toHaveValue("{p1} y {p2}, bailen una canción lenta muy juntos.");
+  await expect(page.getByText(/Nunca entre las dos mujeres/)).toBeVisible();
+  await page.getByRole("radio", { name: /Cualquiera/ }).click();
   await page.getByLabel("Título").fill("Corta");
   await page.getByLabel("Texto de la carta").fill("{p1}, abraza a alguien del grupo.");
   await page.getByRole("checkbox", { name: /^Abrazo/ }).check();
