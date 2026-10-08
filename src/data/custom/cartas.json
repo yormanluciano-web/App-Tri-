@@ -102,6 +102,54 @@
         120
       ],
       "creada": "2026-10-08"
+    },
+    {
+      "id": "5e3ix2m4",
+      "nivel": "perverso",
+      "t": "Penetración no válida",
+      "x": "{p1} puede usar su boca, su lengua, sus manos o su miembro (si es hombre) para estimular y hacer mojar a {p2} , tienes 1 min",
+      "c": "retos",
+      "f": "reto",
+      "s": 95,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        60,
+        30,
+        120
+      ],
+      "mixta": true,
+      "creada": "2026-10-08"
     }
   ],
   "ocultas": [
