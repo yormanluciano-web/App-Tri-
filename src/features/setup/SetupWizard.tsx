@@ -19,6 +19,9 @@ import {
   type Light,
   type Permission,
   type Relationship,
+  GENDERS,
+  GENDER_LABEL,
+  type Gender,
 } from "@/domain/models/constants";
 import type { LimitProfile, Participant, Preferences, SessionConfig, StorageMode } from "@/domain/models/session";
 import { neutralSharedLimits, newLimitProfile } from "@/domain/consent/limits";
@@ -28,7 +31,7 @@ import { GAME_FORMATS } from "@/domain/engine/orchestrator";
 import { createSession, resolveInitialConsent } from "@/domain/state/session";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { useSession } from "@/stores/session";
-import { Button, Card, Chip, Icon, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
+import { Button, Card, Chip, Icon, cx, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
 import { GAME_ICON, LEVEL_ICON } from "@/components/ui/visuals";
 import { ConsentRound, PrivateRound, type Person } from "@/features/session/PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "./LimitsEditor";
@@ -40,6 +43,7 @@ interface Draft {
   id: string;
   alias: string;
   adult: boolean;
+  gender: Gender | null;
   limits: LimitProfile;
   prefs: Preferences;
   limitsDone: boolean;
@@ -49,7 +53,7 @@ const DEFAULT_PREFS: Preferences = { preferred: ["preguntas", "musica", "conexio
 const DURATIONS: (number | null)[] = [15, 30, 45, 60, null];
 
 function newDraft(): Draft {
-  return { id: randomId("u_"), alias: "", adult: false, limits: newLimitProfile(), prefs: { ...DEFAULT_PREFS, preferred: [...DEFAULT_PREFS.preferred] }, limitsDone: false };
+  return { id: randomId("u_"), alias: "", adult: false, gender: null, limits: newLimitProfile(), prefs: { ...DEFAULT_PREFS, preferred: [...DEFAULT_PREFS.preferred] }, limitsDone: false };
 }
 
 function trimAlias(a: string): string {
@@ -92,6 +96,7 @@ export function SetupWizard() {
     alias: trimAlias(d.alias),
     slot: i,
     adultDeclared: d.adult,
+    ...(d.gender ? { gender: d.gender } : {}),
     limits: d.limits,
     preferences: d.prefs,
   }));
@@ -140,7 +145,7 @@ export function SetupWizard() {
 
   const aliasesValid = active.every((d) => {
     const a = trimAlias(d.alias);
-    return a.length >= 1 && a.length <= 24 && d.adult;
+    return a.length >= 1 && a.length <= 24 && d.adult && d.gender !== null;
   });
   const filledAliases = active.map((d) => trimAlias(d.alias).toLowerCase()).filter(Boolean);
   const duplicateAliases = new Set(filledAliases).size < filledAliases.length;
@@ -247,7 +252,7 @@ export function SetupWizard() {
 
       {step === "aliases" && (
         <>
-          <Title sub="Solo un alias: sin correo, teléfono ni fecha de nacimiento.">¿Quiénes juegan?</Title>
+          <Title sub="Solo un alias y si es hombre o mujer (para las cartas de pareja hombre y mujer). Sin correo, teléfono ni fecha de nacimiento.">¿Quiénes juegan?</Title>
           <div className="space-y-4">
             {active.map((d, i) => (
               <Card key={d.id} className="space-y-3">
@@ -268,6 +273,26 @@ export function SetupWizard() {
                   />
                   {trimAlias(d.alias).length > 24 && <span className="text-sm text-bad">Máximo 24 caracteres.</span>}
                 </label>
+                <div role="radiogroup" aria-label={`Género de la persona ${i + 1}`} className="grid grid-cols-2 gap-2">
+                  {GENDERS.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      role="radio"
+                      aria-checked={d.gender === g}
+                      onClick={() => updateDraft(d.id, { gender: g })}
+                      className={cx(
+                        "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border px-4 text-base transition duration-200 active:scale-[0.97]",
+                        d.gender === g
+                          ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink shadow-[0_6px_20px_-8px_var(--glow)]"
+                          : "border-line bg-white/5 text-ink hover:bg-white/10",
+                      )}
+                    >
+                      {d.gender === g && <Icon name="check" className="size-4" />}
+                      {GENDER_LABEL[g]}
+                    </button>
+                  ))}
+                </div>
                 <Toggle checked={d.adult} onChange={(v) => updateDraft(d.id, { adult: v })} label="Declaro que soy mayor de 18 años" hint="Cada persona lo confirma por sí misma. No es una verificación documental." />
               </Card>
             ))}

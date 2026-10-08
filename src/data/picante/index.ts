@@ -7,6 +7,7 @@ import { picanteV2_05 } from "./v2-05";
 import { picanteV2_06 } from "./v2-06";
 import { picanteV2_07 } from "./v2-07";
 import { picanteV2_08 } from "./v2-08";
+import { picanteV2_09 } from "./v2-09";
 
 // Catálogo v2 del nivel picante. Añade aquí cada lote (archivos v2-NN.ts).
 export const picanteAll: Activity[] = [
@@ -18,4 +19,5 @@ export const picanteAll: Activity[] = [
   ...picanteV2_06,
   ...picanteV2_07,
   ...picanteV2_08,
+  ...picanteV2_09,
 ];

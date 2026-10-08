@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0 — 2026-10-08
+- Al registrar a cada persona se elige «Hombre» o «Mujer» (obligatorio).
+- Nuevo atributo de carta `mixta: true` («solo hombre y mujer»): el motor solo la asigna a una pareja de un hombre y una mujer, en cualquier orden; nunca a dos hombres, dos mujeres o alguien sin género registrado (sesiones antiguas).
+- 26 cartas nuevas «solo hombre y mujer» (6 Leve, 10 Picante, 10 Perverso). La demo usa a Ana (mujer) y Leo (hombre).
+
 ## 0.7.2 — 2026-10-08
 - La carta ya no se traba a mitad del giro: el reverso y el frente son dos piezas que giran por separado (el reverso sale acelerando y el frente entra frenando), sin `backface-visibility`, así que el teléfono no tiene que dibujar el frente justo a mitad del giro.
 - El logo del reverso ya no late dentro de la carta que gira, y enfocar el título de la carta no desplaza la pantalla.

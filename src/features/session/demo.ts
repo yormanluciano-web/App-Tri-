@@ -17,11 +17,16 @@ function demoPermissions(): Record<Permission, Light> {
  * (nada se guarda) y los juegos con más animación.
  */
 export function demoConfig(): SessionConfig {
-  const participants: Participant[] = ["Ana", "Leo"].map((alias, slot) => ({
+  const people = [
+    { alias: "Ana", gender: "mujer" as const },
+    { alias: "Leo", gender: "hombre" as const },
+  ];
+  const participants: Participant[] = people.map(({ alias, gender }, slot) => ({
     id: randomId("demo_"),
     alias,
     slot,
     adultDeclared: true,
+    gender,
     limits: { version: 1, permissions: demoPermissions(), pairOverrides: {} },
     preferences: { preferred: ["preguntas", "musica", "conexion"], avoided: [] },
   }));

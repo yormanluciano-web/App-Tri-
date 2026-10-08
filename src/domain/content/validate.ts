@@ -101,6 +101,7 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     if (new Set(a.roles).size !== a.roles.length) err(a.id, "roles repetidos");
     switch (a.tipoInteraccion) {
       case "solo":
+        if (a.parejaMixta) err(a.id, "parejaMixta solo vale para actividades de pareja ({p1} y {p2})");
         if (a.roles.join() !== "p1" || a.participantesMinimos !== 1 || a.participantesMaximos !== 1) err(a.id, "solo requiere rol p1 y 1 participante");
         break;
       case "pair":
@@ -108,6 +109,7 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
         if (a.roles.join() !== "p1,p2" || a.participantesMinimos !== 2 || a.participantesMaximos !== 2) err(a.id, "pareja requiere roles p1,p2 y 2 participantes");
         break;
       case "group":
+        if (a.parejaMixta) err(a.id, "parejaMixta solo vale para actividades de pareja ({p1} y {p2})");
         if (a.participantesMinimos < 2) err(a.id, "grupo requiere al menos 2 participantes");
         if (a.roles.length > Math.min(...a.sessionSizes)) err(a.id, "grupo con más roles que personas en la sesión mínima");
         break;
@@ -188,9 +190,9 @@ export const EDITORIAL_FAMILIES = [
 
 /** Meta editorial de lanzamiento por familia y nivel (plan maestro §11.1). */
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
-  leve: [80, 60, 35, 30, 30, 20, 25, 10],
-  picante: [80, 90, 40, 40, 80, 35, 8, 20],
-  perverso: [60, 100, 30, 30, 90, 40, 30, 20],
+  leve: [84, 60, 36, 31, 30, 20, 25, 10],
+  picante: [82, 95, 41, 42, 80, 35, 8, 20],
+  perverso: [60, 108, 30, 31, 90, 40, 31, 20],
 };
 
 /** Familia editorial de una actividad: cada carta cuenta una sola vez. */

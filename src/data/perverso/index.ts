@@ -7,6 +7,7 @@ import { perversoV2_05 } from "./v2-05";
 import { perversoV2_06 } from "./v2-06";
 import { perversoV2_07 } from "./v2-07";
 import { perversoV2_08 } from "./v2-08";
+import { perversoV2_09 } from "./v2-09";
 
 // Catálogo v2 del nivel perverso. Añade aquí cada lote (archivos v2-NN.ts).
 export const perversoAll: Activity[] = [
@@ -18,4 +19,5 @@ export const perversoAll: Activity[] = [
   ...perversoV2_06,
   ...perversoV2_07,
   ...perversoV2_08,
+  ...perversoV2_09,
 ];

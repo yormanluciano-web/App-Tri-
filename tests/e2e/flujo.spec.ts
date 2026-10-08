@@ -88,6 +88,11 @@ test("consentimiento inicial: si alguien no acepta no se empieza y no se señala
   await page.getByText("Declaro que soy mayor de 18 años").nth(0).click();
   await page.getByText("Declaro que soy mayor de 18 años").nth(1).click();
   await expect(page.getByText(/alias repetidos/)).toBeVisible();
+  // El género es obligatorio para continuar.
+  await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
+  await page.getByRole("radiogroup", { name: "Género de la persona 1" }).getByRole("radio", { name: "Mujer" }).click();
+  await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
+  await page.getByRole("radiogroup", { name: "Género de la persona 2" }).getByRole("radio", { name: "Hombre" }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Omitir" }).click();
   await page.getByRole("button", { name: /Responder \(pasando/ }).click();

@@ -47,6 +47,8 @@ export interface CardInput {
   cd?: number;
   eff?: SurpriseEffect;
   opts?: string[];
+  /** Solo entre un hombre y una mujer (en cualquier orden). Requiere {p1} y {p2}. */
+  mixta?: boolean;
   status?: Activity["editorialStatus"];
 }
 
@@ -125,6 +127,7 @@ export function defineCards(
       editorialStatus: c.status ?? "reviewed",
       ...(c.eff ? { effect: c.eff } : {}),
       ...(c.opts ? { opciones: c.opts } : {}),
+      ...(c.mixta ? { parejaMixta: true } : {}),
     } satisfies Activity;
   });
 }

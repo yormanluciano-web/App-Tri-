@@ -16,6 +16,7 @@ if (asJson) {
     console.log(`  juegos:     ${JSON.stringify(r.byGame[lvl])}`);
     console.log(`  tamaño:     ${JSON.stringify(r.bySessionSize[lvl])}`);
     console.log(`  contacto:   ${JSON.stringify(r.contact[lvl])}`);
+    console.log(`  solo hombre y mujer: ${ALL_ACTIVITIES.filter((a) => a.intensidad === lvl && a.parejaMixta).length}`);
     console.log(`  familias editoriales (actual / meta):`);
     EDITORIAL_FAMILIES.forEach((f, i) => console.log(`    ${f.padEnd(30)} ${String(r.byFamily[lvl][f]).padStart(4)} / ${EDITORIAL_TARGETS[lvl][i]}`));
   }

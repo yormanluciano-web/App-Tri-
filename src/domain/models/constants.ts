@@ -293,6 +293,11 @@ export type SessionDuration = (typeof DURATIONS_MIN)[number];
 
 export const TIMER_OPTIONS_SEC = [30, 60, 120, 180] as const;
 
+/** Género declarado al registrarse; solo se usa para las cartas «solo hombre y mujer». */
+export const GENDERS = ["hombre", "mujer"] as const;
+export type Gender = (typeof GENDERS)[number];
+export const GENDER_LABEL: Record<Gender, string> = { hombre: "Hombre", mujer: "Mujer" };
+
 export const RELATIONSHIPS = ["pareja", "amigos", "pareja_invitado", "otro"] as const;
 export type Relationship = (typeof RELATIONSHIPS)[number];
 

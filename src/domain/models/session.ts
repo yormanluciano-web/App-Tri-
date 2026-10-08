@@ -1,5 +1,6 @@
 import type {
   Category,
+  Gender,
   GameId,
   Intensity,
   Light,
@@ -29,6 +30,8 @@ export interface Participant {
   /** Índice de color/marcador visual; distingue alias repetidos. */
   slot: number;
   adultDeclared: boolean;
+  /** Ausente en sesiones antiguas: entonces nunca recibe cartas «solo hombre y mujer». */
+  gender?: Gender;
   limits: LimitProfile;
   preferences: Preferences;
 }

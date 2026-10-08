@@ -4,6 +4,8 @@ export interface SetupOptions {
   mode?: "normal" | "private";
   count?: 2 | 3;
   aliases?: string[];
+  /** Género de cada persona; por defecto alterna Mujer, Hombre, Mujer. */
+  genders?: ("Hombre" | "Mujer")[];
   level?: "Leve" | "Picante" | "Perverso";
   /** Juegos a seleccionar (etiquetas visibles). Se desmarcan los predeterminados. */
   games?: string[];
@@ -26,6 +28,8 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   for (let i = 0; i < count; i++) {
     await page.getByLabel(`Alias de la persona ${i + 1}`).fill(aliases[i]);
     await page.getByText("Declaro que soy mayor de 18 años").nth(i).click();
+    const gender = o.genders?.[i] ?? (i % 2 === 0 ? "Mujer" : "Hombre");
+    await page.getByRole("radiogroup", { name: `Género de la persona ${i + 1}` }).getByRole("radio", { name: gender }).click();
   }
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Omitir" }).click();

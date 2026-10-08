@@ -117,6 +117,12 @@ export function evaluateAssignment(activity: Activity, assignment: Assignment, c
     return { ok: false, reason: "invalid" };
   }
   if (!activity.sessionSizes.includes(all.length as 2 | 3)) return { ok: false, reason: "invalid" };
+  // «Solo hombre y mujer»: los dos roles con géneros distintos y conocidos (falla cerrada).
+  if (activity.parejaMixta) {
+    const g1 = ctx.participants.find((p) => p.id === assignment.p1)?.gender;
+    const g2 = ctx.participants.find((p) => p.id === assignment.p2)?.gender;
+    if (activity.roles.join() !== "p1,p2" || !g1 || !g2 || g1 === g2) return { ok: false, reason: "invalid" };
+  }
 
   const askees = new Set<ParticipantId>();
   const check = (light: Light, who: ParticipantId[]): boolean => {

@@ -3,6 +3,7 @@ import type { Activity } from "@/domain/models/activity";
 import {
   CATEGORIES,
   GAMES,
+  GENDERS,
   INTENSITIES,
   LIGHTS,
   PERMISSIONS,
@@ -27,6 +28,7 @@ const participantSchema = z.object({
   alias: z.string().trim().min(1).max(24),
   slot: z.number().int().min(0).max(2),
   adultDeclared: z.literal(true),
+  gender: z.enum(GENDERS).optional(),
   limits: z.object({
     version: z.number().int().min(1),
     permissions: permMap,
@@ -166,6 +168,7 @@ export function toPersisted(state: SessionState, now: number): PersistedSession 
         alias: p.alias,
         slot: p.slot,
         adultDeclared: true as const,
+        ...(p.gender ? { gender: p.gender } : {}),
         limits: {
           version: p.limits.version,
           permissions: { ...p.limits.permissions },

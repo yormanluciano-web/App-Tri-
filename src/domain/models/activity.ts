@@ -65,6 +65,8 @@ export const activitySchema = z.object({
   locale: z.literal("es"),
   editorialStatus: z.enum(["draft", "reviewed", "disabled"]),
   effect: z.enum(SURPRISE_EFFECTS).optional(),
+  /** Solo para una pareja hombre y mujer (en cualquier orden). Exige tipo pareja. */
+  parejaMixta: z.boolean().optional(),
   /** Opciones cerradas para «Quién me conoce mejor» (coincidencia exacta normalizada). */
   opciones: z.array(z.string().trim().min(1).max(40)).min(2).max(6).optional(),
 });
