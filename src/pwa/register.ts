@@ -91,3 +91,53 @@ export function applyUpdate(): void {
   });
   waitingWorker.postMessage({ type: "SKIP_WAITING" });
 }
+
+export type UpdateCheck = "update" | "none" | "offline" | "unsupported";
+
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
+}
+
+/**
+ * Busca ahora mismo una versión nueva de la app. Devuelve «update» si hay una
+ * descargada esperando a aplicarse. Sin conexión o sin service worker (desarrollo)
+ * no se puede comprobar: la app debe seguir funcionando sin red.
+ */
+export async function checkForUpdate(timeoutMs = 10_000): Promise<UpdateCheck> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator) || status === "dev" || status === "unsupported") return "unsupported";
+  if (updateWaiting) return "update";
+  if (!navigator.onLine) return "offline";
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return "unsupported";
+  const checked = await withTimeout(
+    reg.update().then(
+      () => true,
+      () => false,
+    ),
+    timeoutMs,
+    false,
+  );
+  if (!checked) return "offline";
+  // Si encontró una versión nueva, esperar a que termine de descargarse.
+  const installing = reg.installing;
+  if (installing) {
+    await withTimeout(
+      new Promise<void>((resolve) => {
+        const done = () => {
+          if (installing.state === "installed" || installing.state === "redundant" || installing.state === "activated") resolve();
+        };
+        installing.addEventListener("statechange", done);
+        done();
+      }),
+      timeoutMs,
+      undefined,
+    );
+  }
+  if (reg.waiting && navigator.serviceWorker.controller) {
+    waitingWorker = reg.waiting;
+    updateWaiting = true;
+    emit();
+    return "update";
+  }
+  return "none";
+}

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.1 — 2026-10-08
+- **Comprobación de actualización antes de empezar**: «Nueva sesión», «Ver demo», «Nueva sesión» al terminar y «Probar» del panel buscan primero una versión nueva («Buscando actualizaciones…»). Si la hay, aparece «Hay una versión nueva» y no se puede empezar hasta tocar «Actualizar ahora»; la app se recarga y ya deja empezar. Sin conexión no se puede comprobar y se deja jugar (la app funciona sin red).
+
 ## 1.3.0 — 2026-10-08
 - **Editar las cartas originales** desde el panel (Cartas → Originales → Editar). Se usa el mismo editor que en tus cartas; tu versión se guarda en `cartas.json` (`ediciones`) y el original sigue en el código. Las cartas editadas llevan la etiqueta «Editada», se pueden filtrar en «Editadas» y tienen el botón «Volver al original».
 - Probado con las 1.083 cartas originales: todas se pueden pasar por el editor y siguen siendo válidas, sin pedir nunca menos permisos que el original.

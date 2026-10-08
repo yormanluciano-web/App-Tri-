@@ -10,6 +10,7 @@ import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { OfflineBadge } from "./OfflineBadge";
 import { InstallButton } from "./InstallPanel";
 import { demoConfig } from "./demo";
+import { useStartGate } from "@/pwa/StartGate";
 
 export function Home() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export function Home() {
   const startSession = useSession((s) => s.startSession);
   const initialConsent = useSession((s) => s.initialConsent);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  // Antes de empezar, comprobar que no haya una versión nueva pendiente.
+  const { guard, checking, gate } = useStartGate();
 
   const activeInMemory = !!session && session.status !== "finished" && session.status !== "setup";
   const canContinue = activeInMemory || recoverable?.kind === "found";
@@ -53,9 +56,9 @@ export function Home() {
         <CardFan />
 
         <nav aria-label="Principal" className="space-y-3 animate-in">
-          <LinkButton href="/crear/" block size="xl" icon="flame" className="pulse-glow">
+          <Button block size="xl" icon="flame" className="pulse-glow" disabled={checking} onClick={() => guard(() => router.push("/crear/"))}>
             Nueva sesión
-          </LinkButton>
+          </Button>
           <Button variant="secondary" size="lg" icon="play" block disabled={!hydrated || !canContinue} onClick={() => void onContinue()}>
             Continuar sesión
           </Button>
@@ -78,7 +81,7 @@ export function Home() {
             </Notice>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="ghost" icon="sparkle" onClick={onDemo}>
+            <Button variant="ghost" icon="sparkle" disabled={checking} onClick={() => guard(onDemo)}>
               Ver demo
             </Button>
             <LinkButton href="/ayuda/" variant="ghost" icon="help">
@@ -112,6 +115,7 @@ export function Home() {
         </div>
       </footer>
 
+      {gate}
       <Dialog open={confirmDiscard} title="¿Descartar la sesión guardada?" onClose={() => setConfirmDiscard(false)}>
         <p className="text-muted">Se eliminará de este dispositivo y no se podrá recuperar.</p>
         <div className="grid grid-cols-2 gap-3">

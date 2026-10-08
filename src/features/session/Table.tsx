@@ -18,6 +18,7 @@ import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression
 import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
+import { useStartGate } from "@/pwa/StartGate";
 import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
@@ -512,6 +513,7 @@ function Blocked({ session }: { session: SessionState }) {
 function Closing({ session }: { session: SessionState }) {
   const router = useRouter();
   const [show, setShow] = useState(false);
+  const { guard, checking, gate } = useStartGate();
   const updateReady = useSession((s) => s.updateReady);
   const completed = Object.values(session.stats.completed).reduce((a, b) => a + b, 0);
   return (
@@ -553,9 +555,10 @@ function Closing({ session }: { session: SessionState }) {
           Aplicar actualización
         </Button>
       )}
-      <Button size="lg" icon="flame" className="pulse-glow" onClick={() => router.push("/crear/")}>
+      <Button size="lg" icon="flame" className="pulse-glow" disabled={checking} onClick={() => guard(() => router.push("/crear/"))}>
         Nueva sesión
       </Button>
+      {gate}
       <LinkButton href="/" variant="ghost">
         Salir
       </LinkButton>

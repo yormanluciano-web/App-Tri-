@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GAMES, GAME_DESCRIPTION, GAME_LABEL, INTENSITIES, INTENSITY_LABEL, MINI_GAMES, type GameId, type Intensity } from "@/domain/models/constants";
 import { useSession } from "@/stores/session";
 import { testConfig } from "@/features/session/demo";
+import { useStartGate } from "@/pwa/StartGate";
 import { Button, Card, Chip, Dialog, GameEmblem, Notice, Title, cx } from "@/components/ui";
 
 /**
@@ -19,6 +20,7 @@ export function GameTester() {
   const [level, setLevel] = useState<Intensity>("picante");
   const [count, setCount] = useState<2 | 3>(3);
   const [pending, setPending] = useState<GameId | null>(null);
+  const { guard, checking, gate } = useStartGate();
 
   const realSessionActive = !!session && !session.config.prueba && session.status !== "finished" && session.status !== "setup";
 
@@ -60,7 +62,8 @@ export function GameTester() {
           <button
             key={g}
             type="button"
-            onClick={() => (realSessionActive ? setPending(g) : start(g))}
+            disabled={checking}
+            onClick={() => (realSessionActive ? setPending(g) : guard(() => start(g)))}
             className="glass flex w-full items-center gap-4 rounded-3xl p-4 text-left transition active:scale-[0.98] hover:bg-white/5"
           >
             <GameEmblem theme={g} className="size-12 shrink-0" />
@@ -79,6 +82,7 @@ export function GameTester() {
       </div>
       <Notice>Las rondas especiales salen cada 6 rondas: para verlas, prueba «Tarjetas» y juega 6 cartas.</Notice>
 
+      {gate}
       <Dialog open={!!pending} title="Hay una sesión en curso" onClose={() => setPending(null)}>
         <p className="text-muted">Al probar un juego se cerrará la sesión que está abierta en este teléfono.</p>
         <div className="grid grid-cols-2 gap-3">
@@ -90,7 +94,7 @@ export function GameTester() {
             onClick={() => {
               const g = pending;
               setPending(null);
-              if (g) start(g);
+              if (g) guard(() => start(g));
             }}
           >
             Probar igual
