@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2 — 2026-10-08
+- **Torre del deseo**: ahora se sacan bloques por turnos («Turno de Ana: saca un bloque») sin que salga carta. La torre se sacude con cada bloque y tiembla más; cuando alguien la tumba, se inclina y se desploma, y la carta es para esa persona. El color del bloque que la tumbó decide verdad, reto o comodín. Luego se vuelve a armar.
+- **Rasca y descubre**: corregido. La capa dorada se medía mientras la carta giraba al aparecer y quedaba en franjas transparentes que dejaban leer la carta. Ahora mide el tamaño real y es opaca desde el primer instante.
+- **La botella**: la giras tú (botón, tocarla o deslizarla). El giro dura 5,5 s, con 7 a 9 vueltas y un frenado lento; al detenerse se ilumina a quién apunta («¡Le toca a…!») y después sale la carta.
+
 ## 1.2.1 — 2026-10-08
 - Panel de administración: pestaña **Probar** para entrar directo a cualquier juego (incluidos los minijuegos, Noche completa y Caos) eligiendo nivel y 2 o 3 jugadores, sin crear sesión. Usa personas ficticias que aceptan todo y nada se guarda; los juegos nuevos aparecen solos en la lista.
 - En la mesa, el modo prueba muestra «Volver al panel» y el panel vuelve a la misma pestaña. La etiqueta Demo/Prueba pasa a la segunda línea de la barra para no chocar con «Pausa».

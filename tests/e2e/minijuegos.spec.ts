@@ -1,23 +1,36 @@
 import { expect, test } from "@playwright/test";
 import { settle, setupSession } from "./helpers";
 
-test("Torre del deseo: sacar un bloque reparte una carta y el bloque queda fuera", async ({ page }) => {
+/** Saca dos bloques laterales de la capa de abajo: la capa queda sobre uno solo y la torre cae seguro. */
+async function toppleTower(page: import("@playwright/test").Page) {
+  const blocks = page.locator(".tower-block");
+  await blocks.nth(15).click();
+  await expect(page.getByRole("group", { name: /quedan 17 bloques/ })).toBeVisible();
+  await blocks.nth(16).click();
+}
+
+test("Torre del deseo: se sacan bloques por turnos sin carta; quien tumba la torre recibe la carta", async ({ page }) => {
   await setupSession(page, { mode: "private", games: ["Torre del deseo"], accept: "todo" });
   await expect(page.getByRole("group", { name: /quedan 18 bloques/ })).toBeVisible();
-  await page.getByRole("button", { name: /Bloque verdad de la capa 1/ }).first().click();
+  await expect(page.getByText(/Turno de/)).toContainText("Ana");
+  await toppleTower(page);
+  // El primer bloque no dio carta y pasó el turno; el segundo tumbó la torre (turno de Leo).
+  await expect(page.getByText("¡Leo tumbó la torre!").first()).toBeVisible();
   await expect(page.getByTestId("activity-text")).toBeVisible();
   await settle(page);
   await page.getByRole("button", { name: "Cumplido" }).click();
-  await expect(page.getByRole("group", { name: /quedan 17 bloques|quedan 18 bloques/ })).toBeVisible();
+  // La torre se vuelve a armar completa.
+  await expect(page.getByRole("group", { name: /quedan 18 bloques/ })).toBeVisible();
 });
 
 test("La botella: gira y muestra una carta compatible", async ({ page }) => {
   await setupSession(page, { mode: "private", count: 3, games: ["La botella"], accept: "todo" });
-  await page.getByRole("button", { name: /Girar la botella/ }).click();
+  await expect(page.getByText(/Toca la botella o deslízala/)).toBeVisible();
+  await page.getByRole("button", { name: "¡Girar la botella!" }).click();
   await expect(page.getByTestId("activity-text")).toBeVisible();
   await settle(page);
   await page.getByRole("button", { name: "Cumplido" }).click();
-  await expect(page.getByRole("button", { name: /Girar la botella/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "¡Girar la botella!" })).toBeVisible();
 });
 
 test("Rasca y descubre: la carta está cubierta hasta rasparla o descubrirla", async ({ page }) => {
@@ -44,7 +57,7 @@ test("Ronda especial: aparece cada 6 rondas y luego se vuelve al juego anterior"
   await expect(banner).toBeVisible();
   await expect(banner).toContainText("Torre del deseo");
   await banner.getByRole("button", { name: "¡A jugar!" }).click();
-  await page.getByRole("button", { name: /Bloque reto de la capa 1/ }).first().click();
+  await toppleTower(page);
   await expect(page.getByTestId("activity-text")).toBeVisible();
   await settle(page);
   await page.getByRole("button", { name: "Cumplido" }).click();

@@ -174,8 +174,9 @@ test("administración: «Probar» abre cualquier juego directo y se vuelve al pa
   await expect(page.getByText("Prueba", { exact: true })).toBeVisible();
   await expect(page.locator("header").first()).toContainText("Perverso");
   await expect(page.getByRole("group", { name: /Torre del deseo/ })).toBeVisible();
-  await page.getByRole("button", { name: /Bloque reto de la capa 1/ }).first().click();
-  await expect(page.getByTestId("activity-text")).toBeVisible();
+  await page.locator(".tower-block").nth(15).click();
+  await expect(page.getByRole("group", { name: /quedan 17 bloques/ })).toBeVisible();
+  await expect(page.getByTestId("activity-text")).toHaveCount(0);
   // Volver al panel sin volver a entrar, en la misma pestaña.
   await page.getByRole("link", { name: "Volver al panel" }).click();
   await expect(page.getByRole("tab", { name: "Probar" })).toHaveAttribute("aria-selected", "true");

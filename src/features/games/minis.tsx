@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { create } from "zustand";
 import type { Activity } from "@/domain/models/activity";
 import { GAME_LABEL, MINI_GAMES, PARTICIPANT_COLORS, type Format, type GameId } from "@/domain/models/constants";
 import type { SessionState, Turn } from "@/domain/models/session";
 import { useSession } from "@/stores/session";
-import { Card, GameEmblem, Notice, cx } from "@/components/ui";
+import { GameEmblem, Notice, ParticipantTag, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle } from "@/components/ui/visuals";
 import { ActionBar, ActivityCard, TimerControl, peopleOf } from "./common";
 
@@ -27,6 +27,10 @@ interface MiniState {
   pulled: number[];
   /** La última carta de la torre vino de un derrumbe. */
   collapsed: boolean;
+  /** Turno dentro de la torre: índice de la persona que saca el próximo bloque. */
+  puller: number;
+  /** Quién tumbó la torre (para mostrarlo con la carta). */
+  toppledBy: string | null;
   /** Ronda especial en curso: a qué juego volver y desde qué ronda. */
   special: { returnTo: GameId; atTurn: number } | null;
   /** Ronda en la que se dijo «Ahora no» a la ronda especial. */
@@ -40,10 +44,12 @@ export const useMinis = create<MiniState>((set) => ({
   sessionId: null,
   pulled: [],
   collapsed: false,
+  puller: 0,
+  toppledBy: null,
   special: null,
   dismissedAt: null,
   reset(sessionId) {
-    set({ sessionId, pulled: [], collapsed: false, special: null, dismissedAt: null });
+    set({ sessionId, pulled: [], collapsed: false, puller: 0, toppledBy: null, special: null, dismissedAt: null });
   },
   set(p) {
     set(p);
@@ -136,50 +142,75 @@ export function blockKind(i: number): BlockKind {
 }
 
 /**
- * Probabilidad de que la torre caiga al sacar un bloque: crece con los bloques
- * ya sacados y es segura si una capa queda sostenida por un solo bloque lateral.
+ * Probabilidad de que la torre caiga al sacar un bloque: empieza en cero, crece
+ * con cada bloque sacado y es segura si una capa queda sostenida por un solo
+ * bloque lateral. En promedio cae entre el 7.º y el 11.º bloque.
  */
 export function collapseChance(pulledBefore: readonly number[], next: number): number {
   const pulled = [...pulledBefore, next];
   const layer = Math.floor(next / PER_LAYER);
   const left = [0, 1, 2].filter((k) => !pulled.includes(layer * PER_LAYER + k));
   if (left.length === 0 || (left.length === 1 && left[0] !== 1)) return 1;
-  return Math.min(0.6, Math.max(0, pulled.length - 4) * 0.06);
+  return Math.min(0.55, Math.max(0, pulled.length - 3) * 0.05);
 }
 
+/**
+ * Torre del deseo: se sacan bloques por turnos, sin cartas. Cuando alguien
+ * tumba la torre, le toca una carta a esa persona y el color del bloque que la
+ * tumbó decide si es verdad, reto o comodín.
+ */
 export function TowerLauncher({ session }: { session: SessionState }) {
   useMinisFor(session);
   const draw = useSession((s) => s.draw);
+  const setPending = useSession((s) => s.setPending);
   const pulled = useMinis((s) => s.pulled);
+  const puller = useMinis((s) => s.puller);
   const set = useMinis((s) => s.set);
   const [moving, setMoving] = useState<number | null>(null);
   const [falling, setFalling] = useState(false);
+  const [shake, setShake] = useState(false);
   const busy = moving !== null || falling;
-  const risk = Math.min(1, pulled.length / 12);
+  const risk = Math.min(1, pulled.length / 10);
+  const people = peopleOf(session);
+  const current = people[puller % people.length];
 
   const pull = async (i: number) => {
     if (busy || pulled.includes(i)) return;
     setMoving(i);
-    await wait(520);
+    await wait(650);
     const falls = Math.random() < collapseChance(pulled, i);
-    if (falls) {
-      setFalling(true);
-      await wait(1100);
-      set({ pulled: [], collapsed: true });
-      setFalling(false);
+    if (!falls) {
+      // Sobrevivió: sacudida breve y turno de la siguiente persona.
+      set({ pulled: [...pulled, i], puller: puller + 1, collapsed: false });
       setMoving(null);
-      draw({ game: "torre", strictGame: true, formats: ["reto"] });
+      setShake(true);
+      await wait(450);
+      setShake(false);
       return;
     }
-    set({ pulled: [...pulled, i], collapsed: false });
+    setFalling(true);
+    await wait(1500);
+    set({ pulled: [], collapsed: true, toppledBy: current.alias, puller: puller + 1 });
+    setFalling(false);
     setMoving(null);
     const kind = blockKind(i);
     const formats: readonly Format[] | undefined = kind === "verdad" ? ["pregunta"] : kind === "reto" ? ["reto"] : undefined;
+    // La carta es para quien tumbó la torre (si no hay una compatible, el motor elige a otra persona).
+    setPending({ forcedProtagonist: current.id });
     draw({ game: "torre", strictGame: true, formats });
   };
 
   return (
     <div className="space-y-4">
+      <p className="text-center text-lg" aria-live="polite">
+        {falling ? (
+          <span className="font-display text-2xl font-semibold italic text-gradient">¡{current.alias} tumbó la torre!</span>
+        ) : (
+          <>
+            Turno de <ParticipantTag alias={current.alias} slot={current.slot} />: saca un bloque
+          </>
+        )}
+      </p>
       <div className="flex justify-center gap-3 text-xs font-semibold uppercase tracking-widest" aria-hidden>
         {(Object.keys(BLOCK_COLOR) as BlockKind[]).map((k) => (
           <span key={k} className="flex items-center gap-1.5 text-muted">
@@ -190,8 +221,8 @@ export function TowerLauncher({ session }: { session: SessionState }) {
       </div>
       <div className="scene-3d flex justify-center py-2">
         <div
-          className={cx("tower", falling && "tower-fall", !falling && risk > 0.3 && "tower-wobble")}
-          style={{ ["--wobble" as string]: `${0.6 + risk * 1.8}deg` }}
+          className={cx("tower", falling && "tower-fall", !falling && shake && "tower-shake", !falling && !shake && risk > 0.25 && "tower-wobble")}
+          style={{ ["--wobble" as string]: `${0.5 + risk * 2.2}deg` }}
           role="group"
           aria-label={`Torre del deseo: quedan ${TOTAL - pulled.length} bloques`}
         >
@@ -215,9 +246,9 @@ export function TowerLauncher({ session }: { session: SessionState }) {
                       className={cx("tower-block", gone && "gone", moving === i && "pulling")}
                       style={{
                         background: `linear-gradient(160deg, rgba(255,255,255,0.35), transparent 45%), linear-gradient(135deg, ${c.from}, ${c.to})`,
-                        ["--fall-x" as string]: `${(k - 1) * 70 + (layer % 3) * 13 - 13}px`,
-                        ["--fall-r" as string]: `${(k - 1) * 40 + layer * 9 - 20}deg`,
-                        ["--fall-d" as string]: `${(LAYERS - layer) * 40}ms`,
+                        ["--fall-x" as string]: `${(k - 1) * 80 + (layer % 3) * 17 - 17}px`,
+                        ["--fall-r" as string]: `${(k - 1) * 55 + layer * 13 - 30}deg`,
+                        ["--fall-d" as string]: `${(LAYERS - layer) * 70}ms`,
                       }}
                     >
                       {kind === "comodin" && <span aria-hidden>★</span>}
@@ -230,21 +261,24 @@ export function TowerLauncher({ session }: { session: SessionState }) {
           <div className="tower-base" aria-hidden />
         </div>
       </div>
-      <p className="text-center text-sm text-muted" aria-live="polite">
-        {falling ? "¡La torre se cae!" : pulled.length === 0 ? "Toca un bloque para sacarlo." : `Bloques fuera: ${pulled.length}. Cada vez tiembla más…`}
+      <p className="text-center text-sm text-muted">
+        {pulled.length === 0
+          ? "Saquen bloques por turnos. A quien tumbe la torre le toca carta: el color del bloque decide verdad, reto o comodín."
+          : `Bloques fuera: ${pulled.length}. La torre tiembla cada vez más…`}
       </p>
     </div>
   );
 }
 
-/** Carta de la torre: igual que una estándar, con aviso si vino de un derrumbe. */
+/** Carta de la torre: igual que una estándar, con aviso de quién la tumbó. */
 export function TowerRound({ session, turn, activity }: { session: SessionState; turn: Turn; activity: Activity }) {
   const collapsed = useMinis((s) => s.collapsed);
+  const toppledBy = useMinis((s) => s.toppledBy);
   return (
     <>
       {collapsed && (
         <p className="text-center font-display text-2xl font-semibold italic text-gradient animate-pop" role="status">
-          ¡La torre se cayó!
+          {toppledBy ? `¡${toppledBy} tumbó la torre!` : "¡La torre se cayó!"}
         </p>
       )}
       <ActivityCard session={session} turn={turn} activity={activity}>
@@ -262,22 +296,142 @@ export function seatAngle(index: number, count: number): number {
   return (360 / count) * index;
 }
 
+/** Duración del giro: largo, con frenado lento para dar suspenso. */
+export const BOTTLE_SPIN_MS = 5500;
+
+type Seat = { id: string; alias: string; slot: number };
+
+/** Mesa con los jugadores en círculo y la botella al centro. */
+function BottleScene({
+  people,
+  rotation,
+  spinning,
+  highlight,
+  onSpin,
+}: {
+  people: Seat[];
+  rotation: { from: number; to: number } | null;
+  spinning: boolean;
+  highlight: string | null;
+  onSpin?: () => void;
+}) {
+  const start = useRef<{ x: number; y: number } | null>(null);
+  return (
+    <div className="relative mx-auto size-72" style={themeStyle("botella")}>
+      <div className="absolute inset-4 rounded-full border border-[#2dd4bf]/25 bg-[radial-gradient(circle,rgba(45,212,191,0.2),transparent_70%)]" aria-hidden />
+      {people.map((p, i) => {
+        const a = (seatAngle(i, people.length) - 90) * (Math.PI / 180);
+        const lit = highlight === p.id;
+        return (
+          <span
+            key={p.id}
+            className={cx(
+              "absolute flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full font-display text-xl font-semibold italic text-[#1a0612] transition duration-500",
+              lit && "scale-125 ring-4 ring-gold animate-pop",
+              highlight && !lit && "opacity-50",
+            )}
+            style={{
+              left: `${50 + 42 * Math.cos(a)}%`,
+              top: `${50 + 42 * Math.sin(a)}%`,
+              background: `radial-gradient(circle at 30% 30%, #fff8, ${PARTICIPANT_COLORS[p.slot]})`,
+              boxShadow: `0 0 ${lit ? 40 : 24}px ${PARTICIPANT_COLORS[p.slot]}${lit ? "" : "99"}`,
+            }}
+            aria-hidden
+          >
+            {p.alias.charAt(0).toUpperCase()}
+          </span>
+        );
+      })}
+      <button
+        type="button"
+        aria-label="Girar la botella"
+        disabled={!onSpin}
+        onClick={() => onSpin?.()}
+        onPointerDown={(e) => (start.current = { x: e.clientX, y: e.clientY })}
+        onPointerUp={(e) => {
+          // Un deslizamiento sobre la botella también la hace girar.
+          const s0 = start.current;
+          start.current = null;
+          if (s0 && onSpin && Math.hypot(e.clientX - s0.x, e.clientY - s0.y) > 24) onSpin();
+        }}
+        className="absolute inset-0 m-auto size-44 touch-none rounded-full disabled:cursor-default"
+        data-no-tilt
+      >
+        <svg
+          viewBox="-50 -50 100 100"
+          className={cx("size-full", spinning && "bottle-spin")}
+          style={
+            rotation
+              ? ({ ["--spin-from" as string]: `${rotation.from}deg`, ["--spin-to" as string]: `${rotation.to}deg`, transform: spinning ? undefined : `rotate(${rotation.to}deg)` } as CSSProperties)
+              : { transform: "rotate(-24deg)" }
+          }
+          aria-hidden
+        >
+          <defs>
+            <linearGradient id="bottle-glass" x1="0" x2="1">
+              <stop offset="0" stopColor="#0f766e" />
+              <stop offset="0.45" stopColor="#5eead4" />
+              <stop offset="1" stopColor="#115e59" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="2" cy="4" rx="13" ry="40" fill="#000" opacity="0.25" />
+          <path d="M-3.5 -46 h7 v14 l7 12 v48 a5 5 0 0 1 -5 5 h-11 a5 5 0 0 1 -5 -5 v-48 l7 -12 z" fill="url(#bottle-glass)" stroke="#ccfbf1" strokeOpacity="0.6" strokeWidth="1.2" />
+          <rect x="-4.5" y="-49" width="9" height="5" rx="1.5" fill="#f5c76b" />
+          <path d="M-6 -10 v30" stroke="#fff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
+          <rect x="-8.5" y="2" width="17" height="14" rx="2" fill="#f5c76b" opacity="0.9" />
+          <text x="0" y="12" textAnchor="middle" fontSize="6" fontWeight="700" fill="#5b1a2c">
+            ♥
+          </text>
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+/** Lanzador: la botella quieta en la mesa; la giras tú (tocándola, deslizando o con el botón). */
+export function BottleLauncher({ session }: { session: SessionState }) {
+  const draw = useSession((s) => s.draw);
+  const people = peopleOf(session);
+  const spin = () => draw({ game: "botella", strictGame: true });
+  return (
+    <div className="space-y-4">
+      <BottleScene people={people} rotation={null} spinning={false} highlight={null} onSpin={spin} />
+      <p className="text-center text-sm text-muted">Toca la botella o deslízala con el dedo para girarla.</p>
+      <div className="deck" style={themeStyle("botella")}>
+        <button type="button" onClick={spin} className="deck-face w-full px-5 py-4 font-display text-2xl font-semibold italic">
+          ¡Girar la botella!
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Giro: la carta ya está validada (la pareja ya es compatible); la botella solo
+ * lo representa, con un giro largo y frenado lento para dar suspenso.
+ */
 export function BottleRound({ session, turn, activity }: { session: SessionState; turn: Turn; activity: Activity }) {
   const people = peopleOf(session);
-  const [done, setDone] = useState(false);
+  const [phase, setPhase] = useState<"spinning" | "landed" | "done">("spinning");
   const target = turn.assignment.p2 ?? turn.protagonist ?? turn.assignment.p1 ?? people[0].id;
   const from = turn.assignment.p2 ? turn.assignment.p1 : null;
   const targetIndex = Math.max(0, people.findIndex((p) => p.id === target));
-  // Pequeña variación estable por turno para que no se detenga siempre igual.
-  const jitter = useMemo(() => ([...turn.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7) % 17) - 8, [turn.id]);
-  const spinTo = 360 * 4 + seatAngle(targetIndex, people.length) + jitter;
+  // Variación estable por turno: cuántas vueltas y dónde exactamente se detiene.
+  const seed = useMemo(() => [...turn.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 9973, 7), [turn.id]);
+  const turns = 7 + (seed % 3);
+  const rotation = { from: -24, to: 360 * turns + seatAngle(targetIndex, people.length) + ((seed % 17) - 8) };
 
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), reducedMotion() ? 50 : 2300);
-    return () => clearTimeout(t);
+    const fast = reducedMotion();
+    const t1 = setTimeout(() => setPhase("landed"), fast ? 30 : BOTTLE_SPIN_MS);
+    const t2 = setTimeout(() => setPhase("done"), fast ? 60 : BOTTLE_SPIN_MS + 1400);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
-  if (done)
+  if (phase === "done")
     return (
       <>
         <ActivityCard session={session} turn={turn} activity={activity}>
@@ -287,48 +441,20 @@ export function BottleRound({ session, turn, activity }: { session: SessionState
       </>
     );
   const fromP = people.find((p) => p.id === from);
+  const targetP = people[targetIndex];
   return (
-    <Card glow className="flex flex-col items-center gap-3 overflow-hidden" >
-      <p className="font-display text-xl italic text-muted" aria-live="polite">
-        {fromP ? `${fromP.alias} gira la botella…` : "La botella gira…"}
+    <div className="flex flex-1 flex-col justify-center gap-4">
+      <p className="text-center font-display text-2xl italic" aria-live="polite">
+        {phase === "landed" ? (
+          <span className="text-gradient animate-pop">¡Le toca a {targetP.alias}!</span>
+        ) : fromP ? (
+          `${fromP.alias} gira la botella…`
+        ) : (
+          "La botella gira…"
+        )}
       </p>
-      <div className="relative size-72" style={themeStyle("botella")}>
-        <div className="absolute inset-6 rounded-full bg-[radial-gradient(circle,rgba(45,212,191,0.18),transparent_70%)]" aria-hidden />
-        {people.map((p, i) => {
-          const a = (seatAngle(i, people.length) - 90) * (Math.PI / 180);
-          return (
-            <span
-              key={p.id}
-              className="absolute flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full font-display text-xl font-semibold italic text-[#1a0612]"
-              style={{
-                left: `${50 + 42 * Math.cos(a)}%`,
-                top: `${50 + 42 * Math.sin(a)}%`,
-                background: `radial-gradient(circle at 30% 30%, #fff8, ${PARTICIPANT_COLORS[p.slot]})`,
-                boxShadow: `0 0 24px ${PARTICIPANT_COLORS[p.slot]}99`,
-              }}
-            >
-              {p.alias.charAt(0).toUpperCase()}
-            </span>
-          );
-        })}
-        <svg viewBox="-50 -50 100 100" className="bottle-spin absolute inset-0 m-auto size-44" style={{ ["--spin-to" as string]: `${spinTo}deg` }} aria-hidden>
-          <defs>
-            <linearGradient id="bottle-glass" x1="0" x2="1">
-              <stop offset="0" stopColor="#0f766e" />
-              <stop offset="0.45" stopColor="#5eead4" />
-              <stop offset="1" stopColor="#115e59" />
-            </linearGradient>
-          </defs>
-          <path d="M-3.5 -46 h7 v14 l7 12 v48 a5 5 0 0 1 -5 5 h-11 a5 5 0 0 1 -5 -5 v-48 l7 -12 z" fill="url(#bottle-glass)" stroke="#ccfbf1" strokeOpacity="0.6" strokeWidth="1.2" />
-          <rect x="-4.5" y="-49" width="9" height="5" rx="1.5" fill="#f5c76b" />
-          <path d="M-6 -10 v30" stroke="#fff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
-          <rect x="-8.5" y="2" width="17" height="14" rx="2" fill="#f5c76b" opacity="0.9" />
-          <text x="0" y="12" textAnchor="middle" fontSize="6" fontWeight="700" fill="#5b1a2c">
-            ♥
-          </text>
-        </svg>
-      </div>
-    </Card>
+      <BottleScene people={people} rotation={rotation} spinning={phase === "spinning"} highlight={phase === "landed" ? targetP.id : null} />
+    </div>
   );
 }
 
@@ -344,42 +470,61 @@ export function ScratchCover({ onReveal }: { onReveal: () => void }) {
   const last = useRef<{ x: number; y: number } | null>(null);
   const [fading, setFading] = useState(false);
 
+  const [painted, setPainted] = useState(false);
+
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.max(1, Math.round(rect.width * dpr));
-    canvas.height = Math.max(1, Math.round(rect.height * dpr));
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    const g = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    g.addColorStop(0, "#b8862e");
-    g.addColorStop(0.35, "#fff1c9");
-    g.addColorStop(0.6, "#f5c76b");
-    g.addColorStop(1, "#a8741f");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, rect.width, rect.height);
-    // Brillo en diagonal y texto.
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = "#ffffff";
-    for (let x = -rect.height; x < rect.width; x += 26) {
-      ctx.beginPath();
-      ctx.moveTo(x, rect.height);
-      ctx.lineTo(x + rect.height, 0);
-      ctx.lineTo(x + rect.height + 8, 0);
-      ctx.lineTo(x + 8, rect.height);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = "#5b1a2c";
-    ctx.textAlign = "center";
-    ctx.font = "italic 600 30px 'Playfair Display Variable', Georgia, serif";
-    ctx.fillText("Raspa aquí", rect.width / 2, rect.height / 2 - 6);
-    ctx.font = "600 15px 'Outfit Variable', system-ui, sans-serif";
-    ctx.fillText("con el dedo ★", rect.width / 2, rect.height / 2 + 22);
-    grid.current = { cols: Math.ceil(rect.width / CELL), rows: Math.ceil(rect.height / CELL), cleared: new Set() };
+    // Tamaño de maquetación (offsetWidth/Height): no lo deforma el giro 3D de la
+    // carta al aparecer. getBoundingClientRect medía la carta de canto y la
+    // capa quedaba como unas franjas transparentes.
+    const paint = () => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      if (w < 10 || h < 10 || (grid.current && grid.current.cleared.size > 0)) return false;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return false;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, "#b8862e");
+      g.addColorStop(0.35, "#fff1c9");
+      g.addColorStop(0.6, "#f5c76b");
+      g.addColorStop(1, "#a8741f");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      // Brillo en diagonal y texto.
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = "#ffffff";
+      for (let x = -h; x < w; x += 26) {
+        ctx.beginPath();
+        ctx.moveTo(x, h);
+        ctx.lineTo(x + h, 0);
+        ctx.lineTo(x + h + 8, 0);
+        ctx.lineTo(x + 8, h);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#5b1a2c";
+      ctx.textAlign = "center";
+      ctx.font = "italic 600 30px 'Playfair Display Variable', Georgia, serif";
+      ctx.fillText("Raspa aquí", w / 2, h / 2 - 6);
+      ctx.font = "600 15px 'Outfit Variable', system-ui, sans-serif";
+      ctx.fillText("con el dedo ★", w / 2, h / 2 + 22);
+      grid.current = { cols: Math.ceil(w / CELL), rows: Math.ceil(h / CELL), cleared: new Set() };
+      setPainted(true);
+      return true;
+    };
+    if (paint()) return;
+    // Si aún no tenía tamaño, pintar en cuanto lo tenga.
+    const ro = new ResizeObserver(() => {
+      if (paint()) ro.disconnect();
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
   }, []);
 
   const reveal = () => {
@@ -393,9 +538,10 @@ export function ScratchCover({ onReveal }: { onReveal: () => void }) {
     const ctx = canvas?.getContext("2d");
     const gr = grid.current;
     if (!canvas || !ctx || !gr || fading) return;
+    // Coordenadas del dedo en el espacio de la capa (corrige cualquier escala visual).
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = ((e.clientX - rect.left) * canvas.offsetWidth) / Math.max(1, rect.width);
+    const y = ((e.clientY - rect.top) * canvas.offsetHeight) / Math.max(1, rect.height);
     const r = 24;
     ctx.globalCompositeOperation = "destination-out";
     ctx.lineCap = "round";
@@ -422,7 +568,12 @@ export function ScratchCover({ onReveal }: { onReveal: () => void }) {
   };
 
   return (
-    <div className={cx("absolute inset-0 z-[4] overflow-hidden rounded-[24px] transition-opacity duration-500", fading && "opacity-0")} data-no-tilt>
+    <div
+      className={cx("absolute inset-0 z-[4] overflow-hidden rounded-[24px] transition-opacity duration-500", fading && "opacity-0")}
+      // Opaca desde el primer instante: nunca se lee la carta antes de raspar.
+      style={painted ? undefined : { background: "linear-gradient(135deg, #b8862e, #fff1c9 35%, #f5c76b 60%, #a8741f)" }}
+      data-no-tilt
+    >
       <canvas
         ref={ref}
         className="size-full touch-none"

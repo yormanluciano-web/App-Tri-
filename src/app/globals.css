@@ -698,8 +698,8 @@ html[data-motion="reduce"] *::after {
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 4px 8px -2px rgba(0, 0, 0, 0.5);
   transition:
-    transform 0.5s cubic-bezier(0.3, 0.7, 0.2, 1),
-    opacity 0.5s ease;
+    transform 0.65s cubic-bezier(0.45, 0.05, 0.25, 1),
+    opacity 0.4s ease 0.25s;
 }
 .tower-layer.cross .tower-block {
   border-radius: 4px;
@@ -711,8 +711,9 @@ html[data-motion="reduce"] *::after {
 .tower-block:not(:disabled):active {
   transform: translateX(6px);
 }
+/* El bloque sale deslizándose hacia el frente antes de desaparecer. */
 .tower-block.pulling {
-  transform: translate3d(70px, -6px, 40px) rotate(6deg);
+  transform: translate3d(110px, -10px, 60px) rotate(8deg);
   opacity: 0;
 }
 .tower-block.gone {
@@ -738,8 +739,32 @@ html[data-motion="reduce"] *::after {
     transform: rotateX(10deg) rotateY(-16deg) rotateZ(var(--wobble, 1deg));
   }
 }
+/* Sacudida breve al sobrevivir a un bloque. */
+.tower-shake {
+  animation: tower-shake 0.45s ease-in-out;
+}
+@keyframes tower-shake {
+  0%,
+  100% {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(-2.5deg) translateX(-3px);
+  }
+  60% {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(2deg) translateX(3px);
+  }
+}
+.tower-fall {
+  animation: tower-lean 0.5s ease-in forwards;
+}
+@keyframes tower-lean {
+  to {
+    transform: rotateX(10deg) rotateY(-16deg) rotateZ(7deg);
+  }
+}
 .tower-fall .tower-block:not(.gone) {
-  animation: block-fall 1s cubic-bezier(0.5, 0, 0.75, 0.4) var(--fall-d, 0ms) forwards;
+  animation: block-fall 1.1s cubic-bezier(0.5, 0, 0.75, 0.4) calc(var(--fall-d, 0ms) + 250ms) forwards;
 }
 @keyframes block-fall {
   to {
@@ -750,8 +775,17 @@ html[data-motion="reduce"] *::after {
 
 /* La botella gira y se detiene apuntando a la persona ya validada. */
 .bottle-spin {
-  animation: spin-wheel 2.2s cubic-bezier(0.12, 0.7, 0.15, 1) forwards;
+  /* Arranque rápido y frenado muy lento: suspenso hasta el final. */
+  animation: bottle-spin 5.5s cubic-bezier(0.08, 0.62, 0.06, 1) forwards;
   will-change: transform;
+}
+@keyframes bottle-spin {
+  from {
+    transform: rotate(var(--spin-from, 0deg));
+  }
+  to {
+    transform: rotate(var(--spin-to, 1080deg));
+  }
 }
 
 /* Texto dorado de lámina. */

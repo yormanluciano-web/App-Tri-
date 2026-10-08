@@ -21,7 +21,7 @@ import { applyUpdate } from "@/pwa/register";
 import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
-import { BottleRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
+import { BottleLauncher, BottleRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
 import { Tilt } from "@/components/ui/tilt";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "@/features/setup/LimitsEditor";
@@ -195,7 +195,7 @@ function Launcher({ session }: { session: SessionState }) {
       case "torre":
         return <TowerLauncher session={session} />;
       case "botella":
-        return <BigDraw label="Girar la botella" hint="¿A quién apuntará?" theme="botella" onClick={() => draw({ game: "botella", strictGame: true })} />;
+        return <BottleLauncher session={session} />;
       case "rasca":
         return <BigDraw label="Sacar carta" hint="y rasparla" theme="rasca" onClick={() => draw({ game: "rasca", strictGame: true })} />;
       default:
