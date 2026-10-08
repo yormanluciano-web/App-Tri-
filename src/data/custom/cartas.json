@@ -1,6 +1,59 @@
 {
   "version": 1,
-  "cartas": [],
+  "cartas": [
+    {
+      "id": "y83usdrg",
+      "nivel": "perverso",
+      "t": "Beso sin caricias",
+      "x": "{p1}  debes besar en la boca a {p2}  durante 30s pero ninguno de los dos puede usar sus manos para tocarse",
+      "c": "retos",
+      "f": "reto",
+      "s": 73,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda"
+      ],
+      "audScope": "sesion",
+      "d": [
+        30,
+        15,
+        60
+      ],
+      "g": [
+        "verdad_reto",
+        "ruleta",
+        "cadena",
+        "dados"
+      ],
+      "mixta": true,
+      "creada": "2026-10-08"
+    }
+  ],
   "ocultas": [
     "v2-001"
   ]
