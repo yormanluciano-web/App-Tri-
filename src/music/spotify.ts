@@ -17,7 +17,7 @@ const TOKENS_KEY = "trio:spotify";
 const PKCE_KEY = "trio:spotify-pkce";
 const TIMEOUT_MS = 15_000;
 
-export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "unknown";
+export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "rate_limited" | "unknown";
 
 export class MusicError extends Error {
   constructor(
@@ -35,6 +35,7 @@ export const MUSIC_ERROR_TEXT: Record<MusicErrorCode, string> = {
   auth: "La conexión con Spotify caducó. Vuelve a conectarla en Ajustes.",
   network: "Sin conexión con Spotify. Revisa tu internet.",
   bad_state: "La conexión con Spotify no se pudo verificar. Inténtalo de nuevo.",
+  rate_limited: "Spotify pidió esperar un momento. La música cambiará en la próxima carta.",
   unknown: "Spotify no respondió como se esperaba.",
 };
 
@@ -226,6 +227,8 @@ async function api(clientId: string, path: string, init: RequestInit = {}): Prom
     if (res.status === 403 && reason === "PREMIUM_REQUIRED") throw new MusicError("premium", MUSIC_ERROR_TEXT.premium);
     if (res.status === 404 || reason === "NO_ACTIVE_DEVICE") throw new MusicError("no_device", MUSIC_ERROR_TEXT.no_device);
     if (res.status === 403) throw new MusicError("premium", MUSIC_ERROR_TEXT.premium);
+    // 429 documentado en el esquema oficial: demasiadas peticiones seguidas.
+    if (res.status === 429) throw new MusicError("rate_limited", MUSIC_ERROR_TEXT.rate_limited);
     throw new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
   }
   throw new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);

@@ -163,6 +163,8 @@ describe("conexión y reproducción con Spotify simulado", () => {
     await connect();
     responder = () => json({ error: { status: 403, reason: "PREMIUM_REQUIRED" } }, 403);
     await expect(playContext(CLIENT, "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO")).rejects.toMatchObject({ code: "premium" });
+    responder = () => json({ error: { status: 429, message: "API rate limit exceeded" } }, 429);
+    await expect(playContext(CLIENT, "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO")).rejects.toMatchObject({ code: "rate_limited" });
 
     let refreshed = false;
     responder = (url) => {
