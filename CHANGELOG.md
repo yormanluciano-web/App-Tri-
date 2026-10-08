@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-10-08
+- **Editar las cartas originales** desde el panel (Cartas → Originales → Editar). Se usa el mismo editor que en tus cartas; tu versión se guarda en `cartas.json` (`ediciones`) y el original sigue en el código. Las cartas editadas llevan la etiqueta «Editada», se pueden filtrar en «Editadas» y tienen el botón «Volver al original».
+- Probado con las 1.083 cartas originales: todas se pueden pasar por el editor y siguen siendo válidas, sin pedir nunca menos permisos que el original.
+- Editor: nueva opción «Persona 1 con el grupo» (por ejemplo, «Persona 1, elige a quién besar»), que admite contacto. Las duraciones se ajustan a 10–600 s.
+- Una carta editada sube su versión de contenido, así que una sesión guardada con la versión vieja la reemplaza de forma segura.
+
 ## 1.2.2 — 2026-10-08
 - **Torre del deseo**: ahora se sacan bloques por turnos («Turno de Ana: saca un bloque») sin que salga carta. La torre se sacude con cada bloque y tiembla más; cuando alguien la tumba, se inclina y se desploma, y la carta es para esa persona. El color del bloque que la tumbó decide verdad, reto o comodín. Luego se vuelve a armar.
 - **Rasca y descubre**: corregido. La capa dorada se medía mientras la carta giraba al aparecer y quedaba en franjas transparentes que dejaban leer la carta. Ahora mide el tamaño real y es opaca desde el primer instante.

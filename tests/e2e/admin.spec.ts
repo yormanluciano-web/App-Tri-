@@ -85,7 +85,7 @@ test("administración: entrar, publicar, borrar y ocultar cartas en el repositor
   expect(file.cartas).toHaveLength(0);
 
   // Ocultar una carta base y restaurarla.
-  await page.getByRole("button", { name: "Base", exact: true }).click();
+  await page.getByRole("button", { name: "Originales", exact: true }).click();
   await page.getByRole("button", { name: "Ocultar" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Ocultar" }).click();
   await expect(page.getByRole("dialog", { name: "¡Carta ocultada!" })).toBeVisible();
@@ -123,7 +123,7 @@ test("administración: una llave inválida no entra, el editor no publica cartas
   await page.getByLabel("Texto de la carta").fill("{p1}, abraza a alguien del grupo.");
   await page.getByRole("radio", { name: /Por categoría/ }).click();
   await page.getByRole("button", { name: /^Contacto y caricias/ }).click();
-  await expect(page.getByText(/solo pueden ir en cartas de pareja/)).toBeVisible();
+  await expect(page.getByText(/necesitan a otra persona/)).toBeVisible();
   await page.getByRole("button", { name: "Publicar carta" }).click();
   await expect(page.getByText("Hay que corregir:")).toBeVisible();
 
@@ -185,3 +185,35 @@ test("administración: «Probar» abre cualquier juego directo y se vuelve al pa
     await expect(page.getByRole("button", { name: new RegExp(name) }).first()).toBeVisible();
   }
 });
+
+test("administración: editar una carta original guarda la nueva versión y se puede volver al original", async ({ page }) => {
+  const gh = await mockGithub(page);
+  await login(page, "github_pat_prueba");
+  await page.getByRole("tab", { name: "Cartas" }).click();
+  await page.getByRole("button", { name: "Originales", exact: true }).click();
+  await page.getByLabel("Buscar cartas").fill("l2-001");
+  await page.getByRole("button", { name: "Editar" }).first().click();
+  await expect(page.getByRole("heading", { name: "Editar carta original" })).toBeVisible();
+  await expect(page.getByLabel("Título")).not.toHaveValue("");
+  await page.getByLabel("Título").fill("Título renovado");
+  await page.getByRole("button", { name: "Guardar cambios" }).click();
+  const ok = page.getByRole("dialog", { name: "¡Cambios guardados!" });
+  await expect(ok).toBeVisible();
+  let file = JSON.parse(gh.text);
+  expect(file.ediciones["l2-001"].t).toBe("Título renovado");
+  expect(file.cartas).toHaveLength(0);
+  expect(gh.puts.at(-1)!.message).toContain("l2-001");
+  await ok.getByRole("button", { name: "Ver mis cartas" }).click();
+
+  // Aparece como «Editada» con el texto nuevo, y se puede volver al original.
+  await page.getByRole("button", { name: /Editadas \(1\)/ }).click();
+  await expect(page.getByText("Título renovado")).toBeVisible();
+  await expect(page.getByText("Editada", { exact: true })).toBeVisible();
+  await expect(page.getByText("Publicándose")).toBeVisible();
+  await page.getByRole("button", { name: "Volver al original" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Volver al original" }).click();
+  await expect(page.getByRole("dialog", { name: "¡Carta original restaurada!" })).toBeVisible();
+  file = JSON.parse(gh.text);
+  expect(file.ediciones).toEqual({});
+});
+

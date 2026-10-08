@@ -68,11 +68,17 @@ export const musicConfigSchema = z.object({
 });
 export type MusicConfig = z.infer<typeof musicConfigSchema>;
 
+/** Versión editada de una carta base: los mismos campos que una carta propia, sin id (la clave es el ID original). */
+export const baseEditSchema = customCardSchema.omit({ id: true });
+export type BaseEdit = z.infer<typeof baseEditSchema>;
+
 export const customFileSchema = z.object({
   version: z.literal(1),
   cartas: z.array(customCardSchema),
   /** IDs de cartas base que no deben salir en la app. */
   ocultas: z.array(z.string().max(64)),
+  /** Cartas base editadas desde el panel: ID original → versión nueva. El original sigue en el código. */
+  ediciones: z.record(z.string().regex(/^[a-z0-9][a-z0-9-]{2,63}$/), baseEditSchema).optional(),
   musica: musicConfigSchema.optional(),
 });
 export type CustomFile = z.infer<typeof customFileSchema>;
@@ -97,6 +103,54 @@ export function customCardsToActivities(cards: readonly CustomCard[]): Activity[
     out.push(...defineCards(lvl, CUSTOM_PREFIX, CUSTOM_PACK, inputs));
   }
   return out;
+}
+
+/**
+ * Aplica la edición a una carta base: conserva su ID y su familia, y sube su
+ * contentVersion para que una sesión guardada con la versión vieja la reemplace.
+ */
+export function editedActivity(base: Activity, edit: BaseEdit): Activity {
+  const dash = base.id.indexOf("-");
+  const prefix = base.id.slice(0, dash);
+  const suffix = base.id.slice(dash + 1);
+  const rest: Partial<CustomCard> = { ...edit };
+  delete rest.nivel;
+  delete rest.creada;
+  const [built] = defineCards(edit.nivel, prefix, base.packId, [{ ...(rest as CardInput), id: suffix }], base.contentVersion + 1);
+  return { ...built, id: base.id, familyId: base.familyId };
+}
+
+export function applyBaseEdits(base: readonly Activity[], edits: Record<string, BaseEdit> | undefined): Activity[] {
+  if (!edits) return [...base];
+  return base.map((a) => (edits[a.id] ? editedActivity(a, edits[a.id]) : a));
+}
+
+/** Formulario a partir de cualquier carta (para editar una carta base). */
+export function formFromActivity(a: Activity): CardForm {
+  const pair = a.tipoInteraccion !== "solo";
+  const perms = [...new Set([...a.restricciones.implicados, ...a.restricciones.pareja, ...a.restricciones.audiencia, ...Object.values(a.restricciones.porRol).flat()])];
+  return {
+    nivel: a.intensidad,
+    formato: a.formato === "pregunta" ? "pregunta" : "reto",
+    titulo: a.titulo,
+    texto: a.texto,
+    categoria: a.categoria,
+    dirigida: a.tipoInteraccion === "directed_pair",
+    grupo: a.tipoInteraccion === "group",
+    para: a.parejaMixta ? "mixta" : a.soloGenero === "hombre" ? "hombres" : a.soloGenero === "mujer" ? "mujeres" : "todos",
+    sizes: [...a.sessionSizes],
+    ...implicaFromPermissions(perms, pair),
+    duracion: a.duracion ? a.duracion.sugerida : null,
+    juegos: a.gameModes.filter((g) => g !== "sorpresa"),
+    intensidad: a.intensityScore,
+  };
+}
+
+/** Convierte una carta del formulario en edición de carta base (sin id). */
+export function toBaseEdit(card: CustomCard): BaseEdit {
+  const rest: Partial<CustomCard> = { ...card };
+  delete rest.id;
+  return baseEditSchema.parse(rest);
 }
 
 export function customActivityId(card: Pick<CustomCard, "id">): string {
@@ -124,6 +178,8 @@ export interface CardForm {
   categoria: Category;
   /** Solo aplica con {p1} y {p2}: la acción va de p1 hacia p2. */
   dirigida: boolean;
+  /** Solo con {p1}: Persona 1 dirige pero participa todo el grupo (p. ej. «elige a quién besar»). */
+  grupo?: boolean;
   para: Audience;
   /** Tamaños de sesión donde puede salir. */
   sizes: (2 | 3)[];
@@ -143,9 +199,10 @@ const PAIR_ONLY: readonly Permission[] = [...CONTACT_PERMISSIONS, "tiempo_a_sola
 
 const ALL_GROUP_PERMS: Permission[] = [...new Set(PERMISSION_GROUPS.flatMap((g) => g.items))];
 
-function isPairText(form: Pick<CardForm, "texto" | "titulo">): boolean {
+/** Cartas de una sola persona (solo {p1} y sin grupo): no admiten contacto ni tiempo a solas. */
+function isSoloText(form: Pick<CardForm, "texto" | "titulo"> & { grupo?: boolean }): boolean {
   const roles = placeholdersIn(form.texto + " " + form.titulo);
-  return roles.includes("p2") && !roles.includes("p3");
+  return roles.length === 1 && roles[0] === "p1" && !form.grupo;
 }
 
 /**
@@ -155,12 +212,15 @@ function isPairText(form: Pick<CardForm, "texto" | "titulo">): boolean {
  */
 export function formPermissions(form: CardForm): Permission[] {
   switch (form.implica) {
-    case "todos":
-      return ["conversacion_ligera"];
+    case "todos": {
+      // Base segura: conserva los permisos suaves que la carta ya pedía (p. ej. música).
+      const safe = [...new Set(form.permisos)].filter((p) => SAFE_BASE_GREEN.includes(p));
+      return safe.length ? safe : ["conversacion_ligera"];
+    }
     case "categorias":
       return [...new Set(PERMISSION_GROUPS.filter((g) => form.grupos.includes(g.id)).flatMap((g) => g.items))];
     case "acepta_todo":
-      return isPairText(form) ? [...ALL_GROUP_PERMS] : ALL_GROUP_PERMS.filter((p) => !PAIR_ONLY.includes(p));
+      return isSoloText(form) ? ALL_GROUP_PERMS.filter((p) => !PAIR_ONLY.includes(p)) : [...ALL_GROUP_PERMS];
     case "detalle":
       return [...new Set(form.permisos)];
   }
@@ -223,11 +283,14 @@ export function buildCustomCard(form: CardForm, id: string, now = new Date()): C
   const roles = placeholdersIn(form.texto + " " + form.titulo);
   const isPair = roles.includes("p2") && !roles.includes("p3");
   const perms = formPermissions(form);
-  const pair = isPair ? perms.filter((p) => PAIR_ONLY.includes(p)) : [];
+  // Contacto y tiempo a solas: por pareja (en grupo, para cada par implicado). Una sola persona no los admite.
+  const onlyP1 = roles.length === 1 && roles[0] === "p1";
+  const solo = onlyP1 && !form.grupo;
+  const pair = solo ? [] : perms.filter((p) => PAIR_ONLY.includes(p));
   const req = perms.filter((p) => !pair.includes(p));
   const prenda = perms.includes("quitarse_prenda");
   const gender: Gender | undefined = form.para === "hombres" ? "hombre" : form.para === "mujeres" ? "mujer" : undefined;
-  const d = form.duracion && form.duracion > 0 ? Math.round(form.duracion) : null;
+  const d = form.duracion && form.duracion > 0 ? Math.min(600, Math.max(10, Math.round(form.duracion))) : null;
   const card: CustomCard = {
     id,
     nivel: form.nivel,
@@ -237,12 +300,13 @@ export function buildCustomCard(form: CardForm, id: string, now = new Date()): C
     f: form.formato,
     s: form.intensidad,
     ...(isPair && form.dirigida ? { i: "directed_pair" as const } : {}),
+    ...(onlyP1 && form.grupo ? { i: "group" as const } : {}),
     // Con {p3} es una actividad de grupo de tres roles: solo en tríos.
     ...(roles.includes("p3") ? { i: "group" as const, sizes: [3 as const] } : form.sizes.length === 1 ? { sizes: [...form.sizes] } : {}),
     ...(req.length ? { req } : {}),
     ...(pair.length ? { pair } : {}),
     ...(prenda ? { aud: ["quitarse_prenda" as Permission], audScope: "sesion" as const } : {}),
-    ...(d ? { d: [d, Math.max(5, Math.round(d / 2)), d * 2] as [number, number, number] } : {}),
+    ...(d ? { d: [d, Math.max(10, Math.round(d / 2)), Math.min(600, d * 2)] as [number, number, number] } : {}),
     ...(form.juegos.length ? { g: [...form.juegos] } : {}),
     ...(form.para === "mixta" ? { mixta: true } : {}),
     ...(gender ? { genero: gender } : {}),
@@ -260,9 +324,10 @@ export function formFromCustomCard(c: CustomCard): CardForm {
     texto: c.x,
     categoria: c.c,
     dirigida: c.i === "directed_pair",
+    grupo: c.i === "group",
     para: c.mixta ? "mixta" : c.genero === "hombre" ? "hombres" : c.genero === "mujer" ? "mujeres" : "todos",
     sizes: c.sizes ?? [2, 3],
-    ...implicaFromPermissions([...(c.req ?? []), ...(c.pair ?? []), ...(c.aud ?? [])], isPairText({ texto: c.x, titulo: c.t })),
+    ...implicaFromPermissions([...(c.req ?? []), ...(c.pair ?? []), ...(c.aud ?? [])], !isSoloText({ texto: c.x, titulo: c.t, grupo: c.i === "group" })),
     duracion: c.d ? c.d[0] : null,
     juegos: c.g ?? [],
     intensidad: c.s,
@@ -277,7 +342,9 @@ export type CustomChange =
   | { kind: "delete"; id: string }
   | { kind: "hide"; activityId: string }
   | { kind: "unhide"; activityId: string }
-  | { kind: "music"; musica: MusicConfig };
+  | { kind: "music"; musica: MusicConfig }
+  | { kind: "edit_base"; activityId: string; edit: BaseEdit }
+  | { kind: "revert_base"; activityId: string };
 
 export function applyCustomChange(file: CustomFile, change: CustomChange): CustomFile {
   switch (change.kind) {
@@ -295,11 +362,20 @@ export function applyCustomChange(file: CustomFile, change: CustomChange): Custo
       return { ...file, ocultas: file.ocultas.filter((x) => x !== change.activityId) };
     case "music":
       return { ...file, musica: musicConfigSchema.parse(change.musica) };
+    case "edit_base":
+      return { ...file, ediciones: { ...(file.ediciones ?? {}), [change.activityId]: baseEditSchema.parse(change.edit) } };
+    case "revert_base": {
+      const ediciones = { ...(file.ediciones ?? {}) };
+      delete ediciones[change.activityId];
+      return { ...file, ediciones };
+    }
   }
 }
 
 export function describeChange(change: CustomChange, title: string): string {
   if (change.kind === "music") return "Actualiza la música de Spotify desde el panel";
+  if (change.kind === "edit_base") return `Edita carta base ${change.activityId} desde el panel: ${title}`.slice(0, 120);
+  if (change.kind === "revert_base") return `Restaura la carta base original ${change.activityId}: ${title}`.slice(0, 120);
   const verb = { add: "Añade", update: "Edita", delete: "Borra", hide: "Oculta", unhide: "Restaura" }[change.kind];
   return `${verb} carta desde el panel: ${title}`.slice(0, 120);
 }

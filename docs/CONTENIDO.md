@@ -110,3 +110,5 @@ Además de los lotes en código, la app carga `src/data/custom/cartas.json`. Se 
 
 Pasa por el mismo validador que el resto (`npm run content:validate`).
 
+### Editar cartas originales (`ediciones`)
+`cartas.json` admite `"ediciones": { "<ID original>": { …mismos campos que una carta propia, sin id… } }`. La app usa esa versión en lugar de la del código, que no se toca; quitar la entrada («Volver al original» en el panel) restaura la carta. La versión editada conserva el ID y la familia, y sube su `contentVersion`.
