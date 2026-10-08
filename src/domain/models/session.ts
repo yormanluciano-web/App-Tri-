@@ -48,6 +48,8 @@ export interface SessionConfig {
   sharedLimits: Partial<Record<Permission, Light>>;
   /** Sesión de demostración: personas ficticias, siempre privada, sin pantallas de configuración. */
   demo?: boolean;
+  /** Prueba de juegos desde el panel de administración (personas ficticias que aceptan todo). */
+  prueba?: boolean;
 }
 
 export type SessionStatus =

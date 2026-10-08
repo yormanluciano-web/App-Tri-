@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -52,15 +53,13 @@ function TopBar({ session }: { session: SessionState }) {
         <div className="flex min-w-0 items-center gap-3">
           <GameEmblem theme={isNight ? "noche" : session.currentGame} className="size-11 shrink-0" />
           <div className="min-w-0 leading-tight">
-            <p className="flex items-center gap-2 font-display text-lg font-semibold italic text-gradient">
-              {INTENSITY_LABEL[session.level]}
+            <p className="font-display text-lg font-semibold italic text-gradient">{INTENSITY_LABEL[session.level]}</p>
+            <p className="truncate text-xs text-muted">
               {session.config.demo && (
-                <span className="rounded-full border border-gold/60 px-2 py-0.5 font-sans text-[0.65rem] font-semibold not-italic uppercase tracking-widest text-gold">
-                  Demo
+                <span className="mr-1.5 rounded-full border border-gold/60 px-1.5 py-px text-[0.6rem] font-semibold uppercase tracking-widest text-gold">
+                  {session.config.prueba ? "Prueba" : "Demo"}
                 </span>
               )}
-            </p>
-            <p className="truncate text-xs text-muted">
               {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
               {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
             </p>
@@ -522,7 +521,12 @@ function Closing({ session }: { session: SessionState }) {
         <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_70%)] blur-2xl" />
         <Logo3D className="relative size-28 animate-float" />
       </div>
-      <Title sub={session.config.demo ? "Así se juega Cómplice. Crea tu propia sesión para elegir nombres, límites y nivel." : session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
+      {session.config.prueba && (
+        <LinkButton href="/admin/" variant="secondary" icon="back">
+          Volver al panel de pruebas
+        </LinkButton>
+      )}
+      <Title sub={session.config.prueba ? "Prueba terminada." : session.config.demo ? "Así se juega Cómplice. Crea tu propia sesión para elegir nombres, límites y nivel." : session.config.mode === "private" ? "Los datos de esta sesión privada se descartaron." : "La sesión terminó y se eliminó del dispositivo."}>Gracias por jugar</Title>
       {show ? (
         <Card glow className="animate-deal">
           <dl className="grid grid-cols-2 gap-4">
@@ -682,8 +686,17 @@ export function Table() {
       <TopBar session={session} />
       <MusicDirector session={session} />
       <MusicStatus />
-      {session.config.demo && session.turnCounter === 0 && session.status === "ready" && (
-        <Notice>Demo con dos personas ficticias (Ana y Leo) y cartas suaves sin contacto. Nada se guarda.</Notice>
+      {session.config.prueba ? (
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2 text-sm">
+          <span className="text-muted">Modo prueba · personas ficticias que aceptan todo</span>
+          <Link href="/admin/" className="shrink-0 font-semibold text-gold underline underline-offset-2">
+            Volver al panel
+          </Link>
+        </div>
+      ) : (
+        session.config.demo &&
+        session.turnCounter === 0 &&
+        session.status === "ready" && <Notice>Demo con dos personas ficticias (Ana y Leo) y cartas suaves sin contacto. Nada se guarda.</Notice>
       )}
       {storageIssue === "quota" && <Notice tone="warn">No se pudo guardar en el dispositivo. Pueden seguir jugando; la sesión continúa en memoria.</Notice>}
       <div className="flex flex-1 flex-col gap-4">{body}</div>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-10-08
+- Panel de administración: pestaña **Probar** para entrar directo a cualquier juego (incluidos los minijuegos, Noche completa y Caos) eligiendo nivel y 2 o 3 jugadores, sin crear sesión. Usa personas ficticias que aceptan todo y nada se guarda; los juegos nuevos aparecen solos en la lista.
+- En la mesa, el modo prueba muestra «Volver al panel» y el panel vuelve a la misma pestaña. La etiqueta Demo/Prueba pasa a la segunda línea de la barra para no chocar con «Pausa».
+
 ## 1.2.0 — 2026-10-08
 - Tres minijuegos nuevos (primera tanda):
   - **Torre del deseo** (tipo Jenga): sacas un bloque y su color decide verdad (violeta), reto (rojo) o comodín (dorado). La torre tiembla más con cada bloque y, si cae, sale un reto para quien la tumbó.

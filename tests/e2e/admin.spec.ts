@@ -163,3 +163,24 @@ test("ajustes: sin configuración de Spotify no se ofrece conectar", async ({ pa
   await expect(page.getByText(/Aún no está configurada/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toHaveCount(0);
 });
+
+test("administración: «Probar» abre cualquier juego directo y se vuelve al panel", async ({ page }) => {
+  await mockGithub(page);
+  await login(page, "github_pat_prueba");
+  await page.getByRole("tab", { name: "Probar" }).click();
+  await page.getByRole("button", { name: "Perverso" }).click();
+  await page.getByRole("button", { name: /Torre del deseo/ }).click();
+  await expect(page).toHaveURL(/\/jugar\/$/);
+  await expect(page.getByText("Prueba", { exact: true })).toBeVisible();
+  await expect(page.locator("header").first()).toContainText("Perverso");
+  await expect(page.getByRole("group", { name: /Torre del deseo/ })).toBeVisible();
+  await page.getByRole("button", { name: /Bloque reto de la capa 1/ }).first().click();
+  await expect(page.getByTestId("activity-text")).toBeVisible();
+  // Volver al panel sin volver a entrar, en la misma pestaña.
+  await page.getByRole("link", { name: "Volver al panel" }).click();
+  await expect(page.getByRole("tab", { name: "Probar" })).toHaveAttribute("aria-selected", "true");
+  // Todos los juegos están en la lista (los nuevos aparecen solos).
+  for (const name of ["Verdad o reto", "Ruleta", "Dados", "Tarjetas", "La botella", "Rasca y descubre", "Noche completa", "Caos"]) {
+    await expect(page.getByRole("button", { name: new RegExp(name) }).first()).toBeVisible();
+  }
+});

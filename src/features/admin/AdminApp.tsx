@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { create } from "zustand";
 import {
   CATEGORIES,
   CATEGORY_LABEL,
@@ -37,6 +38,7 @@ import {
 } from "@/data/custom";
 import { useAdmin, savedRepo } from "@/admin/store";
 import { MusicAdmin } from "./MusicAdmin";
+import { GameTester } from "./GameTester";
 import { Button, Card, Chip, Dialog, Icon, LinkButton, Notice, Screen, Title, cx } from "@/components/ui";
 
 /** Juegos que el formulario ofrece (los meta-juegos toman cartas de estos). */
@@ -129,10 +131,14 @@ function AdminLogin() {
 
 // ------------------------------------------------------------------ panel
 
-type Tab = "nueva" | "cartas" | "musica" | "cuenta";
+type Tab = "nueva" | "cartas" | "probar" | "musica" | "cuenta";
+
+/** Última pestaña abierta (en memoria): al volver de una prueba, el panel sigue en «Probar». */
+const useAdminTab = create<{ tab: Tab; setTab: (t: Tab) => void }>((set) => ({ tab: "nueva", setTab: (tab) => set({ tab }) }));
 
 function AdminPanel() {
-  const [tab, setTab] = useState<Tab>("nueva");
+  const tab = useAdminTab((s) => s.tab);
+  const setTab = useAdminTab((s) => s.setTab);
   const [editing, setEditing] = useState<CustomCard | null>(null);
   const [result, setResult] = useState<PublishOutcome | null>(null);
   const [editorKey, setEditorKey] = useState(0);
@@ -152,11 +158,12 @@ function AdminPanel() {
         </LinkButton>
         <span className="rounded-full border border-gold/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-gold">Administración</span>
       </div>
-      <div role="tablist" aria-label="Secciones" className="grid grid-cols-4 gap-1.5">
+      <div role="tablist" aria-label="Secciones" className="grid grid-cols-5 gap-1">
         {(
           [
             ["nueva", editing ? "Editar" : "Nueva", "sparkle"],
             ["cartas", "Cartas", "cards"],
+            ["probar", "Probar", "dice"],
             ["musica", "Música", "play"],
             ["cuenta", "Cuenta", "settings"],
           ] as const
@@ -189,6 +196,7 @@ function AdminPanel() {
           onDone={finish}
         />
       )}
+      {tab === "probar" && <GameTester />}
       {tab === "musica" && <MusicAdmin onResult={finish} />}
       {tab === "cuenta" && <Account />}
       <ResultDialog
