@@ -3,7 +3,7 @@ import { leveAll } from "./leve";
 import { picanteAll } from "./picante";
 import { perversoAll } from "./perverso";
 import customRaw from "./custom/cartas.json";
-import { applyBaseEdits, customCardsToActivities, parseCustomFile } from "./custom";
+import { customCardsToActivities, parseCustomFile } from "./custom";
 
 /** Versión del catálogo. Súbela al cambiar cartas; invalida autorizaciones restauradas. */
 export const CONTENT_VERSION = 2;
@@ -17,10 +17,7 @@ export const CUSTOM_ACTIVITIES: readonly Activity[] = customCardsToActivities(CU
 const HIDDEN = new Set(CUSTOM_FILE.ocultas);
 
 /** Todas las actividades, incluidas las no publicables (para el validador). */
-export const ALL_ACTIVITIES: readonly Activity[] = [
-  ...applyBaseEdits(BASE_ACTIVITIES, CUSTOM_FILE.ediciones).filter((a) => !HIDDEN.has(a.id)),
-  ...CUSTOM_ACTIVITIES,
-];
+export const ALL_ACTIVITIES: readonly Activity[] = [...BASE_ACTIVITIES.filter((a) => !HIDDEN.has(a.id)), ...CUSTOM_ACTIVITIES];
 
 /** Solo actividades activas y revisadas entran al selector de producción. */
 export const CATALOG: readonly Activity[] = ALL_ACTIVITIES.filter((a) => a.active && a.editorialStatus === "reviewed");

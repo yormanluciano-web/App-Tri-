@@ -1,8 +1,9 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
 /** GitHub simulado: guarda el archivo de cartas en memoria del test. */
 async function mockGithub(page: Page, opts: { validToken?: string } = {}) {
-  const state = { failPut: false, text: JSON.stringify({ version: 1, cartas: [], ocultas: [] }), sha: 1, puts: [] as { message: string; branch: string }[] };
+  const state = { files: {} as Record<string, string>, failPut: false, text: JSON.stringify({ version: 1, cartas: [], ocultas: [] }), sha: 1, puts: [] as { message: string; branch: string }[] };
   const valid = opts.validToken ?? "github_pat_prueba";
   await page.route("https://api.github.com/**", async (route) => {
     const req = route.request();
@@ -10,6 +11,24 @@ async function mockGithub(page: Page, opts: { validToken?: string } = {}) {
     if (req.headers()["authorization"] !== `Bearer ${valid}`) return route.fulfill({ status: 401, body: "{}" });
     if (url.pathname === "/repos/duena/cartas-app") {
       return route.fulfill({ json: { default_branch: "main", permissions: { push: true } } });
+    }
+    // Carpetas y archivos de cartas originales: los reales del proyecto (o su versión ya editada).
+    const dir = /^\/repos\/duena\/cartas-app\/contents\/(src\/data\/(?:leve|picante|perverso))$/.exec(url.pathname);
+    if (dir && req.method() === "GET") {
+      return route.fulfill({ json: readdirSync(dir[1]).map((name) => ({ name, path: `${dir[1]}/${name}`, type: "file" })) });
+    }
+    const src = /^\/repos\/duena\/cartas-app\/contents\/(src\/data\/(?:leve|picante|perverso)\/v2-\d+\.ts)$/.exec(url.pathname);
+    if (src) {
+      const path = src[1];
+      const text = state.files[path] ?? readFileSync(path, "utf8");
+      if (req.method() === "GET") return route.fulfill({ json: { sha: `sha-${text.length}`, content: Buffer.from(text, "utf8").toString("base64") } });
+      if (req.method() === "PUT") {
+        const body = req.postDataJSON() as { content: string; sha?: string; message: string; branch: string };
+        if (body.sha !== `sha-${text.length}`) return route.fulfill({ status: 409, body: "{}" });
+        state.files[path] = Buffer.from(body.content, "base64").toString("utf8");
+        state.puts.push({ message: body.message, branch: body.branch });
+        return route.fulfill({ json: { commit: { html_url: "https://github.com/duena/cartas-app/commit/def" } } });
+      }
     }
     if (url.pathname === "/repos/duena/cartas-app/contents/src/data/custom/cartas.json") {
       if (req.method() === "GET") {
@@ -186,34 +205,33 @@ test("administración: «Probar» abre cualquier juego directo y se vuelve al pa
   }
 });
 
-test("administración: editar una carta original guarda la nueva versión y se puede volver al original", async ({ page }) => {
+test("administración: editar una carta original la reescribe en el código, sin copias", async ({ page }) => {
   const gh = await mockGithub(page);
   await login(page, "github_pat_prueba");
   await page.getByRole("tab", { name: "Cartas" }).click();
   await page.getByRole("button", { name: "Originales", exact: true }).click();
   await page.getByLabel("Buscar cartas").fill("l2-001");
+  await expect(page.getByRole("button", { name: "Volver al original" })).toHaveCount(0);
   await page.getByRole("button", { name: "Editar" }).first().click();
   await expect(page.getByRole("heading", { name: "Editar carta original" })).toBeVisible();
-  await expect(page.getByLabel("Título")).not.toHaveValue("");
-  await page.getByLabel("Título").fill("Título renovado");
+  await expect(page.getByText(/reemplazan esta carta directamente en el código/)).toBeVisible();
+  // El nivel de una carta original no se cambia.
+  await expect(page.getByRole("button", { name: "Perverso" })).toBeDisabled();
+  await page.getByLabel("Título").fill('Título «renovado»');
   await page.getByRole("button", { name: "Guardar cambios" }).click();
-  const ok = page.getByRole("dialog", { name: "¡Cambios guardados!" });
-  await expect(ok).toBeVisible();
-  let file = JSON.parse(gh.text);
-  expect(file.ediciones["l2-001"].t).toBe("Título renovado");
-  expect(file.cartas).toHaveLength(0);
-  expect(gh.puts.at(-1)!.message).toContain("l2-001");
-  await ok.getByRole("button", { name: "Ver mis cartas" }).click();
+  await expect(page.getByRole("dialog", { name: "¡Cambios guardados!" })).toBeVisible();
 
-  // Aparece como «Editada» con el texto nuevo, y se puede volver al original.
-  await page.getByRole("button", { name: /Editadas \(1\)/ }).click();
-  await expect(page.getByText("Título renovado")).toBeVisible();
-  await expect(page.getByText("Editada", { exact: true })).toBeVisible();
-  await expect(page.getByText("Publicándose")).toBeVisible();
-  await page.getByRole("button", { name: "Volver al original" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Volver al original" }).click();
-  await expect(page.getByRole("dialog", { name: "¡Carta original restaurada!" })).toBeVisible();
-  file = JSON.parse(gh.text);
-  expect(file.ediciones).toEqual({});
+  // Se reescribió la línea de esa carta en su archivo, y nada más.
+  const [path] = Object.keys(gh.files);
+  expect(path).toMatch(/^src\/data\/leve\/v2-\d+\.ts$/);
+  const before = readFileSync(path, "utf8").split("\n");
+  const after = gh.files[path].split("\n");
+  expect(after.length).toBe(before.length);
+  const changed = after.map((l, i) => (l !== before[i] ? i : -1)).filter((i) => i >= 0);
+  expect(changed).toHaveLength(1);
+  expect(after[changed[0]]).toMatch(/^  \{ id: "001", t: "Título «renovado»",/);
+  expect(gh.puts.at(-1)!.message).toContain("l2-001");
+  // cartas.json no guarda ninguna copia.
+  expect(JSON.parse(gh.text).ediciones).toBeUndefined();
 });
 

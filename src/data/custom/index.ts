@@ -16,7 +16,7 @@ import {
   type Intensity,
   type Permission,
 } from "@/domain/models/constants";
-import { defineCards, placeholdersIn, type CardInput } from "../define";
+import { defaultGames, defineCards, placeholdersIn, type CardInput } from "../define";
 import { MUSIC_MOMENTS } from "@/music/moments";
 
 /**
@@ -68,17 +68,14 @@ export const musicConfigSchema = z.object({
 });
 export type MusicConfig = z.infer<typeof musicConfigSchema>;
 
-/** Versión editada de una carta base: los mismos campos que una carta propia, sin id (la clave es el ID original). */
-export const baseEditSchema = customCardSchema.omit({ id: true });
-export type BaseEdit = z.infer<typeof baseEditSchema>;
 
 export const customFileSchema = z.object({
   version: z.literal(1),
   cartas: z.array(customCardSchema),
   /** IDs de cartas base que no deben salir en la app. */
   ocultas: z.array(z.string().max(64)),
-  /** Cartas base editadas desde el panel: ID original → versión nueva. El original sigue en el código. */
-  ediciones: z.record(z.string().regex(/^[a-z0-9][a-z0-9-]{2,63}$/), baseEditSchema).optional(),
+  /** Obsoleto (1.3.0): las cartas originales ahora se editan directamente en el código. Se acepta y se ignora. */
+  ediciones: z.record(z.string(), z.unknown()).optional(),
   musica: musicConfigSchema.optional(),
 });
 export type CustomFile = z.infer<typeof customFileSchema>;
@@ -105,26 +102,6 @@ export function customCardsToActivities(cards: readonly CustomCard[]): Activity[
   return out;
 }
 
-/**
- * Aplica la edición a una carta base: conserva su ID y su familia, y sube su
- * contentVersion para que una sesión guardada con la versión vieja la reemplace.
- */
-export function editedActivity(base: Activity, edit: BaseEdit): Activity {
-  const dash = base.id.indexOf("-");
-  const prefix = base.id.slice(0, dash);
-  const suffix = base.id.slice(dash + 1);
-  const rest: Partial<CustomCard> = { ...edit };
-  delete rest.nivel;
-  delete rest.creada;
-  const [built] = defineCards(edit.nivel, prefix, base.packId, [{ ...(rest as CardInput), id: suffix }], base.contentVersion + 1);
-  return { ...built, id: base.id, familyId: base.familyId };
-}
-
-export function applyBaseEdits(base: readonly Activity[], edits: Record<string, BaseEdit> | undefined): Activity[] {
-  if (!edits) return [...base];
-  return base.map((a) => (edits[a.id] ? editedActivity(a, edits[a.id]) : a));
-}
-
 /** Formulario a partir de cualquier carta (para editar una carta base). */
 export function formFromActivity(a: Activity): CardForm {
   const pair = a.tipoInteraccion !== "solo";
@@ -141,16 +118,10 @@ export function formFromActivity(a: Activity): CardForm {
     sizes: [...a.sessionSizes],
     ...implicaFromPermissions(perms, pair),
     duracion: a.duracion ? a.duracion.sugerida : null,
-    juegos: a.gameModes.filter((g) => g !== "sorpresa"),
+    // Si usa los juegos por defecto, no se fijan (así la línea editada queda igual de limpia).
+    juegos: sameSet(a.gameModes, defaultGames(a.formato, !!a.duracion)) ? [] : a.gameModes.filter((g) => g !== "sorpresa"),
     intensidad: a.intensityScore,
   };
-}
-
-/** Convierte una carta del formulario en edición de carta base (sin id). */
-export function toBaseEdit(card: CustomCard): BaseEdit {
-  const rest: Partial<CustomCard> = { ...card };
-  delete rest.id;
-  return baseEditSchema.parse(rest);
 }
 
 export function customActivityId(card: Pick<CustomCard, "id">): string {
@@ -342,9 +313,7 @@ export type CustomChange =
   | { kind: "delete"; id: string }
   | { kind: "hide"; activityId: string }
   | { kind: "unhide"; activityId: string }
-  | { kind: "music"; musica: MusicConfig }
-  | { kind: "edit_base"; activityId: string; edit: BaseEdit }
-  | { kind: "revert_base"; activityId: string };
+  | { kind: "music"; musica: MusicConfig };
 
 export function applyCustomChange(file: CustomFile, change: CustomChange): CustomFile {
   switch (change.kind) {
@@ -362,20 +331,12 @@ export function applyCustomChange(file: CustomFile, change: CustomChange): Custo
       return { ...file, ocultas: file.ocultas.filter((x) => x !== change.activityId) };
     case "music":
       return { ...file, musica: musicConfigSchema.parse(change.musica) };
-    case "edit_base":
-      return { ...file, ediciones: { ...(file.ediciones ?? {}), [change.activityId]: baseEditSchema.parse(change.edit) } };
-    case "revert_base": {
-      const ediciones = { ...(file.ediciones ?? {}) };
-      delete ediciones[change.activityId];
-      return { ...file, ediciones };
-    }
+
   }
 }
 
 export function describeChange(change: CustomChange, title: string): string {
   if (change.kind === "music") return "Actualiza la música de Spotify desde el panel";
-  if (change.kind === "edit_base") return `Edita carta base ${change.activityId} desde el panel: ${title}`.slice(0, 120);
-  if (change.kind === "revert_base") return `Restaura la carta base original ${change.activityId}: ${title}`.slice(0, 120);
   const verb = { add: "Añade", update: "Edita", delete: "Borra", hide: "Oculta", unhide: "Restaura" }[change.kind];
   return `${verb} carta desde el panel: ${title}`.slice(0, 120);
 }

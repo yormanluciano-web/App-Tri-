@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3 — 2026-10-08
+- Editar una carta original ahora **reescribe directamente esa carta en el código** (su línea en `src/data/<nivel>/v2-NN.ts`). No queda versión aparte: desaparecen la etiqueta «Editada», el filtro «Editadas» y «Volver al original».
+- Se conservan el ID, la familia, las etiquetas, el peso y el enfriamiento de la carta; el nivel de una carta original no se cambia.
+- Probado con las 1.109 líneas reales: todas se reescriben válidas, con las mismas etiquetas y sin perder permisos; solo cambia la línea de la carta editada.
+
 ## 1.3.2 — 2026-10-08
 - El validador ya no veta vocabulario sexual ni la mención de ropa interior: la propietaria escribe y edita sus cartas sin palabras prohibidas.
 - Sigue bloqueando siempre cualquier mención de menores de edad (la app es solo para adultos).

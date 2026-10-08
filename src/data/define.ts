@@ -63,7 +63,7 @@ export function placeholdersIn(text: string): RoleId[] {
   return (["p1", "p2", "p3"] as RoleId[]).filter((r) => out.has(r));
 }
 
-function defaultGames(f: Format, hasDuration: boolean): GameId[] {
+export function defaultGames(f: Format, hasDuration: boolean): GameId[] {
   switch (f) {
     case "pregunta":
       return ["verdad_reto", "ruleta", "dados", "tarjetas", "cadena", ...(hasDuration ? (["temporizador"] as GameId[]) : [])];

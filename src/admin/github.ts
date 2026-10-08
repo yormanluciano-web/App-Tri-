@@ -111,3 +111,10 @@ export async function putFile(
   const data = (await res.json()) as { commit?: { html_url?: string } };
   return { commitUrl: data.commit?.html_url ?? null };
 }
+
+/** Archivos de una carpeta del repositorio (solo nombres y rutas). */
+export async function listDir(token: string, repo: RepoConfig, dirPath: string): Promise<{ name: string; path: string }[]> {
+  const res = await call(repoUrl(repo.owner, repo.repo, `/contents/${dirPath}?ref=${encodeURIComponent(repo.branch)}`), { headers: headers(token) });
+  const data = (await res.json()) as { name: string; path: string; type: string }[];
+  return Array.isArray(data) ? data.filter((f) => f.type === "file").map((f) => ({ name: f.name, path: f.path })) : [];
+}

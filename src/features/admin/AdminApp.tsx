@@ -26,16 +26,13 @@ import {
   customActivityId,
   customCardsToActivities,
   defaultIntensity,
-  applyBaseEdits,
   formFromActivity,
   formFromCustomCard,
   formPermissions,
-  toBaseEdit,
   implicaFromPermissions,
   newCardForm,
   randomCardId,
   type Audience,
-  type BaseEdit,
   type CardForm,
   type Implica,
   type CustomCard,
@@ -333,6 +330,7 @@ function checkCard(card: CustomCard, editingId: string | null): { activity: Acti
 
 function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; onResult: (r: PublishOutcome) => void; onCancel: () => void }) {
   const publish = useAdmin((s) => s.publish);
+  const publishOriginal = useAdmin((s) => s.publishOriginal);
   const busy = useAdmin((s) => s.busy);
   const error = useAdmin((s) => s.error);
   const file = useAdmin((s) => s.file);
@@ -377,7 +375,7 @@ function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; 
         <Title
           sub={
             editing?.kind === "base"
-              ? `Carta original ${editing.activity.id}. Tu versión se guarda en el repositorio y puedes volver al original cuando quieras.`
+              ? `Carta original ${editing.activity.id}. Los cambios reemplazan esta carta directamente en el código: no queda otra versión.`
               : editing
                 ? `Editando ${editingId}`
                 : "Llena los campos; abajo ves cómo quedará."
@@ -386,12 +384,13 @@ function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; 
           {editing?.kind === "base" ? "Editar carta original" : editing ? "Editar carta" : "Nueva carta"}
         </Title>
 
-        <Section title="Nivel">
+        <Section title="Nivel" hint={editing?.kind === "base" ? "El nivel de una carta original no se cambia (forma parte de su lugar en el catálogo)." : undefined}>
           <div className="grid grid-cols-3 gap-2">
             {INTENSITIES.map((l) => (
               <Chip
                 key={l}
                 selected={form.nivel === l}
+                disabled={editing?.kind === "base" && form.nivel !== l}
                 onClick={() => setForm((f) => ({ ...f, nivel: l, intensidad: defaultIntensity(l) }))}
               >
                 {INTENSITY_LABEL[l]}
@@ -660,11 +659,11 @@ function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; 
             if (!canPublish || !built.card) return;
             const exists = !!file?.cartas.some((c) => c.id === id);
             const title = built.card.t;
-            const change =
+            const done =
               editing?.kind === "base"
-                ? { kind: "edit_base" as const, activityId: editing.activity.id, edit: toBaseEdit(built.card) }
-                : { kind: editing && exists ? ("update" as const) : ("add" as const), card: built.card };
-            void publish(change, title).then((r) => {
+                ? publishOriginal(editing.activity.id, built.card)
+                : publish({ kind: editing && exists ? "update" : "add", card: built.card }, title);
+            void done.then((r) => {
               onResult(
                 r
                   ? { ok: true, title: editing ? "¡Cambios guardados!" : "¡Carta publicada!", message: `«${title}» ya está en el repositorio.`, commitUrl: r.commitUrl }
@@ -687,24 +686,21 @@ function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; 
 
 // ------------------------------------------------------------------ lista
 
-type Source = "todas" | "mias" | "base" | "editadas" | "ocultas";
+type Source = "todas" | "mias" | "base" | "ocultas";
 
 interface Row {
   id: string;
   activity: Activity;
   custom: CustomCard | null;
   hidden: boolean;
-  /** Carta base con una versión editada guardada en el repositorio. */
-  edited: boolean;
 }
 
-type ListAction = "delete" | "hide" | "unhide" | "revert";
+type ListAction = "delete" | "hide" | "unhide";
 
 const ACTION_TEXT: Record<ListAction, { title: string; body: string; button: string; done: string }> = {
   delete: { title: "¿Borrar esta carta?", body: "Se elimina del repositorio. Puedes volver a crearla cuando quieras.", button: "Borrar", done: "borrada" },
   hide: { title: "¿Ocultar esta carta?", body: "Es una carta original: no se borra del código, pero deja de salir en la app. Puedes restaurarla después.", button: "Ocultar", done: "ocultada" },
   unhide: { title: "¿Restaurar esta carta?", body: "Volverá a salir en la app.", button: "Restaurar", done: "restaurada" },
-  revert: { title: "¿Volver a la versión original?", body: "Se descarta tu edición y la carta vuelve a salir como venía en la app.", button: "Volver al original", done: "restaurada a su versión original" },
 };
 
 function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r: PublishOutcome) => void }) {
@@ -721,19 +717,14 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
 
   const rows = useMemo<Row[]>(() => {
     const hidden = new Set(file?.ocultas ?? []);
-    const edits = file?.ediciones ?? {};
     const custom = file?.cartas ?? [];
     const customActs = customCardsToActivities(custom);
     const byId = new Map(custom.map((c) => [customActivityId(c), c]));
     return [
-      ...customActs.map((a) => ({ id: a.id, activity: a, custom: byId.get(a.id) ?? null, hidden: false, edited: false })),
-      ...applyBaseEdits(
-        BASE_ACTIVITIES.filter((a) => a.formato !== "sorpresa"),
-        edits,
-      ).map((a) => ({ id: a.id, activity: a, custom: null, hidden: hidden.has(a.id), edited: !!edits[a.id] })),
+      ...customActs.map((a) => ({ id: a.id, activity: a, custom: byId.get(a.id) ?? null, hidden: false })),
+      ...BASE_ACTIVITIES.filter((a) => a.formato !== "sorpresa").map((a) => ({ id: a.id, activity: a, custom: null, hidden: hidden.has(a.id) })),
     ];
   }, [file]);
-  const editedCount = Object.keys(file?.ediciones ?? {}).length;
 
   const filtered = useMemo(() => {
     const needle = normalizeText(q);
@@ -742,7 +733,6 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
       if (source === "mias" && !r.custom) return false;
       if (source === "base" && (r.custom || r.hidden)) return false;
       if (source === "ocultas" && !r.hidden) return false;
-      if (source === "editadas" && !r.edited) return false;
       if (needle && !normalizeText(r.activity.titulo + " " + r.activity.texto + " " + r.id).includes(needle)) return false;
       return true;
     });
@@ -753,17 +743,15 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
     const change =
       action === "delete"
         ? { kind: "delete" as const, id: row.custom!.id }
-        : action === "revert"
-          ? { kind: "revert_base" as const, activityId: row.id }
-          : action === "unhide"
-            ? { kind: "unhide" as const, activityId: row.id }
-            : { kind: "hide" as const, activityId: row.id };
+        : action === "unhide"
+          ? { kind: "unhide" as const, activityId: row.id }
+          : { kind: "hide" as const, activityId: row.id };
     void publish(change, title).then((r) => {
       setConfirm(null);
       const verb = ACTION_TEXT[action].done;
       onDone(
         r
-          ? { ok: true, title: action === "revert" ? "¡Carta original restaurada!" : `¡Carta ${verb}!`, message: `«${title}» quedó ${verb} en el repositorio.`, commitUrl: r.commitUrl }
+          ? { ok: true, title: `¡Carta ${verb}!`, message: `«${title}» quedó ${verb} en el repositorio.`, commitUrl: r.commitUrl }
           : { ok: false, title: "No se pudo guardar", message: useAdmin.getState().error ?? "Algo salió mal. Revisa tu conexión y vuelve a intentarlo." },
       );
     });
@@ -778,7 +766,6 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
             [
               ["mias", `Mías (${file?.cartas.length ?? 0})`],
               ["base", "Originales"],
-              ["editadas", `Editadas (${editedCount})`],
               ["ocultas", `Ocultas (${file?.ocultas.length ?? 0})`],
               ["todas", "Todas"],
             ] as const
@@ -803,7 +790,7 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
         </div>
       </Card>
       {error && <Notice tone="warn">{error}</Notice>}
-      {filtered.length === 0 && <Notice>{source === "mias" ? "Todavía no has creado cartas." : source === "editadas" ? "Todavía no has editado cartas originales." : "No hay cartas con ese filtro."}</Notice>}
+      {filtered.length === 0 && <Notice>{source === "mias" ? "Todavía no has creado cartas." : "No hay cartas con ese filtro."}</Notice>}
       <ul className="space-y-2">
         {filtered.slice(0, limit).map((r) => (
           <li key={r.id} className={cx("glass space-y-2 rounded-2xl p-4", r.hidden && "opacity-60")}>
@@ -812,9 +799,8 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
               <span>·</span>
               <span>{r.activity.formato}</span>
               {r.custom && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-accent">Mía</span>}
-              {r.edited && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-accent">Editada</span>}
-              {(r.custom || r.edited) &&
-                ((r.custom ? inThisVersion(r.custom) : editInThisVersion(r.id, file?.ediciones?.[r.id])) ? (
+              {r.custom &&
+                (inThisVersion(r.custom) ? (
                   <span className="rounded-full bg-ok/15 px-2 py-0.5 text-ok">En la app</span>
                 ) : (
                   <span className="rounded-full bg-warn/15 px-2 py-0.5 text-warn">Publicándose</span>
@@ -835,11 +821,6 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
               >
                 Editar
               </Button>
-              {r.edited && (
-                <Button variant="ghost" className="!min-h-10 !text-sm" icon="refresh" onClick={() => setConfirm({ row: r, action: "revert" })} disabled={busy}>
-                  Volver al original
-                </Button>
-              )}
               <Button
                 variant={r.hidden ? "secondary" : "ghost"}
                 className="!min-h-10 !text-sm"
@@ -874,11 +855,6 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
   );
 }
 
-/** ¿Esta versión de la app ya trae la edición tal cual está en el repositorio? */
-function editInThisVersion(id: string, edit: BaseEdit | undefined): boolean {
-  const bundled = CUSTOM_FILE.ediciones?.[id];
-  return !!bundled && !!edit && JSON.stringify(bundled) === JSON.stringify(edit);
-}
 
 /** ¿Esta versión de la app ya trae la carta tal cual está en el repositorio? */
 function inThisVersion(card: CustomCard): boolean {
