@@ -62,7 +62,7 @@ Estados editoriales: {"reviewed":1109}
 - **1.109 actividades**: 296 Leve, 403 Picante, 410 Perverso. El 2026-10-08 se añadieron 26 cartas «solo hombre y mujer» (`mixta: true`): 6 Leve, 10 Picante, 10 Perverso.
 - Antes: 1.083 actividades (290 Leve, 393 Picante, 400 Perverso). El 2026-10-07 se retiraron las votaciones (36), «¿Quién me conoce mejor?» (34) y «Secretos» (72), porque pedían pasar el teléfono. Se añadieron 25 confesiones en voz alta para Leve.
 - Tono más atrevido a petición de la propietaria: besos (incluidos intensos), caricias sobre la ropa, bailes sensuales, prendas y tiempo a solas, siempre con permisos y confirmación privada.
-- Línea que no se cruza: nada sexualmente explícito (sin actos sexuales, genitales, senos, nalgas, desnudez ni ropa interior). El validador veta esos términos y las cartas de prendas y de tiempo a solas muestran avisos automáticos.
+- Vocabulario: desde la versión 1.3.2 la propietaria decide el vocabulario de sus cartas; el validador ya no veta términos sexuales. Lo único que bloquea siempre es cualquier mención de menores de edad. Alcohol, fotos íntimas, el teléfono de otra persona o humillación solo generan avisos.
 - Validador: 0 errores y 0 avisos, también con `--similar`.
 - Leve conserva más de 150 cartas que solo requieren la base segura, para quien elige «No acepto».
 

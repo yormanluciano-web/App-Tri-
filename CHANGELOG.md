@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 — 2026-10-08
+- El validador ya no veta vocabulario sexual ni la mención de ropa interior: la propietaria escribe y edita sus cartas sin palabras prohibidas.
+- Sigue bloqueando siempre cualquier mención de menores de edad (la app es solo para adultos).
+- Alcohol, fotos íntimas, el teléfono de otra persona o el tono de castigo o humillación pasan de error a aviso: se puede publicar igual.
+
 ## 1.3.1 — 2026-10-08
 - **Comprobación de actualización antes de empezar**: «Nueva sesión», «Ver demo», «Nueva sesión» al terminar y «Probar» del panel buscan primero una versión nueva («Buscando actualizaciones…»). Si la hay, aparece «Hay una versión nueva» y no se puede empezar hasta tocar «Actualizar ahora»; la app se recarga y ya deja empezar. Sin conexión no se puede comprobar y se deja jugar (la app funciona sin red).
 

@@ -41,12 +41,20 @@ const GAME_FORMATS: Record<GameId, readonly Format[]> = {
 /** Palabras que sugieren contacto. Solo generan alertas: no demuestran seguridad. */
 const CONTACT_HINTS = /\b(abraz\w*|bes[ao]\w*|masaj\w*|acarici\w*|toc(?:ar|a|ad|ate)\s+(?:la|el|su|tu|sus|tus)|tómal[ae]s?|tomarse de|mano[s]? de|hombros?|cintura|regazo)\b/i;
 
-/** Contenido vetado por las reglas editoriales (alerta para revisión humana). */
-const BANNED_HINTS =
-  /\b(alcohol|trago|shot|borrach\w*|menor(es)? de edad|desnud\w*|sexo|sexual\w*|genital\w*|senos?|pechos?|pez[oó]n\w*|oral|pene|vagina|vulva|nalgas?|orgasm\w*|mastur\w*|porn\w*|er[oó]tic\w*|excitad\w*|celular de|teléfono de (otra|otro)|contraseña|foto\w* íntima\w*|castigo|cobarde|humill\w*)\b/i;
+/**
+ * Lo único que bloquea siempre: cualquier referencia a menores de edad. La app
+ * es solo para adultos. (El vocabulario sexual lo decide la propietaria: no se veta.)
+ */
+const MINORS = /\b(menor(es)? de edad|niñ[oa]s?|infantil(es)?|adolescentes?|colegial(es|as?)?)\b/i;
 
-/** Quitarse prendas nunca llega a la ropa interior ni a la desnudez. */
-const UNDERWEAR_REMOVAL = /quit\w*[^.]{0,40}ropa interior|(sin|en) ropa interior|quedar\w* sin ropa/i;
+/** Temas delicados: solo avisan (no bloquean) para revisar el consentimiento. */
+const SENSITIVE: { re: RegExp; note: string }[] = [
+  { re: /\b(alcohol|trago|shot|borrach\w*)\b/i, note: "menciona alcohol: el consentimiento necesita a todas las personas sobrias" },
+  { re: /\b(celular de|teléfono de (otra|otro)|contraseña)\b/i, note: "pide el teléfono o datos de otra persona" },
+  { re: /\bfoto\w* íntima\w*/i, note: "menciona fotos íntimas: nunca deben salir del momento ni compartirse" },
+  { re: /\b(castigo|cobarde|humill\w*)\b/i, note: "tono de castigo o humillación" },
+];
+
 
 export function normalizeText(text: string): string {
   return text
@@ -150,8 +158,8 @@ export function validateCatalog(raw: readonly unknown[], opts: { similarity?: bo
     if (isContactActivity(a) && !a.tags.includes("contacto")) err(a.id, "actividad de contacto sin tag contacto");
     if (!isContactActivity(a) && a.tags.includes("contacto")) err(a.id, "tag contacto sin permiso de contacto");
     if (CONTACT_HINTS.test(a.texto) && !isContactActivity(a)) warn(a.id, "el texto sugiere contacto pero no declara permiso de contacto");
-    if (BANNED_HINTS.test(a.texto + " " + a.titulo)) err(a.id, "texto con término vetado por reglas editoriales");
-    if (UNDERWEAR_REMOVAL.test(a.texto)) err(a.id, "una prenda nunca puede ser la ropa interior");
+    if (MINORS.test(a.texto + " " + a.titulo)) err(a.id, "la app es solo para adultos: ninguna carta puede mencionar menores de edad");
+    for (const s of SENSITIVE) if (s.re.test(a.texto + " " + a.titulo)) warn(a.id, `aviso: ${s.note}`);
     // Prendas: se hace ante el grupo, así que toda la audiencia debe aceptarlo.
     const allPerms = activityPermissions(a);
     if (allPerms.includes("quitarse_prenda") && (a.audienceScope !== "sesion" || !r.audiencia.includes("quitarse_prenda")))

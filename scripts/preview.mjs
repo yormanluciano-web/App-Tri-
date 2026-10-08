@@ -58,7 +58,11 @@ http
       res.writeHead(404, { ...headers, "Content-Type": TYPES[".html"] });
       return res.end(body);
     }
-    const body = await readFile(found.full);
+    let body = await readFile(found.full);
+    // Solo para pruebas locales: simula una versión nueva del service worker para
+    // el navegador que lleva la cookie e2e_sw_version, sin tocar el archivo compartido.
+    const variant = urlPath === "/sw.js" ? /(?:^|;\s*)e2e_sw_version=([\w-]+)/.exec(req.headers.cookie || "")?.[1] : null;
+    if (variant) body = Buffer.concat([body, Buffer.from(`\n// e2e ${variant}\n`)]);
     res.writeHead(200, { ...headers, "Content-Type": TYPES[path.extname(found.full)] || "application/octet-stream" });
     res.end(body);
   })

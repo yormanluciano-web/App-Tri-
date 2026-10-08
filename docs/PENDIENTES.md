@@ -10,5 +10,6 @@
 | Alta | Registrar la app en Spotify, configurar las listas en el panel y probar la música en el iPhone | Pendiente de la propietaria (docs/DESPLIEGUE.md → Música con Spotify) |
 | Media | Minijuegos, segunda tanda: Parqués de la pasión | Siguiente (orden acordado con la propietaria) |
 | Baja | Minijuegos, tercera tanda: Twister de piel, Mayor o menor, Memoria caliente | Pendiente |
+| Alta | Alinear categorías de consentimiento con cartas más explícitas (p. ej. nueva categoría para ropa interior o desnudez) | Propuesto a la propietaria: hoy «Prendas» promete «nunca la ropa interior» |
 | Hecho | Nombre de marca definitivo: Cómplice | 2026-10-07 |
 | Baja | Panel editorial, paquetes premium y sincronización (Supabase) | Fuera de la primera versión; ver `docs/EVOLUCION.md` |
