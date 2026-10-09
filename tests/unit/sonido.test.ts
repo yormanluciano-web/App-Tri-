@@ -169,6 +169,23 @@ describe("efectos de sonido", () => {
     }
   });
 
+  it("con música de Spotify activa, los efectos se mezclan con ella (no la pausan en el iPhone)", async () => {
+    const session = { type: "auto" };
+    vi.stubGlobal("navigator", { audioSession: session });
+    const m = await import("@/sound/sfx");
+    m.unlockAudio();
+    await Promise.resolve();
+    m.sfx("deal");
+    expect(session.type).toBe("playback");
+    m.setMixWithOthers(true);
+    expect(session.type).toBe("ambient");
+    m.sfx("flip");
+    expect(session.type).toBe("ambient");
+    m.releaseAudioNow();
+    expect(session.type).toBe("ambient");
+    m.setMixWithOthers(false);
+  });
+
   it("la vibración solo si está activada", async () => {
     const m = await import("@/sound/sfx");
     m.haptic(20);

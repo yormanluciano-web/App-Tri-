@@ -6,6 +6,7 @@ import type { MusicConfig } from "@/data/custom";
 import { MUSIC_ERROR_TEXT, MusicError, disconnect, isConnected, playContext, playTracks, searchTrack } from "./spotify";
 import type { MusicMoment, MusicSource } from "./moments";
 import { songQueries } from "./selection";
+import { setMixWithOthers } from "@/sound/sfx";
 
 /** Configuración publicada en el repositorio (cartas.json → musica). */
 export const MUSIC_CONFIG: MusicConfig = CUSTOM_FILE.musica ?? { listas: {} };
@@ -130,3 +131,7 @@ export const useMusic = create<MusicState>((set, get) => ({
     set({ error: null, errorDetail: null });
   },
 }));
+
+// Con Spotify conectado y el DJ activo, los efectos de la app se mezclan con la
+// música en lugar de quitarle el audio (en iPhone la pausaban en cada carta).
+useMusic.subscribe((s) => setMixWithOthers(s.connected && s.auto));

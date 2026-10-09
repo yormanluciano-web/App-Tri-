@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.12.4 — 2026-10-09
+- Corregido: con Spotify sonando, la música se pausaba con cada carta y luego no volvía a sonar. Los efectos de la app (voltear, barajar…) tomaban el audio del iPhone y Spotify se interrumpía. Ahora, con la música de Spotify activa, los efectos se mezclan con ella sin pausarla (el interruptor de silencio del iPhone apaga entonces los efectos, no la música).
+- La música cambia menos: entre cartas se mantiene la que suena y solo cambia cuando sale una carta de otro momento (baile o calma), cuando cambia el nivel o al terminar.
+
 ## 1.12.3 — 2026-10-09
 - Corregido: el DJ Cómplice mostraba «Falta un permiso» aunque se volviera a conectar. La búsqueda de canciones pedía el país de la cuenta (`market=from_token`), que Spotify ya no permite en modo de desarrollo; ahora busca sin ese dato.
 - Los errores de música muestran un «Detalle técnico» con el paso que falló y lo que respondió Spotify, para diagnosticar rápido. No incluye nada del juego.

@@ -59,6 +59,18 @@ let enabled = true;
 let volume: number = SFX_VOLUMES.medio;
 let vibrationOn = false;
 let overSilent = true;
+/**
+ * Hay música de Spotify sonando por la app: los efectos deben mezclarse con
+ * ella. Con la sesión «playback» el iPhone le quita el audio a Spotify en cada
+ * efecto y la música se pausa; con «ambient» suenan juntos.
+ */
+let mixWithOthers = false;
+
+export function setMixWithOthers(v: boolean): void {
+  if (mixWithOthers === v) return;
+  mixWithOthers = v;
+  if (audio?.ctx.state === "running") setSessionType();
+}
 
 /** Silencio temporal desde la mesa (solo memoria). */
 export const useSfxMute = create<{ muted: boolean; toggle(): void }>((set) => ({
@@ -76,7 +88,7 @@ export function configureSfx(cfg: { sfx: boolean; sfxVolume: SfxVolume; vibratio
 }
 
 /** Tipo de sesión de audio en Safari 16.4+ (en otros navegadores no existe y no hace nada). */
-function setSessionType(type: string = overSilent ? "playback" : "ambient"): void {
+function setSessionType(type: string = overSilent && !mixWithOthers ? "playback" : "ambient"): void {
   try {
     const nav = navigator as Navigator & { audioSession?: { type: string } };
     if (nav.audioSession && nav.audioSession.type !== type) nav.audioSession.type = type;
@@ -109,7 +121,7 @@ function release(a: Audio): void {
   if (performance.now() < quietAt) return scheduleRelease(a);
   if (a.ctx.state === "running") void a.ctx.suspend().catch(() => undefined);
   // Sin sesión de audio activa, iOS quita el indicador de reproducción.
-  setSessionType("auto");
+  setSessionType(mixWithOthers ? "ambient" : "auto");
 }
 
 /** Al salir de la app (pantalla bloqueada, otra app): soltar el audio enseguida. */

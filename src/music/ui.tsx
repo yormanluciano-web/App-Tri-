@@ -37,7 +37,13 @@ export function MusicDirector({ session }: { session: SessionState }) {
   const play = useMusic((s) => s.play);
   const turn = session.currentTurn;
   const openActivity = turn && turn.status !== "closed" ? (getActivity(turn.activityId) ?? null) : null;
-  const moment = momentFor(session, openActivity);
+  const live = momentFor(session, openActivity);
+  // Entre cartas no se cambia la música: solo cuando sale una carta de otro momento
+  // (o cambia el nivel, o termina la sesión). Así no se corta en cada carta.
+  const [held, setHeld] = useState<{ moment: MusicMoment; level: string }>({ moment: live, level: session.level });
+  const between = !openActivity && session.status !== "finished" && held.level === session.level;
+  const moment = between ? held.moment : live;
+  if (moment !== held.moment || held.level !== session.level) setHeld({ moment, level: session.level });
 
   useEffect(() => {
     if (!ready) init();

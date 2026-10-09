@@ -14,7 +14,7 @@ import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 import { sfx } from "@/sound/sfx";
 
-export const APP_VERSION = "1.12.3";
+export const APP_VERSION = "1.12.4";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -91,7 +91,7 @@ export function Settings() {
                 checked={settings.sfxOverSilent}
                 onChange={(v) => update({ sfxOverSilent: v })}
                 label="Sonar aunque el iPhone esté en silencio"
-                hint="Si escuchas Spotify en este mismo iPhone y los efectos pausan la música, apágalo (entonces el interruptor de silencio los apaga)."
+                hint="Con la música de Spotify activa, los efectos se mezclan con ella sin pausarla (y entonces el interruptor de silencio los apaga)."
               />
               <Button variant="secondary" icon="sound" block data-sfx="test" onClick={() => sfx("win")}>
                 Probar sonido
