@@ -248,6 +248,56 @@
         240
       ],
       "creada": "2026-10-09"
+    },
+    {
+      "id": "httppv83",
+      "nivel": "perverso",
+      "t": "Baile en privado",
+      "x": "{p1} debe ir con {p2}  a una habitación sola durante 3min, pueden hacer lo que quieran sin límites, al volver, {p3} debe adivinar que hicieron viendo sus rostros, tiene 3 intentos, si falla debe quitarse una prenda durante el resto del juego",
+      "c": "retos",
+      "f": "reto",
+      "s": 98,
+      "i": "group",
+      "sizes": [
+        3
+      ],
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        180,
+        90,
+        360
+      ],
+      "creada": "2026-10-09"
     }
   ],
   "ocultas": [
