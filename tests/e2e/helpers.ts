@@ -13,6 +13,8 @@ export interface SetupOptions {
   allow?: string[];
   accept?: "todo" | "nada";
   duration?: string;
+  /** Se ejecuta en la pantalla de consentimiento inicial; devuelve cuántas personas ya respondió. */
+  beforeConsent?: (page: Page) => Promise<number>;
 }
 
 const DEFAULT_GAMES = ["Verdad o reto", "Tarjetas"];
@@ -53,7 +55,8 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   }
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Pedir consentimiento y comenzar" }).click();
-  await answerAll(page, aliases, true);
+  const answered = o.beforeConsent ? await o.beforeConsent(page) : 0;
+  await answerAll(page, aliases.slice(answered), true);
   await expect(page).toHaveURL(/\/jugar\/$/);
   return aliases;
 }

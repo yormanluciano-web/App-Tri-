@@ -219,6 +219,7 @@ export const GAMES = [
   "parques",
   "noche",
   "caos",
+  "sin_miedo",
   "sorpresa",
 ] as const;
 export type GameId = (typeof GAMES)[number];
@@ -236,6 +237,7 @@ export const GAME_LABEL: Record<GameId, string> = {
   parques: "Parqués de la pasión",
   noche: "Noche completa",
   caos: "Caos",
+  sin_miedo: "Sin miedo",
   sorpresa: "Carta sorpresa",
 };
 
@@ -252,6 +254,7 @@ export const GAME_DESCRIPTION: Record<GameId, string> = {
   parques: "Tiren el dado por turnos y avancen por el tablero: cada casilla trae verdad, reto, pareja o sorpresa. Quien llegue al corazón elige a quién le toca el próximo reto.",
   noche: "60 minutos: apertura, desarrollo y cierre con mezcla automática.",
   caos: "Cada ronda elige juego, asignación y carta sin patrón fijo.",
+  sin_miedo: "Sin límite de tiempo y el nivel sube solo: 15 min en Leve, 20 min en Picante y luego Perverso. Todos lo aceptan en privado al empezar.",
   sorpresa: "Cada 4 a 7 rondas aparece un evento sorpresa compatible.",
 };
 

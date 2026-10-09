@@ -176,6 +176,11 @@ export interface SessionState {
   stopped: boolean;
   /** Cambios/rechazos dentro de la oportunidad abierta. */
   changesInOpportunity: number;
+  /**
+   * «Sin miedo»: el nivel sube solo con el tiempo (aceptado en privado y por
+   * unanimidad al empezar). Bajar de nivel lo apaga para el resto de la sesión.
+   */
+  autoAscent?: boolean;
   /** Semilla de la sesión (no sensible); el RNG real vive en memoria. */
   seed: number;
   startedAt: number;

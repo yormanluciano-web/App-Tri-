@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0 — 2026-10-09
+- Nuevo modo **«Sin miedo»**: sin límite de tiempo y el nivel sube solo con el tiempo jugado. Son 15 minutos en Leve, 20 en Picante y luego Perverso hasta el final. Las pausas no cuentan.
+- Se acepta por adelantado: en el consentimiento inicial, que es privado, cada persona ve que el nivel subirá solo sin volver a preguntar. Si alguien no acepta, no se empieza y nadie sabe quién fue. Siempre empieza en Leve, aunque se haya elegido otra intensidad.
+- La subida ocurre entre cartas, nunca a mitad de una: aparece «¡Ahora, Picante!» y la siguiente carta ya es del nivel nuevo. Arriba se ve cuánto falta («Sin miedo · Picante en 7 min»).
+- Los límites de cada persona se respetan en todos los niveles: lo marcado como «no» nunca aparece. Cualquiera puede bajar, pausar o detener; si bajan de nivel, la subida automática se detiene y volver a subir pide el acuerdo privado de todos.
+- Usa todos los juegos (como Noche completa) y aparece también en «Probar» del panel.
+
 ## 1.7.0 — 2026-10-09
 - **Prioridad a las novedades**: las cartas creadas o editadas desde el panel salen 10 veces más que las demás durante 30 días, siempre dentro de su nivel, su tramo de intensidad y lo que cada persona aceptó. El panel las marca con «Novedad». Las 6 cartas originales que ya habías editado cuentan desde el 8 de octubre.
 - **Memoria de cartas ya vistas**: en sesiones normales el teléfono recuerda qué cartas ya salieron (solo el número de la carta) y prefiere las que aún no han salido; así el mazo rota entre sesiones. Recuerda hasta tres cuartas partes del mazo y luego las más antiguas vuelven a la rotación. La sesión privada y la demo no guardan nada; «Eliminar todos mis datos» la borra.

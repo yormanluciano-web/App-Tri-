@@ -1,4 +1,4 @@
-import { MINI_GAMES, SCHEMA_VERSION, type GameId, type Intensity, type Light, type Permission } from "../models/constants";
+import { INTENSITY_LABEL, MINI_GAMES, SCHEMA_VERSION, type GameId, type Intensity, type Light, type Permission } from "../models/constants";
 import type {
   LimitProfile,
   ParticipantId,
@@ -9,7 +9,7 @@ import type {
   Turn,
   TurnOutcome,
 } from "../models/session";
-import { newProgress, nextLevel, LEVEL_ORDER } from "../engine/progression";
+import { fearlessLevelAt, fearlessProgress, newProgress, nextLevel, LEVEL_ORDER } from "../engine/progression";
 import { comboKeys, VARIETY, type Candidate } from "../engine/select";
 import { randomId, type Rng } from "../engine/rng";
 
@@ -20,7 +20,18 @@ export const NOTICE = {
   limitsChanged: "Los límites cambiaron. La actividad anterior se descartó.",
   noCandidates: "No hay actividades compatibles ahora mismo.",
   exhausted: "Ya se mostraron las actividades disponibles de este juego por ahora.",
+  autoStopped: "Bajaron de nivel: la subida automática de «Sin miedo» se detuvo. Para volver a subir, todos deben aceptar en privado.",
 } as const;
+
+/** Aviso de subida automática en «Sin miedo». */
+export function autoLevelNotice(level: Intensity): string {
+  return `¡Sin miedo! Ahora juegan en ${INTENSITY_LABEL[level]}, como lo aceptaron al empezar. Cualquiera puede bajar, pausar o detener cuando quiera.`;
+}
+
+/** Progresión al entrar a un nivel: en «Sin miedo» los tramos siguen su calendario. */
+function levelProgress(state: Pick<SessionState, "config" | "autoAscent">, level: Intensity, activeMs: number) {
+  return state.autoAscent ? fearlessProgress(level, activeMs) : newProgress(state.config.durationMin, activeMs);
+}
 
 /** Estados en los que corre el tiempo activo de la sesión. */
 const ACTIVE_STATUSES: readonly SessionStatus[] = ["ready", "selecting", "playing", "roundReveal"];
@@ -40,6 +51,7 @@ export function createSession(
 ): SessionState {
   const ids = config.participants.map((p) => p.id);
   const firstGame = config.games[0];
+  const autoAscent = config.games.includes("sin_miedo");
   return {
     id: opts.id ?? randomId("s_"),
     schemaVersion: SCHEMA_VERSION,
@@ -52,7 +64,7 @@ export function createSession(
     limitsVersion: 1,
     activeMs: 0,
     lastTickAt: null,
-    progress: newProgress(config.durationMin, 0),
+    progress: autoAscent ? fearlessProgress(config.initialLevel, 0) : newProgress(config.durationMin, 0),
     turnCounter: 0,
     currentGame: firstGame,
     gameUsage: {},
@@ -66,6 +78,7 @@ export function createSession(
     notice: null,
     stopped: false,
     changesInOpportunity: 0,
+    ...(autoAscent ? { autoAscent: true } : {}),
     seed: opts.seed,
     startedAt: opts.now,
     updatedAt: opts.now,
@@ -98,7 +111,23 @@ function freezeTimer(state: SessionState, now: number): SessionState {
 export function resolveInitialConsent(state: SessionState, accepted: boolean, now: number): SessionState {
   if (state.status !== "awaitingInitialConsent") return state;
   if (!accepted) return { ...withStatus(state, "setup", now) };
-  return withStatus({ ...state, progress: newProgress(state.config.durationMin, 0) }, "ready", now);
+  return withStatus({ ...state, progress: levelProgress(state, state.level, 0) }, "ready", now);
+}
+
+/**
+ * «Sin miedo»: si el tiempo activo ya corresponde a un nivel más alto, sube
+ * (solo entre cartas, nunca a mitad de una). Todas las personas lo aceptaron en
+ * privado al empezar; los límites personales siguen filtrando cada carta.
+ * Nunca baja ni sube si alguien bajó el nivel durante la sesión.
+ */
+export function applyAutoAscent(state: SessionState, now: number): SessionState {
+  if (!state.autoAscent) return state;
+  if (!["ready", "selecting", "blocked"].includes(state.status)) return state;
+  if (state.currentTurn && state.currentTurn.status !== "closed") return state;
+  const s = tick(state, now);
+  const target = fearlessLevelAt(s.activeMs);
+  if (LEVEL_ORDER.indexOf(target) <= LEVEL_ORDER.indexOf(s.level)) return s;
+  return withStatus({ ...s, level: target, progress: fearlessProgress(target, s.activeMs), notice: autoLevelNotice(target), chain: null }, "ready", now);
 }
 
 // ---------------------------------------------------------------- turnos
@@ -367,11 +396,13 @@ function cancelCurrent(state: SessionState): SessionState {
 export function lowerLevel(state: SessionState, target: Intensity, now: number): SessionState {
   if (LEVEL_ORDER.indexOf(target) >= LEVEL_ORDER.indexOf(state.level)) return state;
   const s = cancelCurrent(tick(state, now));
+  // Bajar apaga la subida automática de «Sin miedo»: volver a subir pide unanimidad otra vez.
   const next: SessionState = {
     ...s,
     level: target,
+    ...(state.autoAscent ? { autoAscent: false } : {}),
     progress: newProgress(state.config.durationMin, s.activeMs),
-    notice: null,
+    notice: state.autoAscent ? NOTICE.autoStopped : null,
   };
   if (state.status === "paused") return { ...next, version: s.version + 1, pausedFrom: "ready" };
   return withStatus(next, "ready", now);
@@ -394,7 +425,7 @@ export function resolveLevelUp(state: SessionState, accepted: boolean, now: numb
   }
   const s = cancelCurrent(tick(state, now));
   return withStatus(
-    { ...s, level: target, progress: newProgress(state.config.durationMin, s.activeMs), notice: NOTICE.levelUp, pausedFrom: null },
+    { ...s, level: target, progress: levelProgress(s, target, s.activeMs), notice: NOTICE.levelUp, pausedFrom: null },
     "ready",
     now,
   );
@@ -430,7 +461,7 @@ function afterLimitChange(prev: SessionState, next: SessionState, now: number): 
 
 export function setGame(state: SessionState, game: GameId, now: number): SessionState {
   // Los minijuegos también pueden jugarse como ronda especial aunque no se eligieran al empezar.
-  if (!state.config.games.includes(game) && !MINI_GAMES.includes(game) && !(state.config.games.includes("caos") || state.config.games.includes("noche"))) return state;
+  if (!state.config.games.includes(game) && !MINI_GAMES.includes(game) && !(state.config.games.includes("caos") || state.config.games.includes("noche") || state.config.games.includes("sin_miedo"))) return state;
   const s = cancelCurrent(tick(state, now));
   const status: SessionStatus = state.status === "paused" ? "paused" : "ready";
   const next = { ...s, currentGame: game, chain: game === "cadena" ? { stage: 0, lastScore: -1 } : null };

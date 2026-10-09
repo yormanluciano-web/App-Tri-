@@ -88,6 +88,8 @@ export const persistedSessionSchema = z.object({
     sharedLimits: permMap,
   }),
   level: z.enum(INTENSITIES),
+  /** «Sin miedo»: subida automática aún activa (aceptada al empezar). */
+  autoAscent: z.boolean().optional(),
   limitsVersion: z.number().int().min(1),
   activeMs: z.number().min(0),
   progress: z.object({
@@ -183,6 +185,7 @@ export function toPersisted(state: SessionState, now: number): PersistedSession 
       sharedLimits: { ...c.sharedLimits },
     },
     level: state.level,
+    ...(state.autoAscent ? { autoAscent: true } : {}),
     limitsVersion: state.limitsVersion,
     activeMs: state.activeMs,
     progress: { ...state.progress },
@@ -285,6 +288,7 @@ export function fromPersisted(raw: unknown, catalog: readonly Activity[], conten
     pausedFrom: safeStatus,
     config: { ...p.config, participants: p.config.participants.map((x) => ({ ...x })) },
     level: p.level,
+    ...(p.autoAscent ? { autoAscent: true } : {}),
     limitsVersion: p.limitsVersion,
     activeMs: p.activeMs,
     lastTickAt: null,

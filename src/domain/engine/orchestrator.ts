@@ -5,6 +5,7 @@ import { nextLevel } from "./progression";
 import { pickOne, shuffle, type Rng } from "./rng";
 import { selectCandidate, type Candidate, type SelectOptions, type SelectResult } from "./select";
 import {
+  applyAutoAscent,
   isSurpriseDue,
   markBlocked,
   offerTurn,
@@ -28,6 +29,7 @@ export const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   sorpresa: ["sorpresa"],
   noche: [],
   caos: [],
+  sin_miedo: [],
 };
 
 export const NIGHT = { openingMs: 10 * 60_000, closingStartMs: 50 * 60_000, totalMin: 60 };
@@ -49,7 +51,7 @@ export function enabledBaseGames(state: SessionState): GameId[] {
 }
 
 export function isMetaGame(game: GameId): boolean {
-  return game === "noche" || game === "caos";
+  return game === "noche" || game === "caos" || game === "sin_miedo";
 }
 
 /** Orden de juegos a intentar para la ronda, sin patrón fijo y controlando variedad. */
@@ -65,6 +67,7 @@ export function roundGameCandidates(state: SessionState, rng: Rng): GameId[] {
     return byLeastUsed(filtered.length ? filtered : enabled, state, rng);
   }
   if (games.includes("caos")) return byLeastUsed(enabled, state, rng, true);
+  if (games.includes("sin_miedo")) return byLeastUsed(enabled, state, rng);
   if (!BASE_GAMES.includes(current)) return byLeastUsed(enabled, state, rng);
   // Juego actual primero; si no tiene opciones, los demás seleccionados.
   return [current, ...shuffle(enabled.filter((g) => g !== current), rng)];
@@ -86,7 +89,7 @@ export function rotateGame(state: SessionState, rng: Rng): GameId {
   if (state.chain && state.currentGame === "cadena") return "cadena";
   const games = state.config.games;
   const enabled = enabledBaseGames(state);
-  if (games.includes("noche") || games.includes("caos")) return roundGameCandidates(state, rng)[0] ?? state.currentGame;
+  if (games.includes("noche") || games.includes("caos") || games.includes("sin_miedo")) return roundGameCandidates(state, rng)[0] ?? state.currentGame;
   if (enabled.length <= 1) return enabled[0] ?? state.currentGame;
   return byLeastUsed(enabled, state, rng)[0];
 }
@@ -148,9 +151,15 @@ function surpriseAllowed(a: Activity, state: SessionState): boolean {
  * Selecciona y ofrece la siguiente carta. Nunca relaja límites: si no hay
  * candidatos, deja la sesión en estado `blocked` con un aviso neutral.
  */
-export function draw(catalog: readonly Activity[], state: SessionState, rng: Rng, now: number, req: DrawRequest = {}): DrawOutcome {
+export function draw(catalog: readonly Activity[], initial: SessionState, rng: Rng, now: number, req: DrawRequest = {}): DrawOutcome {
+  let state = initial;
   if (!["ready", "selecting", "blocked"].includes(state.status)) return { state };
   if (state.currentTurn && state.currentTurn.status !== "closed") return { state };
+  // «Sin miedo»: antes de cada carta, el nivel se pone al día con el tiempo jugado.
+  // Si sube, primero se anuncia; la siguiente carta ya sale del nivel nuevo.
+  const ascended = applyAutoAscent(state, now);
+  if (ascended.level !== state.level) return { state: ascended };
+  state = ascended;
 
   // Evento sorpresa cada 4–7 oportunidades cerradas.
   if (!req.skipSurprise && !req.onlyActivityId && isSurpriseDue(state) && state.changesInOpportunity === 0) {

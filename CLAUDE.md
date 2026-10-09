@@ -25,7 +25,7 @@ PWA de juegos privados para 2 o 3 adultos que comparten un teléfono. Especifica
 - Rojo nunca llega a pantalla. Valor ausente o desconocido = rojo. Orden `red > yellow > green`.
 - Amarillo («Preguntar antes») o `requiereConfirmacion` → respuestas privadas de cada persona afectada; solo unanimidad autoriza; nunca mostrar quién ni cuántos rechazaron. Por decisión de la propietaria, lo aceptado en verde al inicio no se vuelve a preguntar en cada carta (el catálogo no usa `requiereConfirmacion`).
 - Una autorización vale para un turno, actividad, asignación y versión de límites. Editar límites invalida carta, cola, cadena, reloj y autorizaciones.
-- Subir de nivel requiere unanimidad privada; bajar es inmediato. Nunca hay ascenso automático.
+- Subir de nivel requiere unanimidad privada; bajar es inmediato. Única excepción, decidida por la propietaria: el modo «Sin miedo» sube solo por tiempo activo (15 min Leve, 20 min Picante, luego Perverso) porque todas las personas lo aceptan en privado y por unanimidad en el consentimiento inicial; bajar de nivel apaga esa subida (`autoAscent`) y los límites personales siguen filtrando cada carta. Fuera de ese modo nunca hay ascenso automático.
 - Ningún peso, favorito, sorpresa, dado, ruleta o cadena rehabilita una opción descartada: todo pasa por `selectCandidate` / `evaluateAssignment`.
 - Respuestas, votos y autorías viven solo en memoria de la ronda (`RoundEphemeral`), nunca en `SessionState` persistible.
 - Sesión privada: cero escrituras en IndexedDB/Web Storage. Serializar solo con la lista explícita de `src/storage/serialize.ts`.

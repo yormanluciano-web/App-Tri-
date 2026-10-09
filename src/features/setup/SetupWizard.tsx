@@ -60,9 +60,14 @@ function trimAlias(a: string): string {
   return a.trim().replace(/\s+/g, " ");
 }
 
-/** Configuración final: Noche completa y Caos expanden su mezcla de juegos. */
-export function finalGames(selected: GameId[], caosExcluded: GameId[]): { games: GameId[]; forcedDuration: number | null } {
+/** Configuración final: Noche completa, Caos y Sin miedo expanden su mezcla de juegos. */
+export function finalGames(
+  selected: GameId[],
+  caosExcluded: GameId[],
+): { games: GameId[]; forcedDuration: number | null; forcedLevel?: Intensity; unlimited?: boolean } {
   if (selected.includes("noche")) return { games: ["noche", ...BASE_GAMES, "sorpresa"], forcedDuration: 60 };
+  // Sin miedo: siempre empieza en Leve y no tiene límite de tiempo (el nivel sube solo).
+  if (selected.includes("sin_miedo")) return { games: ["sin_miedo", ...BASE_GAMES, "sorpresa"], forcedDuration: null, forcedLevel: "leve", unlimited: true };
   if (selected.includes("caos")) {
     const base = BASE_GAMES.filter((g) => !caosExcluded.includes(g));
     return { games: ["caos", ...base, ...(selected.includes("sorpresa") ? (["sorpresa"] as GameId[]) : [])], forcedDuration: null };
@@ -101,14 +106,16 @@ export function SetupWizard() {
     preferences: d.prefs,
   }));
 
-  const { games: resolvedGames, forcedDuration } = finalGames(games, caosExcluded);
-  const effectiveDuration = forcedDuration ?? duration;
+  const { games: resolvedGames, forcedDuration, forcedLevel, unlimited } = finalGames(games, caosExcluded);
+  const effectiveDuration = unlimited ? null : (forcedDuration ?? duration);
+  const effectiveLevel = forcedLevel ?? level;
+  const fearless = games.includes("sin_miedo");
 
   const config: SessionConfig = {
     mode,
     participants,
     relationship,
-    initialLevel: level,
+    initialLevel: effectiveLevel,
     durationMin: effectiveDuration,
     games: resolvedGames,
     sharedLimits: shared,
@@ -125,11 +132,12 @@ export function SetupWizard() {
     const wide = { ...probe, progress: { ...probe.progress, turnsOfferedInLevel: 99, horizonMs: null } };
     const out = {} as Record<GameId, boolean>;
     for (const g of GAMES) {
-      if (g === "noche" || g === "caos") continue;
+      if (g === "noche" || g === "caos" || g === "sin_miedo") continue;
       out[g] = buildCandidates(CATALOG, wide, { game: g, formats: GAME_FORMATS[g], requireDuration: g === "temporizador" }, 0).length > 0;
     }
     out.noche = BASE_GAMES.some((g) => out[g]);
     out.caos = out.noche;
+    out.sin_miedo = out.noche;
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, level, count, drafts, shared]);
@@ -163,7 +171,7 @@ export function SetupWizard() {
 
   if (step === "consent") {
     return (
-      <Screen level={level}>
+      <Screen level={effectiveLevel}>
         <Title sub="Cada persona responde en privado. Si alguien no acepta, no se empieza y nadie sabrá quién fue.">Consentimiento inicial</Title>
         <ConsentRound
           people={people}
@@ -172,9 +180,16 @@ export function SetupWizard() {
           detail={
             <ul className="list-disc pl-5">
               <li>{count} personas</li>
-              <li>Intensidad: {INTENSITY_LABEL[level]}</li>
+              <li>Intensidad: {INTENSITY_LABEL[effectiveLevel]}</li>
               <li>Duración: {effectiveDuration ? `${effectiveDuration} minutos` : "sin límite"}</li>
               <li>Juegos: {games.map((g) => GAME_LABEL[g]).join(", ")}</li>
+              {fearless && (
+                <li className="font-semibold text-text">
+                  Sin miedo: el nivel sube solo, sin volver a preguntar. 15 minutos en Leve, 20 en Picante y luego Perverso hasta el final.
+                </li>
+              )}
+              {fearless && <li>Tus límites personales se respetan siempre: lo que marcaste como «no» nunca aparece, en ningún nivel.</li>}
+              {fearless && <li>Cualquiera puede bajar el nivel en cualquier momento; si lo hacen, la subida automática se detiene.</li>}
               <li>Puedes pasar, pausar o detener en cualquier momento.</li>
             </ul>
           }
@@ -195,7 +210,7 @@ export function SetupWizard() {
   }
 
   return (
-    <Screen level={level}>
+    <Screen level={effectiveLevel}>
       {header}
 
       {step === "mode" && (
@@ -442,8 +457,8 @@ export function SetupWizard() {
                   onClick={() =>
                     setGames((gs) => {
                       if (gs.includes(g)) return gs.filter((x) => x !== g);
-                      if (g === "noche") return ["noche"];
-                      return [...gs.filter((x) => x !== "noche"), g];
+                      if (g === "noche" || g === "sin_miedo") return [g];
+                      return [...gs.filter((x) => x !== "noche" && x !== "sin_miedo"), g];
                     })
                   }
                 />
@@ -451,6 +466,12 @@ export function SetupWizard() {
             })}
           </div>
           {games.includes("noche") && <Notice>Noche completa dura 60 minutos: 10 de apertura, 40 de desarrollo con todos los juegos y 10 de cierre. Pueden terminar antes.</Notice>}
+          {games.includes("sin_miedo") && (
+            <Notice>
+              Sin miedo empieza en Leve, no tiene límite de tiempo y sube solo: 15 minutos en Leve, 20 en Picante y luego Perverso. Al empezar, cada persona lo acepta en privado; si
+              alguien no acepta, no se empieza. Las pausas no cuentan tiempo.
+            </Notice>
+          )}
           {games.includes("caos") && !games.includes("noche") && (
             <Card className="space-y-2">
               <p className="font-semibold">Caos usa todos los juegos compatibles. Desactiva los que no quieran:</p>
@@ -481,7 +502,7 @@ export function SetupWizard() {
               <dt className="text-muted">Guardado</dt>
               <dd>{mode === "normal" ? "Sesión normal" : "Sesión privada"}</dd>
               <dt className="text-muted">Intensidad</dt>
-              <dd>{INTENSITY_LABEL[level]}</dd>
+              <dd>{fearless ? "Leve → Picante → Perverso (sube solo)" : INTENSITY_LABEL[effectiveLevel]}</dd>
               <dt className="text-muted">Duración</dt>
               <dd>{effectiveDuration ? `${effectiveDuration} min` : "Sin límite"}</dd>
               <dt className="text-muted">Juegos</dt>

@@ -37,6 +37,7 @@ const GAME_FORMATS: Record<GameId, readonly Format[]> = {
   // Noche completa y Caos delegan en los juegos base; no se asignan directamente.
   noche: [],
   caos: [],
+  sin_miedo: [],
 };
 
 /** Palabras que sugieren contacto. Solo generan alertas: no demuestran seguridad. */

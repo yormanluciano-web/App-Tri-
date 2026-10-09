@@ -192,7 +192,7 @@ test("administración: «Probar» abre cualquier juego directo y se vuelve al pa
   await mockGithub(page);
   await login(page, "github_pat_prueba");
   await page.getByRole("tab", { name: "Probar" }).click();
-  await page.getByRole("button", { name: "Perverso" }).click();
+  await page.getByRole("button", { name: "Perverso", exact: true }).click();
   await page.getByRole("button", { name: /Torre del deseo/ }).click();
   await expect(page).toHaveURL(/\/jugar\/$/);
   await expect(page.getByText("Prueba", { exact: true })).toBeVisible();
@@ -205,7 +205,7 @@ test("administración: «Probar» abre cualquier juego directo y se vuelve al pa
   await page.getByRole("link", { name: "Volver al panel" }).click();
   await expect(page.getByRole("tab", { name: "Probar" })).toHaveAttribute("aria-selected", "true");
   // Todos los juegos están en la lista (los nuevos aparecen solos).
-  for (const name of ["Verdad o reto", "Ruleta", "Dados", "Tarjetas", "La botella", "Rasca y descubre", "Noche completa", "Caos"]) {
+  for (const name of ["Verdad o reto", "Ruleta", "Dados", "Tarjetas", "La botella", "Rasca y descubre", "Noche completa", "Caos", "Sin miedo"]) {
     await expect(page.getByRole("button", { name: new RegExp(name) }).first()).toBeVisible();
   }
 });

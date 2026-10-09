@@ -15,7 +15,7 @@ import {
 } from "@/domain/models/constants";
 import type { SessionState } from "@/domain/models/session";
 import { enabledBaseGames, nightPhase } from "@/domain/engine/orchestrator";
-import { lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression";
+import { fearlessStartMs, lowerLevels, nextLevel, remainingMs } from "@/domain/engine/progression";
 import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
@@ -63,7 +63,7 @@ function TopBar({ session }: { session: SessionState }) {
                   {session.config.prueba ? "Prueba" : "Demo"}
                 </span>
               )}
-              {isNight ? `Noche completa · ${nightPhase(liveActive)}` : GAME_LABEL[session.currentGame]}
+              {isNight ? `Noche completa · ${nightPhase(liveActive)}` : fearlessHint(session, liveActive) ?? GAME_LABEL[session.currentGame]}
               {remaining !== null ? ` · ${formatRemaining(remaining)}` : ` · ronda ${session.turnCounter + 1}`}
             </p>
           </div>
@@ -90,6 +90,15 @@ function TopBar({ session }: { session: SessionState }) {
       )}
     </header>
   );
+}
+
+/** «Sin miedo»: cuánto falta para el siguiente nivel (solo un texto; la subida ocurre entre cartas). */
+function fearlessHint(session: SessionState, activeMs: number): string | null {
+  if (!session.autoAscent) return null;
+  const next = nextLevel(session.level);
+  if (!next) return "Sin miedo";
+  const left = Math.max(0, fearlessStartMs(next) - activeMs);
+  return left > 0 ? `Sin miedo · ${INTENSITY_LABEL[next]} en ${Math.ceil(left / 60_000)} min` : `Sin miedo · ${INTENSITY_LABEL[next]} en la próxima carta`;
 }
 
 /** Silenciar los efectos solo durante esta partida (no se guarda nada). */
@@ -166,9 +175,20 @@ function Launcher({ session }: { session: SessionState }) {
   const exitChain = useSession((s) => s.exitChain);
   const [cats, setCats] = useState<Category[]>([]);
   const game = session.currentGame;
-  const meta = session.config.games.includes("noche") || session.config.games.includes("caos");
+  const meta = session.config.games.includes("noche") || session.config.games.includes("caos") || session.config.games.includes("sin_miedo");
   const onlySurprise = session.config.games.length === 1 && session.config.games[0] === "sorpresa";
   const effective: GameId = onlySurprise ? "tarjetas" : game;
+
+  if (meta && session.config.games.includes("sin_miedo")) {
+    return (
+      <div className="flex flex-1 flex-col justify-center gap-4 animate-in">
+        <p className="text-center text-muted">
+          {session.autoAscent ? "Sin miedo: el nivel sube solo con el tiempo jugado." : "Sin miedo: la subida automática está detenida porque bajaron de nivel."}
+        </p>
+        <BigDraw label="Siguiente ronda" hint="Sin miedo" theme="sin_miedo" onClick={() => draw()} />
+      </div>
+    );
+  }
 
   if (meta) {
     const night = session.config.games.includes("noche");
@@ -490,7 +510,7 @@ function PausePanel({ session, onFinish }: { session: SessionState; onFinish: ()
           Proponer subir intensidad
         </Button>
       )}
-      {games.length > 1 && !session.config.games.includes("noche") && !session.config.games.includes("caos") && (
+      {games.length > 1 && !session.config.games.includes("noche") && !session.config.games.includes("caos") && !session.config.games.includes("sin_miedo") && (
         <Button variant="secondary" icon="shuffle" block onClick={() => setView("games")}>
           Cambiar juego
         </Button>
@@ -706,7 +726,19 @@ export function Table() {
     default:
       body = (
         <>
-          {session.notice && (
+          {session.notice?.startsWith("¡Sin miedo!") ? (
+            <Card glow className="space-y-2 text-center animate-deal">
+              <p className="sr-only" role="status">
+                {session.notice}
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Sin miedo</p>
+              <p className="font-display text-4xl font-semibold italic text-gradient">¡Ahora, {INTENSITY_LABEL[session.level]}!</p>
+              <p className="text-sm text-muted">Como lo aceptaron al empezar. Cualquiera puede bajar, pausar o detener cuando quiera.</p>
+              <button className="text-sm underline" onClick={clearNotice}>
+                Entendido
+              </button>
+            </Card>
+          ) : session.notice && (
             <Notice>
               {session.notice}{" "}
               <button className="underline" onClick={clearNotice}>

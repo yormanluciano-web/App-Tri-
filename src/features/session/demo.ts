@@ -46,6 +46,7 @@ export function demoConfig(): SessionConfig {
 function resolveGames(game: GameId): { games: GameId[]; durationMin: number | null } {
   if (game === "noche") return { games: ["noche", ...BASE_FOR_TEST, "sorpresa"], durationMin: 60 };
   if (game === "caos") return { games: ["caos", ...BASE_FOR_TEST, "sorpresa"], durationMin: null };
+  if (game === "sin_miedo") return { games: ["sin_miedo", ...BASE_FOR_TEST, "sorpresa"], durationMin: null };
   return { games: [game], durationMin: null };
 }
 

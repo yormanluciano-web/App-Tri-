@@ -83,3 +83,30 @@ export function lowerLevels(level: Intensity): Intensity[] {
   const i = LEVEL_ORDER.indexOf(level);
   return LEVEL_ORDER.slice(0, Math.max(0, i));
 }
+
+/**
+ * «Sin miedo»: el nivel sube solo por tiempo activo (las pausas no cuentan).
+ * Todas las personas lo aceptan en privado al empezar; bajar lo detiene.
+ */
+export const FEARLESS = { leveMin: 15, picanteMin: 20 } as const;
+
+/** Nivel que corresponde al tiempo activo de una sesión «Sin miedo». */
+export function fearlessLevelAt(activeMs: number): Intensity {
+  const min = activeMs / 60_000;
+  if (min < FEARLESS.leveMin) return "leve";
+  if (min < FEARLESS.leveMin + FEARLESS.picanteMin) return "picante";
+  return "perverso";
+}
+
+/** Minuto (tiempo activo) en que empieza cada nivel de «Sin miedo». */
+export function fearlessStartMs(level: Intensity): number {
+  if (level === "leve") return 0;
+  if (level === "picante") return FEARLESS.leveMin * 60_000;
+  return (FEARLESS.leveMin + FEARLESS.picanteMin) * 60_000;
+}
+
+/** Progresión dentro del nivel: los tramos de intensidad se reparten en el tiempo de ese nivel (Perverso: por turnos). */
+export function fearlessProgress(level: Intensity, activeMs: number): Progress {
+  const horizon = level === "leve" ? FEARLESS.leveMin * 60_000 : level === "picante" ? FEARLESS.picanteMin * 60_000 : null;
+  return { enteredAtActiveMs: activeMs, horizonMs: horizon === null ? null : Math.max(60_000, fearlessStartMs(level) + horizon - activeMs), turnsOfferedInLevel: 0 };
+}

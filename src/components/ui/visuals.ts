@@ -15,6 +15,7 @@ export const GAME_ICON: Record<GameId, IconName> = {
   parques: "board",
   noche: "moon",
   caos: "shuffle",
+  sin_miedo: "flame",
   sorpresa: "gift",
 };
 
@@ -54,6 +55,7 @@ export const GAME_THEME: Record<ThemeKey, GameTheme> = {
   parques: { g1: "#e11d74", g2: "#6d28d9", g3: "#fcd34d", icon: "board", suit: "♥" },
   noche: { g1: "#3b2db8", g2: "#c026d3", g3: "#e3d4ff", icon: "moon", suit: "♠" },
   caos: { g1: "#14e1c8", g2: "#ff2e97", g3: "#c9fff6", icon: "shuffle", suit: "♣" },
+  sin_miedo: { g1: "#ff5a1f", g2: "#b3123e", g3: "#ffd166", icon: "flame", suit: "♦" },
   sorpresa: { g1: "#f5c76b", g2: "#ff4d8d", g3: "#9b5cff", icon: "gift", suit: "★" },
 };
 
