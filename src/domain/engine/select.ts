@@ -13,7 +13,23 @@ export const VARIETY = {
   maxWait: 3,
   /** Reintentos internos máximos por oportunidad antes de declarar agotamiento. */
   maxChangesPerOpportunity: 8,
+  /** Días que una carta creada o editada en el panel sale con prioridad. */
+  noveltyDays: 30,
+  /** Cuántas veces más probable es una novedad frente a una carta normal. */
+  noveltyBoost: 10,
+  /** Cuántas veces más probable es una carta que este teléfono aún no ha mostrado. */
+  unseenBoost: 3,
 };
+
+const DAY_MS = 86_400_000;
+
+/** La carta es novedad (creada o editada hace menos de `noveltyDays`). */
+export function isNovelty(activity: Activity, now: number): boolean {
+  if (!activity.novedad) return false;
+  const age = now - Date.parse(`${activity.novedad}T00:00:00Z`);
+  // Margen de dos días hacia el futuro por zonas horarias.
+  return age > -2 * DAY_MS && age < VARIETY.noveltyDays * DAY_MS;
+}
 
 export interface Candidate {
   activity: Activity;
@@ -48,6 +64,8 @@ export interface SelectOptions {
   interactions?: readonly Interaction[];
   /** Tags preferidos en esta ronda. */
   preferTags?: readonly string[];
+  /** Cartas que este teléfono ya mostró en sesiones anteriores (solo IDs): se prefieren las demás. */
+  seen?: ReadonlySet<string>;
 }
 
 export type SelectResult =
@@ -178,9 +196,15 @@ export function buildCandidates(
   return out;
 }
 
-/** Peso de preferencia: nunca rehabilita una opción descartada. */
-function preferenceWeight(c: Candidate, state: SessionState): number {
+/**
+ * Peso de preferencia: nunca rehabilita una opción descartada (solo ordena las
+ * que ya pasaron límites, nivel y tramo de intensidad).
+ */
+function preferenceWeight(c: Candidate, state: SessionState, opts: SelectOptions, now: number): number {
   let w = c.activity.pesoAleatorio;
+  // Novedades del panel primero; luego, lo que este teléfono aún no ha mostrado.
+  if (isNovelty(c.activity, now)) w *= VARIETY.noveltyBoost;
+  if (opts.seen && !opts.seen.has(c.activity.id)) w *= VARIETY.unseenBoost;
   const people = c.implicated.length > 0 ? c.implicated : state.config.participants.map((p) => p.id);
   for (const pid of people) {
     const p = state.config.participants.find((x) => x.id === pid);
@@ -257,7 +281,7 @@ export function selectCandidate(
     const picked = pickWeighted(
       pool,
       (c) => {
-        let w = preferenceWeight(c, state);
+        let w = preferenceWeight(c, state, opts, now);
         if (c.protagonist === null) w *= groupFactor;
         else w *= 1 / (1 + usage(c) - minUsage);
         if (opts.preferTags?.some((t) => c.activity.tags.includes(t as never))) w *= 1.8;
@@ -272,7 +296,7 @@ export function selectCandidate(
   const picked = pickWeighted(
     pool,
     (c) => {
-      let w = preferenceWeight(c, state);
+      let w = preferenceWeight(c, state, opts, now);
       if (opts.preferTags?.some((t) => c.activity.tags.includes(t as never))) w *= 1.8;
       return w;
     },

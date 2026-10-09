@@ -103,6 +103,8 @@ export interface DrawRequest {
   strictGame?: boolean;
   /** Preferir estos tipos de interacción (p. ej. una casilla «Pareja»); si no hay ninguna compatible, cualquiera. */
   interactions?: readonly Interaction[];
+  /** Cartas ya mostradas en este teléfono (solo IDs), para preferir las demás. */
+  seen?: ReadonlySet<string>;
 }
 
 export interface DrawOutcome {
@@ -118,6 +120,7 @@ function optionsFor(state: SessionState, game: GameId, req: DrawRequest): Select
     categories: req.categories,
     allowRepeat: req.allowRepeat,
     onlyActivityId: req.onlyActivityId,
+    seen: req.seen,
   };
   if (game === "temporizador") opts.requireDuration = true;
   if (state.pending.forcedProtagonist) opts.forcedProtagonist = state.pending.forcedProtagonist;

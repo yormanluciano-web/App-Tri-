@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0 — 2026-10-09
+- **Prioridad a las novedades**: las cartas creadas o editadas desde el panel salen 10 veces más que las demás durante 30 días, siempre dentro de su nivel, su tramo de intensidad y lo que cada persona aceptó. El panel las marca con «Novedad». Las 6 cartas originales que ya habías editado cuentan desde el 8 de octubre.
+- **Memoria de cartas ya vistas**: en sesiones normales el teléfono recuerda qué cartas ya salieron (solo el número de la carta) y prefiere las que aún no han salido; así el mazo rota entre sesiones. Recuerda hasta tres cuartas partes del mazo y luego las más antiguas vuelven a la rotación. La sesión privada y la demo no guardan nada; «Eliminar todos mis datos» la borra.
+- **Perverso más físico**: se quitaron 21 cartas de verdades sobre amor, sentimientos o relaciones (recuerdos románticos, celos, vida amorosa, citas, vulnerabilidad…). Se conservan las de beso, contacto piel con piel y quitar prendas. Perverso pasa de 410 a 389 cartas base.
+
 ## 1.6.1 — 2026-10-08
 - Corregido: en el teléfono no sonaban los efectos. El audio se intentaba activar al tocar la pantalla, y Safari en iPhone solo lo permite al levantar el dedo; ahora se activa al soltar el dedo y al terminar el toque. Además, si el audio quedó suspendido (por ejemplo, al volver a la app tras una llamada), cada efecto lo reanuda.
 - Nueva opción en Ajustes, encendida por defecto: **«Sonar aunque el iPhone esté en silencio»**. Si escuchas Spotify en el mismo iPhone y los efectos pausan la música, apágala.

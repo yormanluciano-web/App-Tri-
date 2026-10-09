@@ -1,5 +1,6 @@
 "use client";
 
+import { isNovelty } from "@/domain/engine/select";
 import { useMemo, useState, type ReactNode } from "react";
 import { create } from "zustand";
 import {
@@ -613,7 +614,7 @@ function CardEditor({ editing, onResult, onCancel }: { editing: Editing | null; 
           />
         </Field>
 
-        <Field label={`Intensidad dentro de ${INTENSITY_LABEL[form.nivel]}: ${form.intensidad}`} hint="Las más intensas salen más tarde en la sesión.">
+        <Field label={`Intensidad dentro de ${INTENSITY_LABEL[form.nivel]}: ${form.intensidad}`} hint="Las más intensas salen más tarde en la sesión. Al publicarla o editarla, sale con prioridad durante 30 días.">
           <input type="range" min={lo} max={hi} value={form.intensidad} onChange={(e) => set("intensidad", Number(e.target.value))} className="w-full accent-[var(--accent)]" />
         </Field>
       </Card>
@@ -704,6 +705,7 @@ const ACTION_TEXT: Record<ListAction, { title: string; body: string; button: str
 };
 
 function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r: PublishOutcome) => void }) {
+  const [today] = useState(() => Date.now());
   const file = useAdmin((s) => s.file);
   const publish = useAdmin((s) => s.publish);
   const reload = useAdmin((s) => s.reload);
@@ -806,6 +808,7 @@ function CardList({ onEdit, onDone }: { onEdit: (e: Editing) => void; onDone: (r
                   <span className="rounded-full bg-warn/15 px-2 py-0.5 text-warn">Publicándose</span>
                 ))}
               {r.hidden && <span className="rounded-full bg-white/10 px-2 py-0.5">Oculta</span>}
+              {isNovelty(r.activity, today) && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-gold">Novedad</span>}
               {r.activity.parejaMixta && <span className="rounded-full bg-white/10 px-2 py-0.5">Hombre y mujer</span>}
               {r.activity.soloGenero && <span className="rounded-full bg-white/10 px-2 py-0.5">Solo {r.activity.soloGenero === "hombre" ? "hombres" : "mujeres"}</span>}
               <span className="ml-auto normal-case tracking-normal text-faint">{r.id}</span>

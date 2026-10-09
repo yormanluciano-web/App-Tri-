@@ -127,3 +127,33 @@ test("sin errores de consola en producción (CSP, hidratación)", async ({ page 
   await expect(page.getByTestId("activity-text")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+const readSeen = (page: import("@playwright/test").Page) =>
+  page.evaluate(
+    () =>
+      new Promise<unknown>((resolve) => {
+        const r = indexedDB.open("trio");
+        r.onsuccess = () => {
+          const db = r.result;
+          if (!db.objectStoreNames.contains("kv")) return resolve(null);
+          const g = db.transaction("kv").objectStore("kv").get("seen");
+          g.onsuccess = () => resolve(g.result ?? null);
+        };
+        r.onerror = () => resolve(null);
+      }),
+  );
+
+test("cartas vistas: la sesión normal recuerda solo los IDs; la privada no escribe nada", async ({ page }) => {
+  await setupSession(page, { mode: "private", games: ["Tarjetas"] });
+  await page.getByRole("button", { name: "Sacar carta" }).click();
+  await expect(page.getByTestId("activity-text")).toBeVisible();
+  expect(await readSeen(page)).toBeNull();
+
+  await setupSession(page, { mode: "normal", games: ["Tarjetas"] });
+  await page.getByRole("button", { name: "Sacar carta" }).click();
+  await expect(page.getByTestId("activity-text")).toBeVisible();
+  await expect.poll(() => readSeen(page)).not.toBeNull();
+  const seen = (await readSeen(page)) as unknown[];
+  expect(seen).toHaveLength(1);
+  expect(String(seen[0])).toMatch(/^[a-z0-9]+-[a-z0-9]+$/);
+});

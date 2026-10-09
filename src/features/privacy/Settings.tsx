@@ -13,7 +13,7 @@ import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 import { sfx } from "@/sound/sfx";
 
-export const APP_VERSION = "1.6.1";
+export const APP_VERSION = "1.7.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);

@@ -65,6 +65,9 @@ export function cardLine(suffix: string, card: CustomCard, keep: Preserved): str
   if (keep.w !== undefined) parts.push(`w: ${keep.w}`);
   if (keep.cd !== undefined) parts.push(`cd: ${keep.cd}`);
   if (keep.status) parts.push(`status: ${q(keep.status)}`);
+  // Fecha de la edición: la carta sale con prioridad de novedad un tiempo.
+  const nv = card.creada?.slice(0, 10);
+  if (nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) parts.push(`nv: ${q(nv)}`);
   return `  { ${parts.join(", ")} },`;
 }
 

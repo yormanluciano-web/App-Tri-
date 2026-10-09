@@ -70,6 +70,8 @@ export const activitySchema = z.object({
   parejaMixta: z.boolean().optional(),
   /** Solo para personas de un género: todas las implicadas deben tenerlo. */
   soloGenero: z.enum(GENDERS).optional(),
+  /** Fecha (AAAA-MM-DD) en que se creó o editó desde el panel: sale con prioridad un tiempo. */
+  novedad: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   /** Opciones cerradas para «Quién me conoce mejor» (coincidencia exacta normalizada). */
   opciones: z.array(z.string().trim().min(1).max(40)).min(2).max(6).optional(),
 });

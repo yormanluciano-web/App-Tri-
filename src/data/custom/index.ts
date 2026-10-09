@@ -95,7 +95,9 @@ export function customCardsToActivities(cards: readonly CustomCard[]): Activity[
         const rest: Partial<CustomCard> = { ...c };
         delete rest.nivel;
         delete rest.creada;
-        return rest as CardInput;
+        // La fecha de creación o edición da prioridad de novedad.
+        const nv = c.creada?.slice(0, 10);
+        return (nv && /^\d{4}-\d{2}-\d{2}$/.test(nv) ? { ...rest, nv } : rest) as CardInput;
       });
     out.push(...defineCards(lvl, CUSTOM_PREFIX, CUSTOM_PACK, inputs));
   }

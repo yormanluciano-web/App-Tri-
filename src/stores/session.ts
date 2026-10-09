@@ -9,12 +9,14 @@ import * as S from "@/domain/state/session";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import {
   IndexedDbFavorites,
+  IndexedDbSeen,
   IndexedDbSessionRepository,
   MemoryFavorites,
   MemorySessionRepository,
   clearWipedFlag,
   isWiped,
   markWiped,
+  seenCapacity,
   type FavoritesRepository,
   type SessionRepository,
 } from "@/storage/repository";
@@ -96,6 +98,9 @@ let rng: Rng = seededRng(freshSeed());
 let repo: SessionRepository = new MemorySessionRepository();
 let favRepo: FavoritesRepository = new IndexedDbFavorites();
 let tempFavorites = new MemoryFavorites();
+/** Cartas ya mostradas en este teléfono (solo IDs): se leen siempre, se escriben solo en sesiones normales. */
+const seenRepo = new IndexedDbSeen();
+let seenIds = new Set<string>();
 let heartbeat: ReturnType<typeof setInterval> | null = null;
 let pendingRaw: unknown = null;
 let created = false;
@@ -206,6 +211,7 @@ export const useSession = create<SessionStore>((set, get) => {
         set({ storageIssue: "unavailable" });
       }
       set({ hydrated: true });
+      seenIds = new Set(await seenRepo.list());
       await get().loadFavorites();
     },
 
@@ -239,8 +245,17 @@ export const useSession = create<SessionStore>((set, get) => {
     draw(req) {
       const s = get().session;
       if (!s || get().lockedElsewhere) return;
-      const out = drawTurn(CATALOG, s, rng, now(), req);
+      const out = drawTurn(CATALOG, s, rng, now(), { ...req, seen: seenIds });
       commit(out.state);
+      // Memoria de cartas vistas: solo en sesiones normales (la privada no escribe nada) y nunca en la demo.
+      if (out.candidate && s.config.mode === "normal" && !s.config.demo) {
+        const id = out.candidate.activity.id;
+        seenIds.delete(id);
+        seenIds.add(id);
+        const max = seenCapacity(CATALOG.length);
+        if (seenIds.size > max) seenIds = new Set([...seenIds].slice(-max));
+        void seenRepo.add(id, max);
+      }
     },
 
     activityConsent(accepted) {
@@ -426,6 +441,7 @@ export const useSession = create<SessionStore>((set, get) => {
       const res = await wipeAllData();
       favRepo = new IndexedDbFavorites();
       tempFavorites = new MemoryFavorites();
+      seenIds = new Set();
       repo = new MemorySessionRepository();
       pendingRaw = null;
       created = false;

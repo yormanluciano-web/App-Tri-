@@ -53,6 +53,8 @@ export interface CardInput {
   /** Solo para personas de este género (todas las implicadas). */
   genero?: Gender;
   status?: Activity["editorialStatus"];
+  /** Fecha AAAA-MM-DD de creación o edición desde el panel (prioridad de novedad). */
+  nv?: string;
 }
 
 const PLACEHOLDER = /\{(p[123])\}/g;
@@ -132,6 +134,7 @@ export function defineCards(
       ...(c.opts ? { opciones: c.opts } : {}),
       ...(c.mixta ? { parejaMixta: true } : {}),
       ...(c.genero ? { soloGenero: c.genero } : {}),
+      ...(c.nv ? { novedad: c.nv } : {}),
     } satisfies Activity;
   });
 }

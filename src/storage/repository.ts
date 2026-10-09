@@ -18,7 +18,7 @@ export interface FavoritesRepository {
   clear(): Promise<void>;
 }
 
-export const KEYS = { session: "session", favorites: "favorites", lock: "lock" } as const;
+export const KEYS = { session: "session", favorites: "favorites", lock: "lock", seen: "seen" } as const;
 
 /** Bandera de borrado: tras «Eliminar todos mis datos» ninguna escritura antigua puede recrear datos. */
 let wipedEpoch = false;
@@ -126,4 +126,39 @@ export class MemoryFavorites implements FavoritesRepository {
   async clear(): Promise<void> {
     this.ids = [];
   }
+}
+
+/**
+ * Cartas ya mostradas en este teléfono (solo IDs, sin personas, respuestas ni
+ * fechas), para que el mazo rote entre sesiones. Cola con tope: cuando se llena,
+ * las más antiguas vuelven a contar como no vistas. Solo sesiones normales.
+ */
+export class IndexedDbSeen {
+  async list(): Promise<string[]> {
+    if (!idbAvailable()) return [];
+    try {
+      const v = await kvGet<unknown>(KEYS.seen);
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(-5000) : [];
+    } catch {
+      return [];
+    }
+  }
+  async add(activityId: string, max: number): Promise<void> {
+    if (wipedEpoch || !idbAvailable()) return;
+    try {
+      await kvTransaction(async (store, get) => {
+        const raw = (await get(KEYS.seen)) as unknown;
+        const list = Array.isArray(raw) ? (raw as string[]).filter((x) => typeof x === "string" && x !== activityId) : [];
+        list.push(activityId);
+        store.put(list.slice(-Math.max(1, max)), KEYS.seen);
+      });
+    } catch {
+      /* opcional: sin memoria, el sorteo sigue funcionando */
+    }
+  }
+}
+
+/** Tope de la memoria: tres cuartas partes del mazo; así siempre quedan cartas «nuevas» por rotar. */
+export function seenCapacity(catalogSize: number): number {
+  return Math.max(20, Math.floor(catalogSize * 0.75));
 }
