@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.1 — 2026-10-09
+- **Menos sonidos**: los menús, los botones comunes y el desplazamiento ya no suenan. Solo suenan los momentos del juego: sacar, voltear, pasar, cambiar o cumplir una carta, los dados, la ruleta, la botella, la torre, el rasca, el Parqués, el reloj, los cambios de nivel y el cierre de la sesión.
+- En Ajustes, elegir el volumen ya no suena; para oírlo está «Probar sonido».
+
 ## 1.9.0 — 2026-10-09
 - **Toda la app cabe en la pantalla, como una app de teléfono**: ya no hay que subir y bajar. Probado en 375×667 (iPhone SE) y 390×760.
 - **Mesa de juego**: barra superior compacta con botones redondos (sonido, pausa, detener) y nivel y juego sin cortarse. La carta ocupa el espacio libre y su texto se ajusta solo al tamaño. Favoritas pasa a una estrella en la esquina. El reloj es más compacto y Cumplido/Pasar/Cambiar quedan fijos abajo sin tapar nada.

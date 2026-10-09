@@ -6,7 +6,7 @@ import { loadSettings } from "@/storage/settings";
 import { registerServiceWorker, subscribePwa } from "@/pwa/register";
 import { Button } from "@/components/ui";
 import { APP_NAME } from "@/domain/models/constants";
-import { configureSfx, sfx, unlockAudio } from "@/sound/sfx";
+import { configureSfx, unlockAudio } from "@/sound/sfx";
 
 const PAUSABLE = ["ready", "selecting", "playing", "awaitingActivityConsent", "awaitingLevelConsent", "roundReveal", "blocked"];
 
@@ -39,16 +39,9 @@ export function Providers({ children }: { children: ReactNode }) {
     const unlock = () => unlockAudio();
     const unlockEvents = ["pointerup", "touchend", "click", "keydown"] as const;
     for (const ev of unlockEvents) document.addEventListener(ev, unlock, { capture: true, passive: true });
-    // Clic suave en los botones que no tienen su propio efecto (marcados con data-sfx).
-    const onPointer = (e: PointerEvent) => {
-      const el = e.target instanceof Element ? e.target.closest("button, a[href], [role='radio'], [role='switch']") : null;
-      if (!el || el.closest("[data-sfx]") || (el as HTMLButtonElement).disabled) return;
-      sfx("tap");
-    };
-    document.addEventListener("pointerdown", onPointer, { capture: true, passive: true });
+    // Los menús y botones comunes no suenan: solo los momentos del juego (cartas, dados, minijuegos…).
     return () => {
       for (const ev of unlockEvents) document.removeEventListener(ev, unlock, { capture: true });
-      document.removeEventListener("pointerdown", onPointer, { capture: true });
     };
   }, []);
 

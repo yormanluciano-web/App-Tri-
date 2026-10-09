@@ -14,7 +14,7 @@ import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 import { sfx } from "@/sound/sfx";
 
-export const APP_VERSION = "1.9.0";
+export const APP_VERSION = "1.9.1";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -110,10 +110,7 @@ export function Settings() {
                       key={v}
                       variant={settings.sfxVolume === v ? "primary" : "secondary"}
                       aria-pressed={settings.sfxVolume === v}
-                      onClick={() => {
-                        update({ sfxVolume: v });
-                        sfx("reveal");
-                      }}
+                      onClick={() => update({ sfxVolume: v })}
                     >
                       {label}
                     </Button>

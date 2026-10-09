@@ -53,3 +53,20 @@ test("Ajustes: «Probar sonido» suena con un toque en la pantalla", async ({ pa
   await expect.poll(() => played(page)).toBeGreaterThan(0);
   await expect(page.getByRole("checkbox", { name: /Sonar aunque el iPhone esté en silencio/ })).toBeChecked();
 });
+
+test("los menús y botones comunes no suenan: solo los momentos del juego", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Ajustes" }).click();
+  await page.getByRole("button", { name: /Accesibilidad/ }).click();
+  await page.getByRole("button", { name: "Grande", exact: true }).click();
+  await page.getByRole("button", { name: "Volver a Ajustes" }).click();
+  await page.getByRole("button", { name: /Sonido y vibración/ }).click();
+  await page.getByRole("button", { name: "Alto", exact: true }).click();
+  await page.getByRole("button", { name: "Volver a Ajustes" }).click();
+  await page.getByRole("link", { name: "Volver a Inicio" }).click();
+  await page.getByRole("button", { name: "Nueva sesión" }).click();
+  await page.getByRole("radio", { name: /Sesión privada/ }).click();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.waitForTimeout(300);
+  expect(await played(page)).toBe(0);
+});
