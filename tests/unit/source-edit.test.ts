@@ -31,7 +31,7 @@ const lines = LEVELS.flatMap(({ dir, prefix }) =>
 
 describe("editar cartas originales en el código", () => {
   it("encuentra todas las cartas originales, cada una en una sola línea", () => {
-    expect(lines.length).toBeGreaterThan(1000);
+    expect(lines.length).toBeGreaterThan(900);
     expect(splitBaseId("p2-125")).toEqual({ prefix: "p2", suffix: "125", level: "picante" });
   });
 

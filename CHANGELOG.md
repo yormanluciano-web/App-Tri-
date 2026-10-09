@@ -1,7 +1,19 @@
 # Changelog
 
-## 1.10.1 — 2026-10-09
+## 1.12.1 — 2026-10-09
 - Corregido: en el iPhone quedaba siempre el indicador de sonido en la isla dinámica mientras la app estaba abierta. Ahora el audio de los efectos se apaga solo 2,5 segundos después del último sonido y se suelta la sesión de audio; vuelve a encenderse al instante con el siguiente efecto del juego. Al salir de la app se apaga enseguida, y tocar la pantalla ya no lo enciende.
+
+## 1.12.0 — 2026-10-09
+- **Cartas de Perverso mejor escritas**: las 205 cartas reescritas se leen ahora con frases completas y naturales, conservando el mismo reto o pregunta, las mismas personas y la misma intensidad. Los tiempos del texto coinciden con el temporizador y el lenguaje es neutro.
+- Las caricias de cartas que no son de «Acepto todo» indican «por encima de la ropa» cuando corresponde.
+- Se eliminaron las 20 cartas repetidas: queda una sola versión de cada una.
+
+## 1.11.0 — 2026-10-09
+- **Nuevas cartas de Perverso**: los lotes 01–09 se reescribieron por completo (231 cartas en el nivel, con nuevos lotes «suave», «explícito», «muy perverso» y «cierre»). Las sesiones guardadas con las cartas anteriores las reemplazan de forma segura (catálogo v3).
+- Las cartas más explícitas solo aparecen entre personas que eligieron **«Acepto todo»** al empezar.
+- Cada carta pide los permisos que corresponden a lo que describe (besos intensos, ojos cerrados, prendas, caricias) y nombra a quién va dirigida.
+- Se conservan las cartas sorpresa de Perverso y las cartas editadas desde el panel.
+- Las cartas repetidas con el mismo texto quedan desactivadas (comentadas en el código) para revisarlas.
 
 ## 1.10.0 — 2026-10-09
 - **DJ Cómplice**: ya no hacen falta listas de Spotify. La app trae su propia selección de canciones **solo en español**, de artistas muy escuchados en Colombia y Venezuela (Karol G, Feid, Bad Bunny, Danny Ocean, Manuel Turizo, Kapo…), para cada momento:

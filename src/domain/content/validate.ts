@@ -209,7 +209,7 @@ export const EDITORIAL_FAMILIES = [
 export const EDITORIAL_TARGETS: Record<string, number[]> = {
   leve: [84, 60, 36, 31, 30, 20, 25, 10],
   picante: [82, 95, 41, 42, 80, 35, 8, 20],
-  perverso: [50, 108, 26, 30, 88, 39, 28, 20],
+  perverso: [62, 129, 0, 0, 0, 20, 0, 20],
 };
 
 /** Familia editorial de una actividad: cada carta cuenta una sola vez. */
