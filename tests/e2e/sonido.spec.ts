@@ -6,6 +6,13 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     const w = window as unknown as { __sfx: number };
     w.__sfx = 0;
+    const Orig = AudioContext;
+    (window as unknown as { AudioContext: typeof AudioContext }).AudioContext = class extends Orig {
+      constructor(...args: ConstructorParameters<typeof AudioContext>) {
+        super(...args);
+        (window as unknown as { __ctx: AudioContext }).__ctx = this;
+      }
+    };
     const osc = AudioContext.prototype.createOscillator;
     AudioContext.prototype.createOscillator = function (this: AudioContext) {
       w.__sfx++;
@@ -69,4 +76,16 @@ test("los menús y botones comunes no suenan: solo los momentos del juego", asyn
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.waitForTimeout(300);
   expect(await played(page)).toBe(0);
+});
+
+test("el audio se suelta tras unos segundos sin sonar (sin indicador fijo de sonido en el teléfono)", async ({ page }) => {
+  await setupSession(page, { mode: "private", games: ["Tarjetas"], accept: "todo" });
+  await page.getByRole("button", { name: /Sacar carta/ }).click();
+  await expect(page.getByTestId("activity-text")).toBeVisible();
+  const state = () => page.evaluate(() => (window as unknown as { __ctx?: AudioContext }).__ctx?.state ?? "none");
+  await expect.poll(state).toBe("running");
+  await expect.poll(state, { timeout: 8000 }).toBe("suspended");
+  // Un efecto del juego lo vuelve a encender.
+  await page.getByRole("button", { name: "Pasar", exact: true }).click();
+  await expect.poll(state).toBe("running");
 });

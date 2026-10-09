@@ -6,7 +6,7 @@ import { loadSettings } from "@/storage/settings";
 import { registerServiceWorker, subscribePwa } from "@/pwa/register";
 import { Button } from "@/components/ui";
 import { APP_NAME } from "@/domain/models/constants";
-import { configureSfx, unlockAudio } from "@/sound/sfx";
+import { configureSfx, releaseAudioNow, unlockAudio } from "@/sound/sfx";
 
 const PAUSABLE = ["ready", "selecting", "playing", "awaitingActivityConsent", "awaitingLevelConsent", "roundReveal", "blocked"];
 
@@ -49,6 +49,8 @@ export function Providers({ children }: { children: ReactNode }) {
     // Al pasar a segundo plano: pausa y oculta el contenido. Al volver, pantalla neutral.
     const onVisibility = () => {
       if (document.visibilityState !== "hidden") return;
+      // Fuera de la app no debe quedar el audio activo (ni el indicador de la isla dinámica).
+      releaseAudioNow();
       const st = useSession.getState();
       const s = st.session;
       if (s && s.status !== "finished") {

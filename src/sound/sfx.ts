@@ -76,14 +76,48 @@ export function configureSfx(cfg: { sfx: boolean; sfxVolume: SfxVolume; vibratio
 }
 
 /** Tipo de sesión de audio en Safari 16.4+ (en otros navegadores no existe y no hace nada). */
-function setSessionType(): void {
+function setSessionType(type: string = overSilent ? "playback" : "ambient"): void {
   try {
     const nav = navigator as Navigator & { audioSession?: { type: string } };
-    const type = overSilent ? "playback" : "ambient";
     if (nav.audioSession && nav.audioSession.type !== type) nav.audioSession.type = type;
   } catch {
     /* opcional */
   }
+}
+
+/**
+ * El audio solo se mantiene activo mientras suena algo: tras unos segundos en
+ * silencio se suspende y se suelta la sesión de audio. Si no, el iPhone muestra
+ * el indicador de sonido en la isla dinámica todo el tiempo que la app está abierta.
+ */
+const IDLE_MS = 2500;
+/** Momento (reloj del navegador, ms) en que termina el último efecto programado. */
+let quietAt = 0;
+let releaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+function noteUntil(a: Audio, endTime: number): void {
+  quietAt = Math.max(quietAt, performance.now() + Math.max(0, endTime - a.ctx.currentTime) * 1000);
+}
+
+function scheduleRelease(a: Audio): void {
+  if (releaseTimer) clearTimeout(releaseTimer);
+  releaseTimer = setTimeout(() => release(a), Math.max(0, quietAt - performance.now()) + IDLE_MS);
+}
+
+function release(a: Audio): void {
+  releaseTimer = null;
+  if (performance.now() < quietAt) return scheduleRelease(a);
+  if (a.ctx.state === "running") void a.ctx.suspend().catch(() => undefined);
+  // Sin sesión de audio activa, iOS quita el indicador de reproducción.
+  setSessionType("auto");
+}
+
+/** Al salir de la app (pantalla bloqueada, otra app): soltar el audio enseguida. */
+export function releaseAudioNow(): void {
+  if (!audio) return;
+  quietAt = 0;
+  if (releaseTimer) clearTimeout(releaseTimer);
+  release(audio);
 }
 
 function ensure(): Audio | null {
@@ -112,13 +146,20 @@ function ensure(): Audio | null {
 
 let primed = false;
 
-/** Llamar dentro de un gesto (al soltar el dedo, clic o tecla): desbloquea el audio. */
+/**
+ * Llamar dentro de un gesto (al soltar el dedo, clic o tecla): el primer toque
+ * desbloquea el audio. Los siguientes no lo encienden (eso lo hace cada efecto
+ * al sonar), salvo para recuperarlo si iOS lo interrumpió (una llamada, por ejemplo).
+ */
 export function unlockAudio(): void {
   if (!enabled) return;
+  const state = audio?.ctx.state as string | undefined;
+  if (primed && state !== "interrupted") return;
   setSessionType();
   const a = ensure();
   if (!a) return;
   if (a.ctx.state !== "running") void a.ctx.resume().catch(() => undefined);
+  scheduleRelease(a);
   if (!primed) {
     // iPhone antiguos: un sonido mudo dentro del gesto termina de desbloquear el audio.
     try {
@@ -144,8 +185,10 @@ function withAudio(fn: (a: Audio) => void): void {
     } catch {
       /* un efecto nunca debe romper el juego */
     }
+    scheduleRelease(a);
   };
   if (a.ctx.state === "running") return run();
+  setSessionType();
   const asked = performance.now();
   void a.ctx
     .resume()
@@ -182,6 +225,7 @@ function tone(a: Audio, { f, f2, t = 0, d, type = "sine", g = 0.2, attack = 0.00
   v.connect(a.out);
   o.start(t0);
   o.stop(t0 + d + 0.05);
+  noteUntil(a, t0 + d + 0.1);
 }
 
 interface NoiseOpts {
@@ -214,6 +258,7 @@ function noise(a: Audio, { t = 0, d, filter = "bandpass", f = 1000, f2, q = 1, g
   v.connect(a.out);
   src.start(t0, Math.random() * 0.5);
   src.stop(t0 + d + 0.05);
+  noteUntil(a, t0 + d + 0.1);
 }
 
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);

@@ -33,6 +33,10 @@ class FakeAudioContext {
   constructor() {
     created++;
   }
+  suspend() {
+    this.state = "suspended";
+    return Promise.resolve();
+  }
   resume() {
     this.state = "running";
     return Promise.resolve();
@@ -133,6 +137,36 @@ describe("efectos de sonido", () => {
     expect(session.type).toBe("playback");
     m.configureSfx({ sfx: true, sfxVolume: "medio", vibration: false, sfxOverSilent: false });
     expect(session.type).toBe("ambient");
+  });
+
+  it("tras unos segundos sin sonar, suelta el audio (sin indicador fijo en la isla dinámica del iPhone)", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "performance"] });
+    try {
+      const session = { type: "auto" };
+      vi.stubGlobal("navigator", { audioSession: session, vibrate: vi.fn() });
+      const m = await import("@/sound/sfx");
+      m.unlockAudio();
+      await Promise.resolve();
+      m.sfx("deal");
+      expect(session.type).toBe("playback");
+      // Mientras suena y poco después, sigue activo.
+      vi.advanceTimersByTime(1000);
+      expect(session.type).toBe("playback");
+      // Pasado el silencio, se suspende y se suelta la sesión.
+      vi.advanceTimersByTime(3000);
+      expect(session.type).toBe("auto");
+      // Un toque normal ya no lo vuelve a encender; solo un efecto del juego.
+      m.unlockAudio();
+      expect(session.type).toBe("auto");
+      m.sfx("flip");
+      expect(session.type).toBe("playback");
+      // Al salir de la app se suelta enseguida.
+      await Promise.resolve();
+      m.releaseAudioNow();
+      expect(session.type).toBe("auto");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("la vibración solo si está activada", async () => {

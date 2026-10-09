@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.1 — 2026-10-09
+- Corregido: en el iPhone quedaba siempre el indicador de sonido en la isla dinámica mientras la app estaba abierta. Ahora el audio de los efectos se apaga solo 2,5 segundos después del último sonido y se suelta la sesión de audio; vuelve a encenderse al instante con el siguiente efecto del juego. Al salir de la app se apaga enseguida, y tocar la pantalla ya no lo enciende.
+
 ## 1.10.0 — 2026-10-09
 - **DJ Cómplice**: ya no hacen falta listas de Spotify. La app trae su propia selección de canciones **solo en español**, de artistas muy escuchados en Colombia y Venezuela (Karol G, Feid, Bad Bunny, Danny Ocean, Manuel Turizo, Kapo…), para cada momento:
   - **Leve**: pop urbano y romántico para coquetear.
