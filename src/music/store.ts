@@ -38,6 +38,8 @@ interface MusicState {
   /** Última música que se pidió poner (lista o selección del DJ; evita repetir). */
   current: string | null;
   error: string | null;
+  /** Respuesta técnica de Spotify del último error (para diagnosticar). */
+  errorDetail: string | null;
   busy: boolean;
   init(): void;
   setAuto(v: boolean): void;
@@ -86,6 +88,7 @@ export const useMusic = create<MusicState>((set, get) => ({
   moment: null,
   current: null,
   error: null,
+  errorDetail: null,
   busy: false,
 
   init() {
@@ -109,7 +112,7 @@ export const useMusic = create<MusicState>((set, get) => ({
       set({ moment });
       return true;
     }
-    set({ busy: true, error: null, current: source.key, moment });
+    set({ busy: true, error: null, errorDetail: null, current: source.key, moment });
     try {
       if (source.uri) await playContext(clientId, source.uri);
       else await playTracks(clientId, await resolveSongs(clientId, source.songs ?? []));
@@ -118,12 +121,12 @@ export const useMusic = create<MusicState>((set, get) => ({
     } catch (e) {
       const err = e instanceof MusicError ? e : new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
       // Si falló, se vuelve a intentar en el próximo cambio de momento o con «Reintentar».
-      set({ busy: false, error: err.message, current: null, connected: err.code === "auth" || err.code === "not_connected" ? false : get().connected });
+      set({ busy: false, error: err.message, errorDetail: err.detail ?? null, current: null, connected: err.code === "auth" || err.code === "not_connected" ? false : get().connected });
       return false;
     }
   },
 
   clearError() {
-    set({ error: null });
+    set({ error: null, errorDetail: null });
   },
 }));

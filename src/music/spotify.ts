@@ -23,6 +23,8 @@ export class MusicError extends Error {
   constructor(
     public code: MusicErrorCode,
     message: string,
+    /** Respuesta técnica de Spotify (sin datos del juego), para diagnosticar. */
+    public detail?: string,
   ) {
     super(message);
   }
@@ -229,7 +231,11 @@ async function api(clientId: string, path: string, init: RequestInit = {}): Prom
     } catch {
       /* sin cuerpo */
     }
-    throw classifyError(res.status, body);
+    const e = classifyError(res.status, body);
+    const raw = typeof body.error === "object" ? (body.error.message ?? body.error.reason ?? "") : (body.error ?? body.error_description ?? "");
+    // Solo la ruta (sin la búsqueda) y la respuesta de Spotify: nada del juego.
+    e.detail = `${init.method ?? "GET"} ${path.split("?")[0]} → ${res.status}${raw ? ` · ${String(raw).slice(0, 140)}` : ""}`;
+    throw e;
   }
   throw new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
 }
@@ -305,7 +311,8 @@ export async function playTracks(clientId: string, uris: readonly string[]): Pro
  */
 export async function searchTrack(clientId: string, queries: readonly string[]): Promise<string | null> {
   for (const q of queries) {
-    const res = await api(clientId, `/search?type=track&limit=1&market=from_token&q=${encodeURIComponent(q)}`);
+    // Sin «market=from_token»: en modo de desarrollo (2026) Spotify lo rechaza por permisos.
+    const res = await api(clientId, `/search?type=track&limit=1&q=${encodeURIComponent(q)}`);
     const data = (await res.json()) as { tracks?: { items?: { uri?: string }[] } };
     const uri = data.tracks?.items?.[0]?.uri;
     if (uri && /^spotify:track:[A-Za-z0-9]+$/.test(uri)) return uri;

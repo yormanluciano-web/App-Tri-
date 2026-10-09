@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.12.3 — 2026-10-09
+- Corregido: el DJ Cómplice mostraba «Falta un permiso» aunque se volviera a conectar. La búsqueda de canciones pedía el país de la cuenta (`market=from_token`), que Spotify ya no permite en modo de desarrollo; ahora busca sin ese dato.
+- Los errores de música muestran un «Detalle técnico» con el paso que falló y lo que respondió Spotify, para diagnosticar rápido. No incluye nada del juego.
+
 ## 1.12.2 — 2026-10-09
 - Corregido: la música decía «Spotify solo permite controlar la música con una cuenta Premium» ante cualquier rechazo de Spotify, aunque la cuenta fuera Premium. Ahora distingue el motivo y dice cómo arreglarlo:
   - cuenta no autorizada en la app (añadir el correo en User Management del panel de Spotify);

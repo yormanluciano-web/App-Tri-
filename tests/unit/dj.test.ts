@@ -77,6 +77,8 @@ describe("DJ Cómplice: reproducción", () => {
     expect(uris).toHaveLength(2);
     // Nada del juego viaja: solo búsquedas de canciones y órdenes de reproducción.
     for (const c of calls) expect(c.url).toMatch(/\/v1\/(search\?type=track|me\/player)/);
+    // Sin «market=from_token»: Spotify lo rechaza por permisos en modo de desarrollo.
+    for (const c of calls) expect(c.url).not.toContain("market=");
     expect(useMusic.getState().current).toBe("dj:calma");
   });
 });
@@ -93,5 +95,26 @@ describe("errores de Spotify con su solución", () => {
     expect(classifyError(404, { error: { reason: "NO_ACTIVE_DEVICE" } }).code).toBe("no_device");
     expect(classifyError(429, {}).code).toBe("rate_limited");
     expect(classifyError(500, {}).code).toBe("unknown");
+  });
+});
+
+describe("detalle técnico de los errores de Spotify", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("guarda qué paso falló y qué respondió Spotify, sin la búsqueda ni datos del juego", async () => {
+    vi.resetModules();
+    const store: Record<string, string> = { "trio:spotify": JSON.stringify({ access: "tok", refresh: "r", expiresAt: Date.now() + 3_600_000 }) };
+    vi.stubGlobal("window", {
+      localStorage: { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => (store[k] = v), removeItem: (k: string) => delete store[k] },
+      location: { origin: "https://app.test" },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: { status: 403, message: "Insufficient client scope" } }), { status: 403 })),
+    );
+    const { searchTrack } = await import("@/music/spotify");
+    const err = await searchTrack("a".repeat(32), ['track:"Provenza" artist:"Karol G"']).catch((e: unknown) => e as { code: string; detail?: string });
+    expect(err).toMatchObject({ code: "scope" });
+    expect((err as { detail: string }).detail).toBe("GET /search → 403 · Insufficient client scope");
   });
 });

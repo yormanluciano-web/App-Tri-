@@ -58,6 +58,7 @@ export function MusicStatus() {
   const auto = useMusic((s) => s.auto);
   const moment = useMusic((s) => s.moment);
   const error = useMusic((s) => s.error);
+  const errorDetail = useMusic((s) => s.errorDetail);
   const current = useMusic((s) => s.current);
   const play = useMusic((s) => s.play);
   const clearError = useMusic((s) => s.clearError);
@@ -78,6 +79,7 @@ export function MusicStatus() {
         >
           Reintentar
         </button>
+        {errorDetail && <span className="mt-1 block text-[0.7rem] opacity-70">Detalle técnico: {errorDetail}</span>}
       </Notice>
     );
   }
@@ -111,6 +113,7 @@ export function MusicSettings() {
   const play = useMusic((s) => s.play);
   const busy = useMusic((s) => s.busy);
   const error = useMusic((s) => s.error);
+  const errorDetail = useMusic((s) => s.errorDetail);
   const session = useSession((s) => s.session);
   const [connecting, setConnecting] = useState(false);
   const [tested, setTested] = useState(false);
@@ -163,7 +166,12 @@ export function MusicSettings() {
             <Icon name="check" className="size-4" /> Spotify conectado
           </p>
           <Toggle checked={auto} onChange={setAuto} label="DJ Cómplice: cambiar la música según las cartas" hint="Deja Spotify abierto en el teléfono; Cómplice elige las canciones de cada momento." />
-          {error && <Notice tone="warn">{error}</Notice>}
+          {error && (
+            <Notice tone="warn">
+              {error}
+              {errorDetail && <span className="mt-1 block text-[0.7rem] opacity-70">Detalle técnico: {errorDetail}</span>}
+            </Notice>
+          )}
           {tested && !error && !busy && <Notice>Si escuchas música, ¡todo listo!</Notice>}
           <div className="grid grid-cols-2 gap-2">
             <Button
