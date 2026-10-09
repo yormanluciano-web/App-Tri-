@@ -80,3 +80,18 @@ describe("DJ Cómplice: reproducción", () => {
     expect(useMusic.getState().current).toBe("dj:calma");
   });
 });
+
+describe("errores de Spotify con su solución", () => {
+  it("un 403 no siempre es «falta Premium»", async () => {
+    const { classifyError } = await import("@/music/spotify");
+    expect(classifyError(403, { error: { reason: "PREMIUM_REQUIRED", message: "Player command failed: Premium required" } }).code).toBe("premium");
+    // Modo de desarrollo: la cuenta no está en «User Management».
+    expect(classifyError(403, { error: { message: "Check settings on developer.spotify.com/dashboard, the user may not be registered." } }).code).toBe("not_registered");
+    expect(classifyError(403, { error: { message: "Insufficient client scope" } }).code).toBe("scope");
+    expect(classifyError(403, { error: { message: "Player command failed: Restriction violated", reason: "UNKNOWN" } }).code).toBe("restricted");
+    expect(classifyError(403, {}).code).toBe("not_registered");
+    expect(classifyError(404, { error: { reason: "NO_ACTIVE_DEVICE" } }).code).toBe("no_device");
+    expect(classifyError(429, {}).code).toBe("rate_limited");
+    expect(classifyError(500, {}).code).toBe("unknown");
+  });
+});

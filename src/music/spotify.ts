@@ -17,7 +17,7 @@ const TOKENS_KEY = "trio:spotify";
 const PKCE_KEY = "trio:spotify-pkce";
 const TIMEOUT_MS = 15_000;
 
-export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "rate_limited" | "no_songs" | "unknown";
+export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "rate_limited" | "no_songs" | "not_registered" | "restricted" | "scope" | "unknown";
 
 export class MusicError extends Error {
   constructor(
@@ -37,6 +37,10 @@ export const MUSIC_ERROR_TEXT: Record<MusicErrorCode, string> = {
   bad_state: "La conexión con Spotify no se pudo verificar. Inténtalo de nuevo.",
   rate_limited: "Spotify pidió esperar un momento. La música cambiará en la próxima carta.",
   no_songs: "No se encontraron en Spotify las canciones de este momento.",
+  not_registered:
+    "Spotify no reconoce tu cuenta en la app. En developer.spotify.com → tu app → User Management, añade el correo de tu cuenta de Spotify (el mismo con el que conectaste) y vuelve a conectar.",
+  restricted: "Spotify no deja controlar ese dispositivo ahora. Abre Spotify en el teléfono, pon cualquier canción y vuelve a intentarlo.",
+  scope: "Falta un permiso de Spotify. Desconecta y vuelve a conectar en Ajustes → Música con Spotify.",
   unknown: "Spotify no respondió como se esperaba.",
 };
 
@@ -219,20 +223,38 @@ async function api(clientId: string, path: string, init: RequestInit = {}): Prom
       disconnect();
       throw new MusicError("auth", MUSIC_ERROR_TEXT.auth);
     }
-    let reason = "";
+    let body: { error?: { reason?: string; message?: string } | string; error_description?: string } = {};
     try {
-      reason = ((await res.json()) as { error?: { reason?: string } }).error?.reason ?? "";
+      body = (await res.json()) as typeof body;
     } catch {
       /* sin cuerpo */
     }
-    if (res.status === 403 && reason === "PREMIUM_REQUIRED") throw new MusicError("premium", MUSIC_ERROR_TEXT.premium);
-    if (res.status === 404 || reason === "NO_ACTIVE_DEVICE") throw new MusicError("no_device", MUSIC_ERROR_TEXT.no_device);
-    if (res.status === 403) throw new MusicError("premium", MUSIC_ERROR_TEXT.premium);
-    // 429 documentado en el esquema oficial: demasiadas peticiones seguidas.
-    if (res.status === 429) throw new MusicError("rate_limited", MUSIC_ERROR_TEXT.rate_limited);
-    throw new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
+    throw classifyError(res.status, body);
   }
   throw new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
+}
+
+/**
+ * Traduce un error de Spotify a un mensaje con la solución. Un 403 no siempre
+ * es «falta Premium»: en modo de desarrollo lo más común es que la cuenta no
+ * esté en «User Management», o que el dispositivo no se pueda controlar.
+ */
+export function classifyError(status: number, body: { error?: { reason?: string; message?: string } | string; error_description?: string }): MusicError {
+  const err = typeof body.error === "object" ? body.error : undefined;
+  const reason = err?.reason ?? "";
+  const message = `${err?.message ?? ""} ${typeof body.error === "string" ? body.error : ""} ${body.error_description ?? ""}`.toLowerCase();
+  const make = (code: MusicErrorCode) => new MusicError(code, MUSIC_ERROR_TEXT[code]);
+  if (reason === "PREMIUM_REQUIRED" || /premium/.test(message)) return make("premium");
+  if (status === 404 || reason === "NO_ACTIVE_DEVICE") return make("no_device");
+  if (status === 429) return make("rate_limited");
+  if (status === 403) {
+    if (/regist|developer\.spotify\.com|dashboard|user management|not been added/.test(message)) return make("not_registered");
+    if (/scope/.test(message)) return make("scope");
+    if (/restriction|restricted|disallow/.test(message) || reason === "UNKNOWN" || reason.startsWith("NOT_PAUSED") || reason === "DEVICE_NOT_CONTROLLABLE") return make("restricted");
+    // Sin pista: en modo de desarrollo casi siempre es la cuenta sin autorizar en la app.
+    return make("not_registered");
+  }
+  return make("unknown");
 }
 
 // ------------------------------------------------------------------ reproducción

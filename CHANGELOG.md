@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.12.2 — 2026-10-09
+- Corregido: la música decía «Spotify solo permite controlar la música con una cuenta Premium» ante cualquier rechazo de Spotify, aunque la cuenta fuera Premium. Ahora distingue el motivo y dice cómo arreglarlo:
+  - cuenta no autorizada en la app (añadir el correo en User Management del panel de Spotify);
+  - falta un permiso (volver a conectar);
+  - dispositivo que no se deja controlar (abrir Spotify y poner una canción);
+  - y, solo cuando Spotify lo indica, falta de Premium.
+
 ## 1.12.1 — 2026-10-09
 - Corregido: en el iPhone quedaba siempre el indicador de sonido en la isla dinámica mientras la app estaba abierta. Ahora el audio de los efectos se apaga solo 2,5 segundos después del último sonido y se suelta la sesión de audio; vuelve a encenderse al instante con el siguiente efecto del juego. Al salir de la app se apaga enseguida, y tocar la pantalla ya no lo enciende.
 
