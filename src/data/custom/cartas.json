@@ -150,6 +150,54 @@
       ],
       "mixta": true,
       "creada": "2026-10-08"
+    },
+    {
+      "id": "6hvmywt2",
+      "nivel": "perverso",
+      "t": "Calor al límite",
+      "x": "{p1} debe usar manos, boca, lengua para hacer mojar a {p2},  tienes 1min y {p2} debe decir que grado de excitación sintió",
+      "c": "retos",
+      "f": "reto",
+      "s": 85,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        60,
+        30,
+        120
+      ],
+      "genero": "mujer",
+      "creada": "2026-10-09"
     }
   ],
   "ocultas": [
