@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0 — 2026-10-09
+- **Cartas de Perverso mejor escritas**: las 205 cartas reescritas se leen ahora con frases completas y naturales, conservando el mismo reto o pregunta, las mismas personas y la misma intensidad. Los tiempos del texto coinciden con el temporizador y el lenguaje es neutro.
+- Las caricias de cartas que no son de «Acepto todo» indican «por encima de la ropa» cuando corresponde.
+- Se eliminaron las 20 cartas repetidas: queda una sola versión de cada una.
+
 ## 1.11.0 — 2026-10-09
 - **Nuevas cartas de Perverso**: los lotes 01–09 se reescribieron por completo (231 cartas en el nivel, con nuevos lotes «suave», «explícito», «muy perverso» y «cierre»). Las sesiones guardadas con las cartas anteriores las reemplazan de forma segura (catálogo v3).
 - Las cartas más explícitas solo aparecen entre personas que eligieron **«Acepto todo»** al empezar.

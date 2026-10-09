@@ -2,7 +2,7 @@
 
 **Fase actual:** publicado en Vercel por la propietaria. Catálogo v2, semáforo simplificado, rediseño 3D modo demo y género con cartas «solo hombre y mujer» (v0.8.0) completados.
 
-**Último resultado verificado (2026-10-09, v1.11.0 con las cartas nuevas de Perverso):**
+**Último resultado verificado (2026-10-09, v1.12.0 con las cartas de Perverso reescritas):**
 - `npm run typecheck` y `npm run lint`: sin errores.
 - `npm run content:validate -- --similar`: 936 actividades, 0 errores, 3 avisos (falsos positivos de contacto en cartas que solo hablan).
 - `npm test`: 143 pruebas en verde.
