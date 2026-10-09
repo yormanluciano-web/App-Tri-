@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.10.0 — 2026-10-09
+- **DJ Cómplice**: ya no hacen falta listas de Spotify. La app trae su propia selección de canciones **solo en español**, de artistas muy escuchados en Colombia y Venezuela (Karol G, Feid, Bad Bunny, Danny Ocean, Manuel Turizo, Kapo…), para cada momento:
+  - **Leve**: pop urbano y romántico para coquetear.
+  - **Picante**: reggaetón sensual.
+  - **Perverso**: perreo intenso.
+  - **Baile**: fiesta con reggaetón, salsa, merengue y vallenato.
+  - **Calma**: lentas, para abrazos y confesiones.
+  - **Cierre**: para terminar la sesión.
+- La música cambia según la carta: baile en retos de baile, calma en cartas tranquilas y el nivel en las demás. La app busca cada canción en el Spotify de quien juega y las pone en orden aleatorio.
+- **Panel → Música**: cada momento muestra sus canciones para agregar o quitar, una por línea («Artista - Canción»), con «Restaurar las de la app». También se puede usar una lista propia en un momento.
+- **Ajustes → Música con Spotify**: botón **«Abrir el DJ de Spotify»** (Livi). Se abre en la app de Spotify y el DJ Cómplice se pausa para no interrumpirlo.
+- Se quitó la mezcla de prueba que estaba configurada para Leve; ahí también suena el DJ Cómplice.
+- Spotify solo recibe los nombres de las canciones a buscar y qué poner; nunca cartas, nombres ni límites.
+
 ## 1.9.1 — 2026-10-09
 - **Menos sonidos**: los menús, los botones comunes y el desplazamiento ya no suenan. Solo suenan los momentos del juego: sacar, voltear, pasar, cambiar o cumplir una carta, los dados, la ruleta, la botella, la torre, el rasca, el Parqués, el reloj, los cambios de nivel y el cierre de la sesión.
 - En Ajustes, elegir el volumen ya no suena; para oírlo está «Probar sonido».

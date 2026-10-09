@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAdmin } from "@/admin/store";
 import { MUSIC_MOMENTS, MOMENT_HINT, MOMENT_LABEL, type MusicMoment } from "@/music/moments";
 import { parseSpotifyUri } from "@/music/spotify";
+import { DEFAULT_SONGS, parseSong } from "@/music/selection";
 import { Button, Card, Notice, Title } from "@/components/ui";
 
 const INPUT =
@@ -31,6 +32,9 @@ export function MusicAdmin({ onResult }: { onResult: (r: MusicOutcome) => void }
   const [links, setLinks] = useState<Record<MusicMoment, string>>(
     () => Object.fromEntries(MUSIC_MOMENTS.map((m) => [m, uriToLink(file?.musica?.listas?.[m])])) as Record<MusicMoment, string>,
   );
+  const [songs, setSongs] = useState<Record<MusicMoment, string>>(
+    () => Object.fromEntries(MUSIC_MOMENTS.map((m) => [m, (file?.musica?.canciones?.[m] ?? DEFAULT_SONGS[m]).join("\n")])) as Record<MusicMoment, string>,
+  );
   const [tried, setTried] = useState(false);
   const [copied, setCopied] = useState(false);
   const redirect = typeof window === "undefined" ? "" : `${window.location.origin}/spotify/`;
@@ -39,17 +43,28 @@ export function MusicAdmin({ onResult }: { onResult: (r: MusicOutcome) => void }
   const idOk = cleanId === "" || /^[A-Za-z0-9]{32}$/.test(cleanId);
   const parsed = Object.fromEntries(MUSIC_MOMENTS.map((m) => [m, links[m].trim() ? parseSpotifyUri(links[m]) : undefined])) as Record<MusicMoment, string | null | undefined>;
   const badLinks = MUSIC_MOMENTS.filter((m) => parsed[m] === null);
-  const anyLevel = !!(parsed.leve || parsed.picante || parsed.perverso);
+  const songLines = Object.fromEntries(
+    MUSIC_MOMENTS.map((m) => [
+      m,
+      songs[m]
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean),
+    ]),
+  ) as Record<MusicMoment, string[]>;
+  const badSongs = MUSIC_MOMENTS.flatMap((m) => songLines[m].filter((l) => !parseSong(l) || l.length > 120).map((l) => `«${MOMENT_LABEL[m]}»: «${l.slice(0, 40)}» debe ser «Artista - Canción».`));
+  const emptyMoments = MUSIC_MOMENTS.filter((m) => !parsed[m] && songLines[m].length === 0);
   const errors = [
     ...(!idOk ? ["El Client ID tiene 32 letras y números (cópialo del panel de Spotify)."] : []),
     ...badLinks.map((m) => `El enlace de «${MOMENT_LABEL[m]}» no es una lista, álbum o artista de Spotify.`),
-    ...(cleanId && !anyLevel ? ["Pon al menos una lista para un nivel (Leve, Picante o Perverso)."] : []),
+    ...badSongs.slice(0, 5),
+    ...emptyMoments.map((m) => `«${MOMENT_LABEL[m]}» no tiene canciones ni lista.`),
   ];
 
   return (
     <div className="space-y-4">
       <Card className="space-y-4">
-        <Title sub="La música cambia sola en la mesa según el nivel y las cartas. Cada persona conecta su Spotify Premium en Ajustes.">Música con Spotify</Title>
+        <Title sub="El DJ Cómplice cambia la música sola en la mesa según el nivel y las cartas. Cada persona conecta su Spotify Premium en Ajustes.">Música con Spotify</Title>
         <details className="rounded-2xl border border-line bg-white/5 p-3 text-sm text-muted">
           <summary className="cursor-pointer font-semibold text-ink">Cómo registrar la app en Spotify (una sola vez)</summary>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
@@ -89,25 +104,48 @@ export function MusicAdmin({ onResult }: { onResult: (r: MusicOutcome) => void }
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="text-xl font-bold">Listas por momento</h2>
-        <p className="text-sm text-muted">Pega el enlace de una lista, álbum o artista (en Spotify: Compartir → Copiar enlace). Si un momento queda vacío, suena la lista del nivel.</p>
+        <h2 className="text-xl font-bold">DJ Cómplice: canciones por momento</h2>
+        <p className="text-sm text-muted">
+          Una canción por línea, como «Artista - Canción». La app las busca en Spotify y las pone en orden aleatorio cuando llega cada momento. Si quieres, puedes usar una
+          lista tuya en lugar de canciones.
+        </p>
         {MUSIC_MOMENTS.map((m) => (
-          <label key={m} className="block space-y-1">
-            <span className="font-semibold">{MOMENT_LABEL[m]}</span>
-            <span className="block text-sm text-muted">{MOMENT_HINT[m]}</span>
-            <input
-              className={INPUT}
-              value={links[m]}
-              onChange={(e) => setLinks((l) => ({ ...l, [m]: e.target.value }))}
+          <div key={m} className="space-y-1.5 border-t border-line pt-3 first-of-type:border-t-0 first-of-type:pt-0">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-semibold">{MOMENT_LABEL[m]}</span>
+              <span className="text-xs text-faint">{parsed[m] ? "Usa tu lista" : `${songLines[m].length} canciones`}</span>
+            </div>
+            <span className="block text-xs text-muted">{MOMENT_HINT[m]}</span>
+            <textarea
+              className={INPUT + " min-h-32 py-2 text-sm leading-relaxed"}
+              value={songs[m]}
+              onChange={(e) => setSongs((x) => ({ ...x, [m]: e.target.value }))}
               autoCapitalize="off"
-              autoCorrect="off"
               spellCheck={false}
-              inputMode="url"
-              placeholder="https://open.spotify.com/playlist/…"
-              aria-label={`Lista para ${MOMENT_LABEL[m]}`}
+              aria-label={`Canciones para ${MOMENT_LABEL[m]}`}
+              disabled={!!parsed[m]}
             />
-            {parsed[m] === null && <span className="text-sm text-bad">No es un enlace válido de Spotify.</span>}
-          </label>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="text-xs underline" onClick={() => setSongs((x) => ({ ...x, [m]: DEFAULT_SONGS[m].join("\n") }))}>
+                Restaurar las de la app
+              </button>
+            </div>
+            <details>
+              <summary className="cursor-pointer text-xs text-muted">Usar una lista propia en lugar de canciones</summary>
+              <input
+                className={INPUT + " mt-1.5"}
+                value={links[m]}
+                onChange={(e) => setLinks((l) => ({ ...l, [m]: e.target.value }))}
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                inputMode="url"
+                placeholder="https://open.spotify.com/playlist/…"
+                aria-label={`Lista para ${MOMENT_LABEL[m]}`}
+              />
+              {parsed[m] === null && <span className="text-sm text-bad">No es un enlace válido de Spotify.</span>}
+            </details>
+          </div>
         ))}
       </Card>
 
@@ -129,7 +167,12 @@ export function MusicAdmin({ onResult }: { onResult: (r: MusicOutcome) => void }
           setTried(true);
           if (errors.length) return;
           const listas = Object.fromEntries(MUSIC_MOMENTS.filter((m) => parsed[m]).map((m) => [m, parsed[m]!]));
-          void publish({ kind: "music", musica: { ...(cleanId ? { clientId: cleanId } : {}), listas } }, "Música").then((r) =>
+          // Solo se guardan los momentos cuyas canciones difieren de la selección de la app.
+          const canciones = Object.fromEntries(MUSIC_MOMENTS.filter((m) => songLines[m].join("\n") !== DEFAULT_SONGS[m].join("\n")).map((m) => [m, songLines[m]]));
+          void publish(
+            { kind: "music", musica: { ...(cleanId ? { clientId: cleanId } : {}), listas, ...(Object.keys(canciones).length ? { canciones } : {}) } },
+            "Música",
+          ).then((r) =>
             onResult(
               r
                 ? { ok: true, title: "¡Música guardada!", message: "La configuración de Spotify ya está en el repositorio.", commitUrl: r.commitUrl }

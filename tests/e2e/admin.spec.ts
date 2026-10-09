@@ -164,7 +164,18 @@ test("administración: configurar la música de Spotify se guarda en el reposito
   await page.getByRole("tab", { name: "Música" }).click();
   await expect(page.getByText("/spotify/", { exact: false }).first()).toBeVisible();
   await page.getByLabel("Client ID de Spotify").fill("0123456789abcdef0123456789abcdef");
+  // DJ Cómplice: cada momento trae canciones de la app, editables una por línea.
+  const calma = page.getByLabel("Canciones para Calma");
+  await expect(calma).toHaveValue(/Pedro Capó - Calma/);
+  await calma.fill("Pedro Capó - Calma\nsin guion");
+  await page.getByRole("button", { name: "Guardar música" }).click();
+  await expect(page.getByText(/debe ser «Artista - Canción»/)).toBeVisible();
+  await calma.fill("Pedro Capó - Calma\nMorat - Cómo Te Atreves");
+  // Una lista propia reemplaza las canciones de ese momento.
+  const usarLista = page.getByText("Usar una lista propia en lugar de canciones");
+  await usarLista.nth(0).click();
   await page.getByLabel("Lista para Leve").fill("https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO?si=x1");
+  await usarLista.nth(3).click();
   await page.getByLabel("Lista para Baile").fill("https://open.spotify.com/track/no-es-lista");
   await page.getByRole("button", { name: "Guardar música" }).click();
   await expect(page.getByText(/El enlace de «Baile» no es una lista/)).toBeVisible();
@@ -172,7 +183,12 @@ test("administración: configurar la música de Spotify se guarda en el reposito
   await page.getByRole("button", { name: "Guardar música" }).click();
   await expect(page.getByRole("dialog", { name: "¡Música guardada!" })).toBeVisible();
   const file = JSON.parse(gh.text);
-  expect(file.musica).toEqual({ clientId: "0123456789abcdef0123456789abcdef", listas: { leve: "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO" } });
+  // Solo se guarda lo que cambió respecto a la selección de la app.
+  expect(file.musica).toEqual({
+    clientId: "0123456789abcdef0123456789abcdef",
+    listas: { leve: "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO" },
+    canciones: { calma: ["Pedro Capó - Calma", "Morat - Cómo Te Atreves"] },
+  });
   expect(gh.puts.at(-1)!.message).toContain("música");
 });
 

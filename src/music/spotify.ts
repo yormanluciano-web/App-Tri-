@@ -17,7 +17,7 @@ const TOKENS_KEY = "trio:spotify";
 const PKCE_KEY = "trio:spotify-pkce";
 const TIMEOUT_MS = 15_000;
 
-export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "rate_limited" | "unknown";
+export type MusicErrorCode = "not_connected" | "no_device" | "premium" | "auth" | "network" | "bad_state" | "rate_limited" | "no_songs" | "unknown";
 
 export class MusicError extends Error {
   constructor(
@@ -36,6 +36,7 @@ export const MUSIC_ERROR_TEXT: Record<MusicErrorCode, string> = {
   network: "Sin conexión con Spotify. Revisa tu internet.",
   bad_state: "La conexión con Spotify no se pudo verificar. Inténtalo de nuevo.",
   rate_limited: "Spotify pidió esperar un momento. La música cambiará en la próxima carta.",
+  no_songs: "No se encontraron en Spotify las canciones de este momento.",
   unknown: "Spotify no respondió como se esperaba.",
 };
 
@@ -250,19 +251,42 @@ export function pickDevice(devices: readonly Device[]): string | null {
   return chosen?.id ?? null;
 }
 
-/** Pone a sonar una lista (en aleatorio) en el Spotify del usuario. */
-export async function playContext(clientId: string, contextUri: string): Promise<void> {
-  const body = JSON.stringify({ context_uri: contextUri });
+/** Reproduce en el dispositivo activo o, si no hay, en uno disponible (p. ej. Spotify abierto pero en pausa). */
+async function startPlayback(clientId: string, body: string): Promise<void> {
   try {
     await api(clientId, "/me/player/play", { method: "PUT", headers: { "Content-Type": "application/json" }, body });
   } catch (e) {
     if (!(e instanceof MusicError) || e.code !== "no_device") throw e;
-    // Sin dispositivo activo: probar con uno disponible (p. ej. Spotify abierto pero en pausa).
     const res = await api(clientId, "/me/player/devices");
     const device = pickDevice(((await res.json()) as { devices?: Device[] }).devices ?? []);
     if (!device) throw e;
     await api(clientId, `/me/player/play?device_id=${encodeURIComponent(device)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body });
   }
+}
+
+/** Pone a sonar una lista (en aleatorio) en el Spotify del usuario. */
+export async function playContext(clientId: string, contextUri: string): Promise<void> {
+  await startPlayback(clientId, JSON.stringify({ context_uri: contextUri }));
   // Aleatorio para que no empiece siempre por la misma canción; si falla, no importa.
   void api(clientId, "/me/player/shuffle?state=true", { method: "PUT" }).catch(() => undefined);
+}
+
+/** Pone a sonar canciones sueltas en el orden dado (la app ya las mezcló). */
+export async function playTracks(clientId: string, uris: readonly string[]): Promise<void> {
+  await startPlayback(clientId, JSON.stringify({ uris }));
+  void api(clientId, "/me/player/shuffle?state=false", { method: "PUT" }).catch(() => undefined);
+}
+
+/**
+ * Busca una canción («Artista - Canción») y devuelve su URI, o null si no
+ * aparece. Solo viaja el nombre de la canción de la selección, nunca datos del juego.
+ */
+export async function searchTrack(clientId: string, queries: readonly string[]): Promise<string | null> {
+  for (const q of queries) {
+    const res = await api(clientId, `/search?type=track&limit=1&market=from_token&q=${encodeURIComponent(q)}`);
+    const data = (await res.json()) as { tracks?: { items?: { uri?: string }[] } };
+    const uri = data.tracks?.items?.[0]?.uri;
+    if (uri && /^spotify:track:[A-Za-z0-9]+$/.test(uri)) return uri;
+  }
+  return null;
 }

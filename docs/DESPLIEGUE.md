@@ -66,5 +66,5 @@ Requisitos (reglas de Spotify en 2026): la dueña de la app en Spotify debe tene
 2. **Redirect URIs**: `https://<tu-dominio-de-vercel>/spotify/` (exacto, con la barra final). El panel de la app la muestra con un botón «Copiar».
 3. Copia el **Client ID** (es público; no se usa el Client secret).
 4. **User Management**: añade el correo de Spotify de cada persona que vaya a conectarse.
-5. En Cómplice: **Panel de administración → Música**: pega el Client ID y los enlaces de las listas (Compartir → Copiar enlace) para cada momento → **Guardar música**. Vercel publica en 1 a 3 minutos.
+5. En Cómplice: **Panel de administración → Música**: pega el Client ID → **Guardar música**. Vercel publica en 1 a 3 minutos. No hacen falta listas: el **DJ Cómplice** trae canciones en español por momento (Leve, Picante, Perverso, Baile, Calma, Cierre), editables ahí mismo, una por línea («Artista - Canción»). Opcional: una lista propia por momento.
 6. Cada persona: **Ajustes → Música con Spotify → Conectar con Spotify** (antes de empezar una sesión privada) y **Probar** con Spotify abierto en el teléfono.

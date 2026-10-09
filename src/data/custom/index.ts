@@ -65,6 +65,8 @@ export const musicConfigSchema = z.object({
     .regex(/^[A-Za-z0-9]{32}$/)
     .optional(),
   listas: z.partialRecord(z.enum(MUSIC_MOMENTS), z.string().regex(SPOTIFY_URI)).default({}),
+  /** Canciones del DJ Cómplice por momento («Artista - Canción»); si falta un momento, se usa la selección de la app. */
+  canciones: z.partialRecord(z.enum(MUSIC_MOMENTS), z.array(z.string().trim().min(3).max(120)).max(80)).optional(),
 });
 export type MusicConfig = z.infer<typeof musicConfigSchema>;
 

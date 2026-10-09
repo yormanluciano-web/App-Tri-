@@ -50,3 +50,22 @@ export function momentFor(session: SessionState, activity: Activity | null): Mus
 export function playlistFor(moment: MusicMoment, level: Intensity, lists: MusicPlaylists): string | null {
   return lists[moment] ?? lists[level] ?? null;
 }
+
+/** Qué suena en un momento: una lista propia o la selección del DJ Cómplice. */
+export type MusicSource = { key: string; uri: string; songs?: undefined } | { key: string; songs: readonly string[]; uri?: undefined };
+
+/**
+ * Fuente del momento: la lista que se configuró para ese momento exacto o, si
+ * no hay, las canciones del DJ Cómplice para ese momento (las del panel o las
+ * de la app). Así cada momento tiene su propia música aunque no haya listas.
+ */
+export function sourceFor(
+  moment: MusicMoment,
+  config: { listas?: MusicPlaylists; canciones?: Partial<Record<MusicMoment, readonly string[]>> },
+  defaults: Record<MusicMoment, readonly string[]>,
+): MusicSource {
+  const uri = config.listas?.[moment];
+  if (uri) return { key: uri, uri };
+  const own = config.canciones?.[moment];
+  return { key: `dj:${moment}`, songs: own && own.length > 0 ? own : defaults[moment] };
+}
