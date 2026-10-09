@@ -198,6 +198,56 @@
       ],
       "genero": "mujer",
       "creada": "2026-10-09"
+    },
+    {
+      "id": "me49bwjy",
+      "nivel": "perverso",
+      "t": "Juego de 3",
+      "x": "{p1} (o el hombre del grupo) tiene 2min para hacer mojar usando su miembro a {p2} y a {p3} ambas con los ojos vendados, no puede haber ninguno tipo de penetración en ningún momento",
+      "c": "retos",
+      "f": "reto",
+      "s": 97,
+      "i": "group",
+      "sizes": [
+        3
+      ],
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        120,
+        60,
+        240
+      ],
+      "creada": "2026-10-09"
     }
   ],
   "ocultas": [
