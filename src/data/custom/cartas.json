@@ -102,12 +102,209 @@
         120
       ],
       "creada": "2026-10-08"
+    },
+    {
+      "id": "5e3ix2m4",
+      "nivel": "perverso",
+      "t": "Penetración no válida",
+      "x": "{p1} puede usar su boca, su lengua, sus manos o su miembro (si es hombre) para estimular y hacer mojar a {p2} , tienes 1 min",
+      "c": "retos",
+      "f": "reto",
+      "s": 95,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        60,
+        30,
+        120
+      ],
+      "mixta": true,
+      "creada": "2026-10-08"
+    },
+    {
+      "id": "6hvmywt2",
+      "nivel": "perverso",
+      "t": "Calor al límite",
+      "x": "{p1} debe usar manos, boca, lengua para hacer mojar a {p2},  tienes 1min y {p2} debe decir que grado de excitación sintió",
+      "c": "retos",
+      "f": "reto",
+      "s": 85,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        60,
+        30,
+        120
+      ],
+      "genero": "mujer",
+      "creada": "2026-10-09"
+    },
+    {
+      "id": "me49bwjy",
+      "nivel": "perverso",
+      "t": "Juego de 3",
+      "x": "{p1} (o el hombre del grupo) tiene 2min para hacer mojar usando su miembro a {p2} y a {p3} ambas con los ojos vendados, no puede haber ninguno tipo de penetración en ningún momento",
+      "c": "retos",
+      "f": "reto",
+      "s": 97,
+      "i": "group",
+      "sizes": [
+        3
+      ],
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        120,
+        60,
+        240
+      ],
+      "creada": "2026-10-09"
+    },
+    {
+      "id": "httppv83",
+      "nivel": "perverso",
+      "t": "Baile en privado",
+      "x": "{p1} debe ir con {p2}  a una habitación sola durante 3min, pueden hacer lo que quieran sin límites, al volver, {p3} debe adivinar que hicieron viendo sus rostros, tiene 3 intentos, si falla debe quitarse una prenda durante el resto del juego",
+      "c": "retos",
+      "f": "reto",
+      "s": 98,
+      "i": "group",
+      "sizes": [
+        3
+      ],
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        180,
+        90,
+        360
+      ],
+      "creada": "2026-10-09"
     }
   ],
   "ocultas": [
     "v2-001",
     "v2-013",
-    "v2-016"
+    "v2-016",
+    "v2-040"
   ],
   "musica": {
     "clientId": "eacef6c4326844f787dd0e5d4b0f07e2",
