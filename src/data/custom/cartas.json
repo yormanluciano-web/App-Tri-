@@ -298,6 +298,53 @@
         360
       ],
       "creada": "2026-10-09"
+    },
+    {
+      "id": "u4f55baz",
+      "nivel": "perverso",
+      "t": "Conociendo el fuego",
+      "x": "{p1} debes decir en voz alta lo que te gusta y te enciende cuando estás con alguien, mientras {p2} va a ir siguiendo al pie de la letra todo lo que le dices",
+      "c": "retos",
+      "f": "reto",
+      "s": 85,
+      "i": "directed_pair",
+      "req": [
+        "conversacion_ligera",
+        "adivinanzas",
+        "preguntas_personales",
+        "confesiones",
+        "fantasias",
+        "coqueteo",
+        "miradas",
+        "musica",
+        "baile_individual",
+        "roles_juego",
+        "ojos_cerrados",
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "pair": [
+        "contacto_manos",
+        "abrazo",
+        "masaje_manos",
+        "masaje_hombros",
+        "baile_cercano",
+        "caricias",
+        "beso",
+        "beso_intenso",
+        "tiempo_a_solas"
+      ],
+      "aud": [
+        "quitarse_prenda",
+        "desnudez"
+      ],
+      "audScope": "sesion",
+      "d": [
+        120,
+        60,
+        240
+      ],
+      "creada": "2026-10-09"
     }
   ],
   "ocultas": [
