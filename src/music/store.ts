@@ -41,6 +41,10 @@ interface MusicState {
   error: string | null;
   /** Respuesta técnica de Spotify del último error (para diagnosticar). */
   errorDetail: string | null;
+  /** Tipo del último error (p. ej. «no_device» para ofrecer «Abrir Spotify»). */
+  errorCode: string | null;
+  /** Última música pedida, para reintentar sola al volver de Spotify. */
+  pending: { source: MusicSource; moment: MusicMoment } | null;
   busy: boolean;
   init(): void;
   setAuto(v: boolean): void;
@@ -90,6 +94,8 @@ export const useMusic = create<MusicState>((set, get) => ({
   current: null,
   error: null,
   errorDetail: null,
+  errorCode: null,
+  pending: null,
   busy: false,
 
   init() {
@@ -113,25 +119,39 @@ export const useMusic = create<MusicState>((set, get) => ({
       set({ moment });
       return true;
     }
-    set({ busy: true, error: null, errorDetail: null, current: source.key, moment });
+    set({ busy: true, error: null, errorDetail: null, errorCode: null, current: source.key, moment, pending: { source, moment } });
     try {
       if (source.uri) await playContext(clientId, source.uri);
       else await playTracks(clientId, await resolveSongs(clientId, source.songs ?? []));
-      set({ busy: false });
+      set({ busy: false, pending: null });
       return true;
     } catch (e) {
       const err = e instanceof MusicError ? e : new MusicError("unknown", MUSIC_ERROR_TEXT.unknown);
       // Si falló, se vuelve a intentar en el próximo cambio de momento o con «Reintentar».
-      set({ busy: false, error: err.message, errorDetail: err.detail ?? null, current: null, connected: err.code === "auth" || err.code === "not_connected" ? false : get().connected });
+      set({ busy: false, error: err.message, errorDetail: err.detail ?? null, errorCode: err.code, current: null, connected: err.code === "auth" || err.code === "not_connected" ? false : get().connected });
       return false;
     }
   },
 
   clearError() {
-    set({ error: null, errorDetail: null });
+    set({ error: null, errorDetail: null, errorCode: null });
   },
 }));
 
 // Con Spotify conectado y el DJ activo, los efectos de la app se mezclan con la
 // música en lugar de quitarle el audio (en iPhone la pausaban en cada carta).
 useMusic.subscribe((s) => setMixWithOthers(s.connected && s.auto));
+
+// Al volver a Cómplice (por ejemplo, después de abrir Spotify y poner una canción),
+// si la música no pudo empezar porque Spotify estaba dormido, se reintenta sola.
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    const s = useMusic.getState();
+    if (!s.pending || !s.connected || !s.auto || s.busy) return;
+    if (s.errorCode !== "no_device" && s.errorCode !== "restricted") return;
+    const { source, moment } = s.pending;
+    // Un instante para que Spotify vuelva a aparecer como dispositivo activo.
+    setTimeout(() => void useMusic.getState().play(source, moment, true), 1200);
+  });
+}

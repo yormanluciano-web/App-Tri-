@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.12.5 — 2026-10-09
+- Música: cuando Spotify está «dormido» (el iPhone lo suspende en segundo plano y deja de verse como dispositivo aunque la app esté abierta), el aviso ofrece **«Abrir Spotify»**. Al poner una canción y volver a Cómplice, la música del juego **empieza sola**, sin tocar «Reintentar».
+- El detalle técnico indica cuántos dispositivos ve Spotify, para diagnosticar.
+
 ## 1.12.4 — 2026-10-09
 - Corregido: con Spotify sonando, la música se pausaba con cada carta y luego no volvía a sonar. Los efectos de la app (voltear, barajar…) tomaban el audio del iPhone y Spotify se interrumpía. Ahora, con la música de Spotify activa, los efectos se mezclan con ella sin pausarla (el interruptor de silencio del iPhone apaga entonces los efectos, no la música).
 - La música cambia menos: entre cartas se mantiene la que suena y solo cambia cuando sale una carta de otro momento (baile o calma), cuando cambia el nivel o al terminar.

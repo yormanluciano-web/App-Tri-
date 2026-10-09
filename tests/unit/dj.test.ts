@@ -118,3 +118,49 @@ describe("detalle técnico de los errores de Spotify", () => {
     expect((err as { detail: string }).detail).toBe("GET /search → 403 · Insufficient client scope");
   });
 });
+
+describe("Spotify dormido en el teléfono", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("explica cuántos dispositivos ve Spotify y, al volver a la app, reintenta solo", async () => {
+    vi.resetModules();
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const store: Record<string, string> = { "trio:spotify": JSON.stringify({ access: "tok", refresh: "r", expiresAt: Date.now() + 3_600_000 }) };
+    vi.stubGlobal("window", {
+      localStorage: { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => (store[k] = v), removeItem: (k: string) => delete store[k] },
+      location: { origin: "https://app.test" },
+    });
+    const listeners: (() => void)[] = [];
+    const doc = { visibilityState: "visible", addEventListener: (ev: string, fn: () => void) => ev === "visibilitychange" && listeners.push(fn) };
+    vi.stubGlobal("document", doc);
+    let asleep = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/search")) return new Response(JSON.stringify({ tracks: { items: [{ uri: "spotify:track:abc123" }] } }), { status: 200 });
+        if (url.endsWith("/me/player/devices")) return new Response(JSON.stringify({ devices: [] }), { status: 200 });
+        if (url.includes("/me/player/play") && asleep) return new Response(JSON.stringify({ error: { status: 404, reason: "NO_ACTIVE_DEVICE", message: "Player command failed: No active device found" } }), { status: 404 });
+        return new Response(null, { status: 204 });
+      }),
+    );
+    const { useMusic, MUSIC_CONFIG } = await import("@/music/store");
+    MUSIC_CONFIG.clientId = "a".repeat(32);
+    useMusic.setState({ connected: true, ready: true, auto: true });
+    const ok = await useMusic.getState().play({ key: "dj:leve", songs: ["Feid - Normal"] }, "leve");
+    expect(ok).toBe(false);
+    expect(useMusic.getState().errorCode).toBe("no_device");
+    expect(useMusic.getState().errorDetail).toContain("dispositivos: 0");
+    // Abre Spotify, pone una canción y vuelve: la música empieza sola.
+    asleep = false;
+    doc.visibilityState = "hidden";
+    listeners.forEach((f) => f());
+    doc.visibilityState = "visible";
+    listeners.forEach((f) => f());
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(useMusic.getState().error).toBeNull();
+    expect(useMusic.getState().current).toBe("dj:leve");
+  });
+});

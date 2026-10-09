@@ -32,7 +32,7 @@ export class MusicError extends Error {
 
 export const MUSIC_ERROR_TEXT: Record<MusicErrorCode, string> = {
   not_connected: "Spotify no está conectado.",
-  no_device: "Abre la app de Spotify y pon algo a sonar un momento; luego vuelve aquí.",
+  no_device: "Spotify está dormido en este teléfono. Toca «Abrir Spotify», pon cualquier canción y vuelve: la música del juego empieza sola.",
   premium: "Spotify solo permite controlar la música con una cuenta Premium.",
   auth: "La conexión con Spotify caducó. Vuelve a conectarla en Ajustes.",
   network: "Sin conexión con Spotify. Revisa tu internet.",
@@ -286,8 +286,13 @@ async function startPlayback(clientId: string, body: string): Promise<void> {
   } catch (e) {
     if (!(e instanceof MusicError) || e.code !== "no_device") throw e;
     const res = await api(clientId, "/me/player/devices");
-    const device = pickDevice(((await res.json()) as { devices?: Device[] }).devices ?? []);
-    if (!device) throw e;
+    const devices = ((await res.json()) as { devices?: Device[] }).devices ?? [];
+    const device = pickDevice(devices);
+    if (!device) {
+      // Diagnóstico sin datos personales: cuántos dispositivos ve Spotify y de qué tipo.
+      e.detail = `${e.detail ?? "PUT /me/player/play → 404"} · dispositivos: ${devices.length}${devices.length ? ` (${devices.map((d) => `${d.type}${d.is_restricted ? " restringido" : ""}`).join(", ")})` : ""}`;
+      throw e;
+    }
     await api(clientId, `/me/player/play?device_id=${encodeURIComponent(device)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body });
   }
 }

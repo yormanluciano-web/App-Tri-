@@ -22,6 +22,15 @@ export function musicFor(moment: MusicMoment): MusicSource {
   return sourceFor(moment, MUSIC_CONFIG, DEFAULT_SONGS);
 }
 
+/** Abre la app de Spotify en el teléfono (para «despertarla» y que vuelva a aparecer como dispositivo). */
+function OpenSpotify() {
+  return (
+    <a href="spotify:" className="ml-1 inline-flex items-center gap-1 font-semibold underline">
+      Abrir Spotify
+    </a>
+  );
+}
+
 /** DJ con IA de Spotify (Livi en español): solo se puede abrir en la app de Spotify, no controlar desde aquí. */
 const SPOTIFY_DJ_URL = "https://open.spotify.com/playlist/37i9dQZF1EYkqdzj48dyYq";
 
@@ -65,6 +74,7 @@ export function MusicStatus() {
   const moment = useMusic((s) => s.moment);
   const error = useMusic((s) => s.error);
   const errorDetail = useMusic((s) => s.errorDetail);
+  const errorCode = useMusic((s) => s.errorCode);
   const current = useMusic((s) => s.current);
   const play = useMusic((s) => s.play);
   const clearError = useMusic((s) => s.clearError);
@@ -85,6 +95,7 @@ export function MusicStatus() {
         >
           Reintentar
         </button>
+        {(errorCode === "no_device" || errorCode === "restricted") && <OpenSpotify />}
         {errorDetail && <span className="mt-1 block text-[0.7rem] opacity-70">Detalle técnico: {errorDetail}</span>}
       </Notice>
     );
@@ -120,6 +131,7 @@ export function MusicSettings() {
   const busy = useMusic((s) => s.busy);
   const error = useMusic((s) => s.error);
   const errorDetail = useMusic((s) => s.errorDetail);
+  const errorCode = useMusic((s) => s.errorCode);
   const session = useSession((s) => s.session);
   const [connecting, setConnecting] = useState(false);
   const [tested, setTested] = useState(false);
@@ -175,6 +187,7 @@ export function MusicSettings() {
           {error && (
             <Notice tone="warn">
               {error}
+              {(errorCode === "no_device" || errorCode === "restricted") && <OpenSpotify />}
               {errorDetail && <span className="mt-1 block text-[0.7rem] opacity-70">Detalle técnico: {errorDetail}</span>}
             </Notice>
           )}
