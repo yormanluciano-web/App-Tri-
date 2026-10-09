@@ -795,10 +795,20 @@ html[data-motion="reduce"] *::after {
   perspective-origin: 50% 0%;
   padding: 0.25rem 0 0.75rem;
 }
+/* El tablero llena el espacio libre y sigue cuadrado: el lado es el menor entre el ancho y el alto disponibles. */
+.parques-fit {
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.parques-fit > .parques-stage {
+  width: min(100cqw, 104cqh, 30rem);
+  padding: 0;
+}
 .parques-board {
   position: relative;
   width: 100%;
-  max-width: 26rem;
   aspect-ratio: 1;
   margin: 0 auto;
   border-radius: 1.75rem;
@@ -1145,6 +1155,13 @@ html[data-motion="reduce"] *::after {
     transform: translate3d(0, 0, 0) rotateX(-16deg) rotateY(20deg) rotateX(var(--fx)) rotateY(var(--fy));
   }
 }
+.pdie-sm .pdie {
+  --s: 60px;
+}
+.pdie-sm .pdie-shadow {
+  width: 52px;
+  margin-top: 8px;
+}
 .pdie-shadow {
   width: 66px;
   height: 12px;
@@ -1314,4 +1331,15 @@ html[data-motion="reduce"] .pr-mystery {
 }
 html[data-motion="reduce"] .pr-result {
   transform: none;
+}
+
+/* Botón principal de un paso: siempre visible abajo, como en una app (el contenido se desplaza por detrás). */
+.step-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: auto;
+  margin-inline: -1rem;
+  padding: 0.75rem 1rem 0.25rem;
+  background: linear-gradient(to top, var(--bg) 60%, transparent);
 }

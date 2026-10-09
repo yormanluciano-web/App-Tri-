@@ -31,7 +31,7 @@ import { GAME_FORMATS } from "@/domain/engine/orchestrator";
 import { createSession, resolveInitialConsent } from "@/domain/state/session";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { useSession } from "@/stores/session";
-import { Button, Card, Chip, GameEmblem, Icon, cx, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
+import { Button, Card, Chip, GameEmblem, Icon, InfoButton, cx, Notice, OptionTile, ParticipantTag, Screen, Steps, Title, Toggle } from "@/components/ui";
 import { LEVEL_ICON } from "@/components/ui/visuals";
 import { ConsentRound, PrivateRound, type Person } from "@/features/session/PrivateRound";
 import { LimitsEditor, SharedLimitsEditor } from "./LimitsEditor";
@@ -59,6 +59,9 @@ function newDraft(): Draft {
 function trimAlias(a: string): string {
   return a.trim().replace(/\s+/g, " ");
 }
+
+/** Modos que mezclan todos los juegos. */
+const META_MODES: readonly GameId[] = ["noche", "caos", "sin_miedo"];
 
 /** Configuración final: Noche completa, Caos y Sin miedo expanden su mezcla de juegos. */
 export function finalGames(
@@ -210,8 +213,10 @@ export function SetupWizard() {
   }
 
   return (
-    <Screen level={effectiveLevel}>
-      {header}
+    <Screen fit level={effectiveLevel}>
+      <div className="shrink-0">{header}</div>
+      {/* Cuerpo del paso: se desplaza por dentro; el botón principal queda fijo abajo. */}
+      <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-1">
 
       {step === "mode" && (
         <>
@@ -236,9 +241,11 @@ export function SetupWizard() {
             Guardar en el dispositivo no es un respaldo permanente: el navegador puede borrar datos locales. Cualquiera con acceso a este teléfono
             podría ver la app.
           </Notice>
-          <Button block size="lg" onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block size="lg" onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
@@ -259,25 +266,25 @@ export function SetupWizard() {
               </Button>
             ))}
           </div>
-          <Button block size="lg" onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block size="lg" onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
       {step === "aliases" && (
         <>
-          <Title sub="Solo un alias y si es hombre o mujer (para las cartas de pareja hombre y mujer). Sin correo, teléfono ni fecha de nacimiento.">¿Quiénes juegan?</Title>
-          <div className="space-y-4">
+          <Title sub="Solo un alias y si es hombre o mujer. Sin correo, teléfono ni fecha de nacimiento.">¿Quiénes juegan?</Title>
+          <div className="space-y-2.5">
             {active.map((d, i) => (
-              <Card key={d.id} className="space-y-3">
-                <label className="block space-y-1">
-                  <span className="font-semibold">
-                    <ParticipantTag alias={`Persona ${i + 1}`} slot={i} />
-                  </span>
+              <Card key={d.id} className="space-y-2 !rounded-3xl !p-3">
+                <label className="flex items-center gap-2">
+                  <ParticipantTag alias="" slot={i} className="shrink-0" />
                   <input
-                    className="min-h-12 w-full rounded-2xl border border-line bg-white/5 px-4 text-lg text-ink transition placeholder:text-faint focus:border-accent focus:bg-white/10 focus:outline-none"
-                    placeholder="Alias"
+                    className="min-h-11 w-full rounded-xl border border-line bg-white/5 px-3 text-base text-ink transition placeholder:text-faint focus:border-accent focus:bg-white/10 focus:outline-none"
+                    placeholder={`Alias de la persona ${i + 1}`}
                     value={d.alias}
                     maxLength={40}
                     autoComplete="off"
@@ -286,9 +293,10 @@ export function SetupWizard() {
                     aria-label={`Alias de la persona ${i + 1}`}
                     onChange={(e) => updateDraft(d.id, { alias: e.target.value })}
                   />
-                  {trimAlias(d.alias).length > 24 && <span className="text-sm text-bad">Máximo 24 caracteres.</span>}
                 </label>
-                <div role="radiogroup" aria-label={`Género de la persona ${i + 1}`} className="grid grid-cols-2 gap-2">
+                {trimAlias(d.alias).length > 24 && <span className="text-sm text-bad">Máximo 24 caracteres.</span>}
+                <div className="flex items-center gap-2">
+                <div role="radiogroup" aria-label={`Género de la persona ${i + 1}`} className="grid shrink-0 grid-cols-2 gap-1.5">
                   {GENDERS.map((g) => (
                     <button
                       key={g}
@@ -297,25 +305,31 @@ export function SetupWizard() {
                       aria-checked={d.gender === g}
                       onClick={() => updateDraft(d.id, { gender: g })}
                       className={cx(
-                        "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border px-4 text-base transition duration-200 active:scale-[0.97]",
+                        "inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border px-2.5 text-sm transition duration-200 active:scale-[0.97]",
                         d.gender === g
                           ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink shadow-[0_6px_20px_-8px_var(--glow)]"
                           : "border-line bg-white/5 text-ink hover:bg-white/10",
                       )}
                     >
-                      {d.gender === g && <Icon name="check" className="size-4" />}
+                      {d.gender === g && <Icon name="check" className="size-3.5" />}
                       {GENDER_LABEL[g]}
                     </button>
                   ))}
                 </div>
-                <Toggle checked={d.adult} onChange={(v) => updateDraft(d.id, { adult: v })} label="Declaro que soy mayor de 18 años" hint="Cada persona lo confirma por sí misma. No es una verificación documental." />
+                <div className="min-w-0 flex-1">
+                  <Toggle compact checked={d.adult} onChange={(v) => updateDraft(d.id, { adult: v })} label="Soy mayor de 18 años" />
+                </div>
+                </div>
               </Card>
             ))}
+            <p className="text-center text-xs text-faint">Cada persona declara por sí misma que es mayor de 18 años. No es una verificación documental.</p>
           </div>
           {duplicateAliases && <Notice>Hay alias repetidos: se distinguirán por su color y símbolo.</Notice>}
-          <Button block disabled={!aliasesValid} onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block disabled={!aliasesValid} onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
@@ -330,9 +344,11 @@ export function SetupWizard() {
             ))}
           </div>
           <Notice>Estar en pareja, ser invitado o invitada, o elegir Perverso no significa aceptar contacto.</Notice>
-          <Button block onClick={() => go(1)}>
-            {relationship ? "Continuar" : "Omitir"}
-          </Button>
+          <div className="step-action">
+            <Button block onClick={() => go(1)}>
+              {relationship ? "Continuar" : "Omitir"}
+            </Button>
+          </div>
         </>
       )}
 
@@ -350,13 +366,15 @@ export function SetupWizard() {
               </div>
             ))}
           </div>
-          <Button block size="lg" icon="users" onClick={() => setEditing(true)}>
-            Responder (pasando el teléfono)
-          </Button>
-          <Button variant="secondary" block disabled={!active.every((d) => d.limitsDone)} onClick={() => go(1)}>
-            Continuar
-          </Button>
           {!active.every((d) => d.limitsDone) && <p className="text-center text-sm text-faint">Cada persona debe responder antes de continuar.</p>}
+          <div className="step-action space-y-2">
+            <Button block size="lg" icon="users" onClick={() => setEditing(true)}>
+              Responder (pasando el teléfono)
+            </Button>
+            <Button variant="secondary" block disabled={!active.every((d) => d.limitsDone)} onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
@@ -416,9 +434,11 @@ export function SetupWizard() {
             ))}
           </div>
           {level !== "leve" && <Notice>Esta intensidad se confirma en privado con cada persona antes de comenzar.</Notice>}
-          <Button block size="lg" onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block size="lg" onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
@@ -432,39 +452,71 @@ export function SetupWizard() {
               </Button>
             ))}
           </div>
-          <Button block size="lg" onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block size="lg" onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
       {step === "games" && (
         <>
-          <Title sub="Elijan uno o varios. Las cartas siempre respetan los límites.">Juegos</Title>
-          <div className="space-y-3">
-            {GAMES.map((g) => {
-              const selected = games.includes(g);
-              const ok = availability[g] !== false;
-              return (
-                <OptionTile
-                  key={g}
-                  role="button"
-                  selected={selected}
-                  emblem={<GameEmblem theme={g} className="size-12" />}
-                  title={GAME_LABEL[g]}
-                  description={GAME_DESCRIPTION[g]}
-                  badge={!ok ? <span className="text-xs text-warn">Sin cartas con sus límites</span> : undefined}
-                  onClick={() =>
-                    setGames((gs) => {
-                      if (gs.includes(g)) return gs.filter((x) => x !== g);
-                      if (g === "noche" || g === "sin_miedo") return [g];
-                      return [...gs.filter((x) => x !== "noche" && x !== "sin_miedo"), g];
-                    })
-                  }
-                />
-              );
-            })}
+          <div className="flex items-start justify-between gap-3">
+            <Title sub="Elijan uno o varios, o un modo que los mezcla todos.">Juegos</Title>
+            <InfoButton title="¿Qué es cada juego?" label="Qué es cada juego" className="mt-1">
+              <ul className="space-y-2.5">
+                {GAMES.map((g) => (
+                  <li key={g}>
+                    <span className="font-semibold text-ink">{GAME_LABEL[g]}:</span> {GAME_DESCRIPTION[g]}
+                  </li>
+                ))}
+              </ul>
+            </InfoButton>
           </div>
+          {(
+            [
+              ["Modos", GAMES.filter((g) => META_MODES.includes(g))],
+              ["Juegos", GAMES.filter((g) => !META_MODES.includes(g))],
+            ] as const
+          ).map(([label, list]) => (
+            <section key={label} className="space-y-1.5">
+              <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-faint">{label}</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {list.map((g) => {
+                  const selected = games.includes(g);
+                  const ok = availability[g] !== false;
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setGames((gs) => {
+                          if (gs.includes(g)) return gs.filter((x) => x !== g);
+                          if (g === "noche" || g === "sin_miedo") return [g];
+                          return [...gs.filter((x) => x !== "noche" && x !== "sin_miedo"), g];
+                        })
+                      }
+                      className={cx(
+                        "glass relative flex min-h-[5.25rem] flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-center transition duration-200 active:scale-[0.97]",
+                        selected ? "glow-border" : "opacity-80 hover:bg-white/5",
+                      )}
+                    >
+                      <span className="text-[0.78rem] font-semibold leading-tight">{GAME_LABEL[g]}</span>
+                      <GameEmblem theme={g} className={cx("order-first size-9 transition", !selected && "grayscale-[35%]")} />
+                      {!ok && <span className="text-[0.6rem] leading-none text-warn">Sin cartas</span>}
+                      {selected && (
+                        <span aria-hidden className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-accent text-accent-ink">
+                          <Icon name="check" className="size-3" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
           {games.includes("noche") && <Notice>Noche completa dura 60 minutos: 10 de apertura, 40 de desarrollo con todos los juegos y 10 de cierre. Pueden terminar antes.</Notice>}
           {games.includes("sin_miedo") && (
             <Notice>
@@ -485,9 +537,11 @@ export function SetupWizard() {
             </Card>
           )}
           {games.length === 1 && games[0] === "sorpresa" && <Notice>Con solo Carta sorpresa, las rondas normales usan Tarjetas.</Notice>}
-          <Button block disabled={games.length === 0} onClick={() => go(1)}>
-            Continuar
-          </Button>
+          <div className="step-action">
+            <Button block disabled={games.length === 0} onClick={() => go(1)}>
+              Continuar
+            </Button>
+          </div>
         </>
       )}
 
@@ -510,20 +564,23 @@ export function SetupWizard() {
             </dl>
           </Card>
           {games.some((g) => availability[g] === false) && <Notice tone="warn">Algún juego no tiene actividades compatibles con sus límites; se usarán los demás.</Notice>}
-          <Button
-            block
-            size="xl"
-            icon="flame"
-            className="pulse-glow"
-            onClick={() => {
-              setRejected(false);
-              setStep("consent");
-            }}
-          >
-            Pedir consentimiento y comenzar
-          </Button>
+          <div className="step-action">
+            <Button
+              block
+              size="xl"
+              icon="flame"
+              className="pulse-glow"
+              onClick={() => {
+                setRejected(false);
+                setStep("consent");
+              }}
+            >
+              Pedir consentimiento y comenzar
+            </Button>
+          </div>
         </>
       )}
+      </div>
     </Screen>
   );
 }

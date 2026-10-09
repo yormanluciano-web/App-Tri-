@@ -10,6 +10,7 @@ import {
   GAME_LABEL,
   INTENSITIES,
   INTENSITY_LABEL,
+  MINI_GAMES,
   type Category,
   type GameId,
 } from "@/domain/models/constants";
@@ -20,10 +21,10 @@ import { getActivity } from "@/data/catalog";
 import { useSession } from "@/stores/session";
 import { applyUpdate } from "@/pwa/register";
 import { useStartGate } from "@/pwa/StartGate";
-import { Button, Card, Chip, Dialog, GameEmblem, Icon, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
+import { Button, Card, Chip, Dialog, GameEmblem, Icon, InfoButton, LinkButton, Logo3D, Notice, Screen, Title, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { MusicDirector, MusicStatus } from "@/music/ui";
-import { BottleLauncher, BottleRound, ParquesLauncher, ParquesRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
+import { BottleLauncher, BottleRound, ParquesLauncher, ParquesLegend, ParquesRound, ScratchRound, SpecialRound, TowerLauncher, TowerRound } from "@/features/games/minis";
 import { Tilt } from "@/components/ui/tilt";
 import { haptic, sfx, useSfxMute } from "@/sound/sfx";
 import { ConsentRound, PrivateRound } from "./PrivateRound";
@@ -41,6 +42,9 @@ function formatRemaining(ms: number): string {
   return m <= 1 ? "menos de 1 min" : `${m} min`;
 }
 
+/** Botón redondo solo con icono (el nombre accesible va en aria-label). */
+const ICON_BTN = "!size-11 !min-h-0 !gap-0 !rounded-full !p-0";
+
 /** Barra superior: Pausa y Detener siempre visibles. */
 function TopBar({ session }: { session: SessionState }) {
   const pause = useSession((s) => s.pause);
@@ -51,13 +55,13 @@ function TopBar({ session }: { session: SessionState }) {
   const total = session.config.durationMin ? session.config.durationMin * 60_000 : null;
   const isNight = session.config.games.includes("noche");
   return (
-    <header className="glass sticky top-0 z-20 -mx-4 space-y-2 rounded-b-[28px] px-4 pb-3 safe-top">
+    <header className="glass z-20 -mx-4 shrink-0 space-y-1.5 rounded-b-[24px] px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-3">
-          <GameEmblem theme={isNight ? "noche" : session.currentGame} className="size-11 shrink-0" />
+        <div className="flex min-w-0 items-center gap-2.5">
+          <GameEmblem theme={isNight ? "noche" : session.currentGame} className="size-10 shrink-0" />
           <div className="min-w-0 leading-tight">
-            <p className="font-display text-lg font-semibold italic text-gradient">{INTENSITY_LABEL[session.level]}</p>
-            <p className="truncate text-xs text-muted">
+            <p className="font-display text-lg font-semibold italic leading-none text-gradient">{INTENSITY_LABEL[session.level]}</p>
+            <p className="mt-0.5 truncate text-[0.7rem] text-muted">
               {session.config.demo && (
                 <span className="mr-1.5 rounded-full border border-gold/60 px-1.5 py-px text-[0.6rem] font-semibold uppercase tracking-widest text-gold">
                   {session.config.prueba ? "Prueba" : "Demo"}
@@ -68,16 +72,10 @@ function TopBar({ session }: { session: SessionState }) {
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 gap-1.5">
           <MuteButton />
-          {session.status !== "paused" && (
-            <Button variant="secondary" icon="pause" className="!min-h-11 !px-3 !text-sm" onClick={pause}>
-              Pausa
-            </Button>
-          )}
-          <Button variant="danger" icon="stop" className="!min-h-11 !px-3 !text-sm" onClick={stop}>
-            Detener
-          </Button>
+          {session.status !== "paused" && <Button variant="secondary" icon="pause" aria-label="Pausa" className={ICON_BTN} onClick={pause} />}
+          <Button variant="danger" icon="stop" aria-label="Detener" className={ICON_BTN} onClick={stop} />
         </div>
       </div>
       {total && remaining !== null && (
@@ -111,7 +109,7 @@ function MuteButton() {
       icon={muted ? "mute" : "sound"}
       aria-label={muted ? "Activar los efectos de sonido" : "Silenciar los efectos de sonido"}
       aria-pressed={muted}
-      className="!min-h-11 !px-3"
+      className={ICON_BTN}
       onClick={toggle}
     />
   );
@@ -265,13 +263,16 @@ function Launcher({ session }: { session: SessionState }) {
     }
   })();
 
+  const mini = MINI_GAMES.includes(effective);
   return (
-    <div className="flex flex-1 flex-col justify-center gap-5 animate-in">
+    <div className={cx("flex min-h-0 flex-1 flex-col gap-3 animate-in", !mini && "justify-center")}>
       <SpecialRound session={session} />
-      <div className="text-center">
-        <p className="foil-text text-xs font-semibold uppercase tracking-[0.3em]">Tu turno</p>
-        <h2 className="text-3xl font-semibold italic">{GAME_LABEL[effective]}</h2>
-        <p className="text-sm text-muted">{GAME_DESCRIPTION[effective]}</p>
+      <div className="flex shrink-0 items-center justify-center gap-2 text-center">
+        <h2 className="font-display text-[1.65rem] font-semibold italic leading-tight">{GAME_LABEL[effective]}</h2>
+        <InfoButton title={GAME_LABEL[effective]}>
+          <p>{GAME_DESCRIPTION[effective]}</p>
+          {effective === "parques" && <ParquesLegend />}
+        </InfoButton>
       </div>
       {body}
     </div>
@@ -765,14 +766,14 @@ export function Table() {
   }
 
   return (
-    <Screen level={session.level} className="gap-4">
+    <Screen fit level={session.level} className="!pt-0">
       <TopBar session={session} />
       <MusicDirector session={session} />
       <SoundDirector session={session} />
       <MusicStatus />
       {session.config.prueba ? (
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2 text-sm">
-          <span className="text-muted">Modo prueba · personas ficticias que aceptan todo</span>
+        <div className="flex shrink-0 items-center justify-between gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1 text-xs">
+          <span className="truncate text-muted">Prueba · personas ficticias que aceptan todo</span>
           <Link href="/admin/" className="shrink-0 font-semibold text-gold underline underline-offset-2">
             Volver al panel
           </Link>
@@ -783,7 +784,8 @@ export function Table() {
         session.status === "ready" && <Notice>Demo con dos personas ficticias (Ana y Leo) y cartas suaves sin contacto. Nada se guarda.</Notice>
       )}
       {storageIssue === "quota" && <Notice tone="warn">No se pudo guardar en el dispositivo. Pueden seguir jugando; la sesión continúa en memoria.</Notice>}
-      <div className="flex flex-1 flex-col gap-4">{body}</div>
+      {/* La carta y los juegos llenan el espacio sin desplazar la pantalla; los paneles largos (pausa, límites) se desplazan por dentro. */}
+      <div className={cx("flex min-h-0 flex-1 flex-col gap-3", !["playing", "roundReveal"].includes(session.status) && "-mx-4 overflow-y-auto overscroll-contain px-4")}>{body}</div>
       <Dialog open={confirmFinish} title="¿Terminar la sesión?" onClose={() => setConfirmFinish(false)}>
         <p className="text-muted">
           {session.config.mode === "private" ? "Se descartarán todos los datos de esta sesión privada." : "Se eliminará la sesión guardada en este dispositivo."}

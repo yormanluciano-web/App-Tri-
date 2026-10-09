@@ -51,7 +51,7 @@ async function mockGithub(page: Page, opts: { validToken?: string } = {}) {
 }
 
 async function login(page: Page, token: string) {
-  await page.goto("/ajustes/");
+  await page.goto("/ajustes/#administracion");
   await page.getByRole("link", { name: "Panel de administración" }).click();
   await page.getByLabel("Usuario u organización de GitHub").fill("duena");
   await page.getByLabel("Repositorio", { exact: true }).fill("cartas-app");
@@ -179,7 +179,9 @@ test("administración: configurar la música de Spotify se guarda en el reposito
 test("ajustes: «Conectar con Spotify» solo aparece si la música está configurada", async ({ page }) => {
   const published = JSON.parse(readFileSync("src/data/custom/cartas.json", "utf8")) as { musica?: { clientId?: string } };
   await page.goto("/ajustes/");
-  await expect(page.getByRole("heading", { name: /Música con Spotify/ })).toBeVisible();
+  // Ajustes es un menú: se entra a la sección de música.
+  await page.getByRole("button", { name: /Música con Spotify/ }).click();
+  await expect(page.getByRole("heading", { name: /Música con Spotify/ }).first()).toBeVisible();
   if (published.musica?.clientId) {
     await expect(page.getByRole("button", { name: "Conectar con Spotify" })).toBeVisible();
   } else {

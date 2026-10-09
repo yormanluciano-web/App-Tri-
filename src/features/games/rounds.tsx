@@ -48,7 +48,7 @@ export function RouletteRound({ session, turn, activity }: { session: SessionSta
   if (done) return <StandardRound session={session} turn={turn} activity={activity} />;
   const colors = [...PARTICIPANT_COLORS, "#8f8aa6"];
   return (
-    <Card glow className="flex flex-col items-center gap-4 overflow-hidden">
+    <Card glow className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-hidden">
       <p className="font-display text-xl italic text-muted" aria-live="polite">
         La ruleta gira…
       </p>

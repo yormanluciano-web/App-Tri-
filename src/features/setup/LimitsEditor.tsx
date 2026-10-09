@@ -93,10 +93,14 @@ const MODES: { mode: AcceptMode; title: string; desc: string; icon: IconName }[]
 /** Botones Acepto / No acepto de un tema. */
 function GroupToggle({ title, hint, state, onChange, name }: { title: string; hint: string; state: "yes" | "no" | "mixed"; onChange: (yes: boolean) => void; name: string }) {
   return (
-    <fieldset className="space-y-2 border-b border-line py-3 last:border-b-0">
-      <legend className="font-semibold">{title}</legend>
-      <p className="text-sm text-muted">{hint}</p>
-      <div className="grid grid-cols-2 gap-2">
+    <fieldset className="flex items-center gap-3 border-b border-line py-2.5 last:border-b-0">
+      <legend className="sr-only">{title}</legend>
+      <div className="min-w-0 flex-1" aria-hidden>
+        <p className="text-sm font-semibold leading-tight">{title}</p>
+        <p className="mt-0.5 text-[0.7rem] leading-snug text-muted">{hint}</p>
+        {state === "mixed" && <p className="text-[0.7rem] text-faint">Ajustado en opciones avanzadas.</p>}
+      </div>
+      <div className="grid w-[9.5rem] shrink-0 grid-cols-2 gap-1.5">
         {(
           [
             [true, "Acepto", "border-ok text-ok"],
@@ -105,7 +109,7 @@ function GroupToggle({ title, hint, state, onChange, name }: { title: string; hi
         ).map(([yes, label, cls]) => {
           const checked = state === (yes ? "yes" : "no");
           return (
-            <label key={label} className={cx("flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-xl border text-sm", checked ? cls + " bg-surface-2 font-semibold" : "border-line text-muted")}>
+            <label key={label} className={cx("flex min-h-11 cursor-pointer flex-col items-center justify-center rounded-xl border text-[0.7rem] leading-tight", checked ? cls + " bg-surface-2 font-semibold" : "border-line text-muted")}>
               <input type="radio" className="sr-only" name={name} checked={checked} onChange={() => onChange(yes)} />
               <span aria-hidden>{yes ? "✓" : "✕"}</span>
               {label}
@@ -113,7 +117,6 @@ function GroupToggle({ title, hint, state, onChange, name }: { title: string; hi
           );
         })}
       </div>
-      {state === "mixed" && <p className="text-xs text-faint">Ajustado en opciones avanzadas.</p>}
     </fieldset>
   );
 }
@@ -198,21 +201,22 @@ export function LimitsEditor({
   };
 
   return (
-    <div className="space-y-4">
-      <Card className="space-y-3">
+    <div className="flex flex-col gap-3">
+      <div className="space-y-2.5">
         <h2 className="text-xl font-bold">
           ¿Qué aceptas, <ParticipantTag alias={person.alias} slot={person.slot} />?
         </h2>
-        <p className="text-sm text-muted">Nadie verá tu respuesta. Puedes cambiarla durante el juego desde Pausa.</p>
-        <div className="space-y-3" role="radiogroup" aria-label="Qué aceptas">
+        <p className="text-xs text-muted">Nadie verá tu respuesta. Puedes cambiarla durante el juego desde Pausa.</p>
+        <div className="space-y-2" role="radiogroup" aria-label="Qué aceptas">
           {MODES.map((m) => (
-            <OptionTile key={m.mode} selected={mode === m.mode} onClick={() => choose(m.mode)} icon={m.icon} title={m.title} description={m.desc} />
+            // Tras elegir, las otras opciones se reducen a su título para dejar sitio (se pueden volver a tocar).
+            <OptionTile key={m.mode} selected={mode === m.mode} onClick={() => choose(m.mode)} icon={m.icon} title={m.title} description={!mode || mode === m.mode ? m.desc : undefined} />
           ))}
         </div>
-      </Card>
+      </div>
 
       {mode === "parcial" && (
-        <Card>
+        <Card className="!py-1">
           {PERMISSION_GROUPS.map((g) => (
             <GroupToggle
               key={g.id}
@@ -233,9 +237,9 @@ export function LimitsEditor({
       )}
 
       {mode && mode !== "nada" && (
-        <Card>
+        <Card className="!py-1">
           <details>
-            <summary className="min-h-11 cursor-pointer py-2 font-semibold">Opciones avanzadas (opcional)</summary>
+            <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Opciones avanzadas (opcional)</summary>
             <div className="space-y-4 pt-2">
               <p className="text-sm text-muted">Lo que aceptas aquí ya no se vuelve a preguntar durante el juego. Si prefieres que te pregunten en privado cada vez, marca «Preguntar antes».</p>
               {PERMISSION_GROUPS.map((g) => (
@@ -304,9 +308,11 @@ export function LimitsEditor({
         </Card>
       )}
 
-      <Button block disabled={!mode} onClick={save}>
-        {submitLabel}
-      </Button>
+      <div className="step-action">
+        <Button block disabled={!mode} onClick={save}>
+          {submitLabel}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -327,20 +333,23 @@ export function SharedLimitsEditor({
     return out;
   });
   return (
-    <div className="space-y-4">
-      <Card className="space-y-2">
+    <div className="flex flex-col gap-3">
+      <div className="space-y-1.5">
         <h2 className="text-xl font-bold">¿Algo que nadie quiera en esta sesión?</h2>
-        <p className="text-muted">
+        <p className="text-sm text-muted">
           Opcional. Lo que marquen como «Nadie» queda fuera para todas las personas, también ante el grupo. Esto nunca amplía lo que cada persona aceptó.
         </p>
-      </Card>
-      <Card>
+      </div>
+      <Card className="!py-1">
         {PERMISSION_GROUPS.map((g) => {
           const blocked = g.items.every((p) => shared[p] === "red");
           return (
-            <fieldset key={g.id} className="space-y-2 border-b border-line py-3 last:border-b-0">
-              <legend className="font-semibold">{g.title}</legend>
-              <div className="grid grid-cols-2 gap-2">
+            <fieldset key={g.id} className="flex items-center gap-3 border-b border-line py-2 last:border-b-0">
+              <legend className="sr-only">{g.title}</legend>
+              <span className="min-w-0 flex-1 text-sm font-semibold" aria-hidden>
+                {g.title}
+              </span>
+              <div className="grid w-[11rem] shrink-0 grid-cols-2 gap-1.5">
                 {(
                   [
                     [false, "Según cada quien"],
@@ -350,7 +359,7 @@ export function SharedLimitsEditor({
                   <label
                     key={label}
                     className={cx(
-                      "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-xs",
+                      "flex min-h-10 cursor-pointer items-center justify-center rounded-xl border px-1.5 text-center text-[0.7rem] leading-tight",
                       blocked === block ? (block ? "border-bad text-bad" : "border-ok text-ok") + " bg-surface-2 font-semibold" : "border-line text-muted",
                     )}
                   >
@@ -375,9 +384,11 @@ export function SharedLimitsEditor({
           );
         })}
       </Card>
-      <Button block onClick={() => onDone(shared)}>
-        {submitLabel}
-      </Button>
+      <div className="step-action">
+        <Button block onClick={() => onDone(shared)}>
+          {submitLabel}
+        </Button>
+      </div>
     </div>
   );
 }

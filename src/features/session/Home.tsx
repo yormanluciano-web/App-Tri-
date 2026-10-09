@@ -11,6 +11,7 @@ import { OfflineBadge } from "./OfflineBadge";
 import { InstallButton } from "./InstallPanel";
 import { demoConfig } from "./demo";
 import { useStartGate } from "@/pwa/StartGate";
+import { FitScale } from "@/components/ui/fit";
 
 export function Home() {
   const router = useRouter();
@@ -41,25 +42,27 @@ export function Home() {
   };
 
   return (
-    <Screen className="justify-between">
-      <div className="flex flex-1 flex-col justify-center gap-10 py-8">
-        <header className="space-y-4 text-center">
-          <div className="relative mx-auto size-36">
-            <div aria-hidden className="absolute inset-4 rounded-full bg-[radial-gradient(circle,rgba(255,77,141,0.55),transparent_70%)] blur-2xl" />
-            <Logo3D className="relative size-36 animate-float" />
+    <Screen fit className="justify-between">
+      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4 pt-2">
+        <header className="shrink-0 space-y-2 text-center">
+          <div className="relative mx-auto size-[clamp(4.5rem,13dvh,8rem)]">
+            <div aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle,rgba(255,77,141,0.55),transparent_70%)] blur-2xl" />
+            <Logo3D className="relative size-full animate-float" />
           </div>
-          <h1 className="wordmark text-[clamp(3rem,16vw,4.25rem)] leading-none animate-in">{APP_NAME}</h1>
-          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-accent animate-in">{APP_SUBTITLE}</p>
-          <p className="mx-auto max-w-xs font-display text-lg italic text-muted animate-in">{APP_PROMISE}</p>
+          <h1 className="wordmark text-[clamp(2.6rem,min(14vw,8dvh),4rem)] leading-none animate-in">{APP_NAME}</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent animate-in">{APP_SUBTITLE}</p>
+          <p className="mx-auto max-w-xs font-display text-base italic text-muted animate-in [@media(max-height:700px)]:hidden">{APP_PROMISE}</p>
         </header>
 
-        <CardFan />
+        <FitScale className="max-h-40">
+          <CardFan />
+        </FitScale>
 
-        <nav aria-label="Principal" className="space-y-3 animate-in">
+        <nav aria-label="Principal" className="shrink-0 space-y-2.5 animate-in">
           <Button block size="xl" icon="flame" className="pulse-glow" disabled={checking} onClick={() => guard(() => router.push("/crear/"))}>
             Nueva sesión
           </Button>
-          <Button variant="secondary" size="lg" icon="play" block disabled={!hydrated || !canContinue} onClick={() => void onContinue()}>
+          <Button variant="secondary" icon="play" block disabled={!hydrated || !canContinue} onClick={() => void onContinue()}>
             Continuar sesión
           </Button>
           {recoverable?.kind === "found" && !activeInMemory && (
@@ -80,7 +83,7 @@ export function Home() {
               </button>
             </Notice>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <Button variant="ghost" icon="sparkle" disabled={checking} onClick={() => guard(onDemo)}>
               Ver demo
             </Button>
@@ -91,27 +94,27 @@ export function Home() {
         </nav>
       </div>
 
-      <footer className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          <LinkButton href="/favoritas/" variant="secondary" icon="star" className="!min-h-16 flex-col !gap-1 rounded-3xl !px-2 !text-sm">
-            Favoritas
-          </LinkButton>
-          <LinkButton href="/ajustes/" variant="secondary" icon="settings" className="!min-h-16 flex-col !gap-1 rounded-3xl !px-2 !text-sm">
-            Ajustes
-          </LinkButton>
-          <InstallButton />
-        </div>
-        <p className="text-center text-sm text-muted">
-          Solo para mayores de 18 años. Tus sesiones permanecen en este dispositivo.{" "}
-          <Link href="/ajustes/#privacidad" className="underline">
-            Privacidad
-          </Link>
-        </p>
+      <footer className="shrink-0 space-y-2 pt-3">
         {storageIssue === "unavailable" && (
           <Notice tone="warn">El almacenamiento local no está disponible: puedes jugar, pero nada se guardará.</Notice>
         )}
-        <div className="flex justify-center">
-          <OfflineBadge />
+        <nav aria-label="Más" className="flex gap-2 [&>*]:flex-1">
+          <LinkButton href="/favoritas/" variant="secondary" icon="star" className={TAB}>
+            Favoritas
+          </LinkButton>
+          <LinkButton href="/ajustes/" variant="secondary" icon="settings" className={TAB}>
+            Ajustes
+          </LinkButton>
+          <InstallButton className={TAB} />
+        </nav>
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-center text-[0.7rem] text-muted">
+          <span>
+            Solo mayores de 18 años · Todo queda en este dispositivo ·{" "}
+            <Link href="/ajustes/#privacidad" className="underline">
+              Privacidad
+            </Link>
+          </span>
+          <OfflineBadge compact />
         </div>
       </footer>
 
@@ -137,6 +140,9 @@ export function Home() {
   );
 }
 
+/** Botón de la barra inferior: icono arriba y texto corto. */
+const TAB = "!min-h-14 flex-col !gap-0.5 rounded-2xl !px-2 !py-1.5 !text-xs";
+
 const FAN: { theme: ThemeKey; label: string; rot: number; y: number }[] = [
   { theme: "verdad", label: "Verdad", rot: -14, y: 10 },
   { theme: "ruleta", label: "Ruleta", rot: -5, y: 0 },
@@ -147,7 +153,7 @@ const FAN: { theme: ThemeKey; label: string; rot: number; y: number }[] = [
 /** Abanico decorativo de cartas, como una baraja sobre la mesa. */
 function CardFan() {
   return (
-    <div aria-hidden className="relative mx-auto flex h-36 w-full max-w-xs items-end justify-center animate-in">
+    <div aria-hidden className="relative flex h-36 w-80 items-end justify-center animate-in">
       {FAN.map((c, i) => (
         <div
           key={c.theme}

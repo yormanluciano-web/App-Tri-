@@ -73,18 +73,19 @@ function AdminLogin() {
   const [help, setHelp] = useState(false);
 
   return (
-    <Screen>
-      <div className="flex items-center gap-3 pt-2">
+    <Screen fit>
+      <div className="flex shrink-0 items-center gap-3 pt-1">
         <LinkButton href="/ajustes/" variant="secondary" icon="back" className="!min-h-11 !px-3">
           Volver
         </LinkButton>
       </div>
-      <Title eyebrow="Solo administración" sub="Agrega, edita, oculta o borra cartas. Los cambios se guardan en el repositorio y llegan a la app en unos minutos.">
+      <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-2">
+      <Title eyebrow="Solo administración" sub="Agrega, edita, oculta o borra cartas. Los cambios llegan a la app en unos minutos.">
         Panel de cartas
       </Title>
-      <Card className="space-y-4">
+      <Card className="space-y-3">
         <form
-          className="space-y-4"
+          className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             void login(repo, token).then((ok) => ok && setToken(""));
@@ -111,6 +112,7 @@ function AdminLogin() {
           ¿Primera vez? Cómo registrarte
         </Button>
       </Card>
+      </div>
 
       <Dialog open={help} title="Registrarte como administrador" onClose={() => setHelp(false)}>
         <ol className="list-decimal space-y-2 pl-5 text-sm text-muted">
@@ -155,15 +157,8 @@ function AdminPanel() {
     }
   };
 
-  return (
-    <Screen>
-      <div className="flex items-center justify-between gap-2 pt-2">
-        <LinkButton href="/" variant="secondary" icon="back" className="!min-h-11 !px-3">
-          Inicio
-        </LinkButton>
-        <span className="rounded-full border border-gold/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-gold">Administración</span>
-      </div>
-      <div role="tablist" aria-label="Secciones" className="grid grid-cols-5 gap-1">
+  const tabs = (
+      <div role="tablist" aria-label="Secciones" className="glass -mx-4 -mb-3 grid shrink-0 grid-cols-5 gap-1 rounded-t-[24px] px-2 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-2">
         {(
           [
             ["nueva", editing ? "Editar" : "Nueva", "sparkle"],
@@ -180,15 +175,27 @@ function AdminPanel() {
             aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={cx(
-              "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border text-xs transition",
-              tab === id ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink" : "border-line bg-white/5",
+              "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-2xl text-[0.7rem] transition",
+              tab === id ? "bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink" : "text-muted",
             )}
           >
-            <Icon name={icon} className="size-4" />
+            <Icon name={icon} className="size-5" />
             {label}
           </button>
         ))}
       </div>
+  );
+
+  return (
+    <Screen fit>
+      <div className="flex shrink-0 items-center justify-between gap-2 pt-1">
+        <LinkButton href="/" variant="secondary" icon="back" className="!min-h-10 !px-3">
+          Inicio
+        </LinkButton>
+        <span className="rounded-full border border-gold/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-gold">Administración</span>
+      </div>
+      {/* Contenido de la pestaña: se desplaza por dentro; las pestañas quedan fijas abajo, como en una app. */}
+      <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-2">
       {tab === "nueva" && (
         <CardEditor
           key={`${editing ? (editing.kind === "custom" ? editing.card.id : editing.activity.id) : "nueva"}-${editorKey}`}
@@ -209,6 +216,8 @@ function AdminPanel() {
       {tab === "probar" && <GameTester />}
       {tab === "musica" && <MusicAdmin onResult={finish} />}
       {tab === "cuenta" && <Account />}
+      </div>
+      {tabs}
       <ResultDialog
         result={result}
         onClose={() => setResult(null)}

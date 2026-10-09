@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { PARTICIPANT_COLORS, PARTICIPANT_MARKS } from "@/domain/models/constants";
 import { Icon, type IconName } from "./icons";
 
@@ -85,9 +85,20 @@ export function Aurora() {
   );
 }
 
-export function Screen({ children, className, level = "leve" }: { children: ReactNode; className?: string; level?: string }) {
+/**
+ * Pantalla. `fit`: ocupa exactamente el alto visible del teléfono, sin
+ * desplazamiento de página (como una app); el contenido se reparte con flex.
+ */
+export function Screen({ children, className, level = "leve", fit }: { children: ReactNode; className?: string; level?: string; fit?: boolean }) {
   return (
-    <main data-level={level} className={cx("safe-top safe-bottom relative mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 overflow-x-clip px-4 pb-6", className)}>
+    <main
+      data-level={level}
+      className={cx(
+        "safe-top safe-bottom relative mx-auto flex w-full max-w-xl flex-col overflow-x-clip px-4",
+        fit ? "h-dvh gap-3 overflow-y-hidden pb-3" : "min-h-dvh gap-5 pb-6",
+        className,
+      )}
+    >
       <Aurora />
       {children}
     </main>
@@ -212,7 +223,7 @@ export function OptionTile({
       data-level={level}
       onClick={onClick}
       className={cx(
-        "glass group relative flex w-full items-start gap-4 rounded-3xl p-4 text-left transition duration-200 active:scale-[0.98]",
+        "glass group relative flex w-full items-start gap-3 rounded-3xl px-3.5 py-3 text-left transition duration-200 active:scale-[0.98]",
         selected ? "glow-border" : "hover:bg-white/5",
       )}
     >
@@ -220,19 +231,19 @@ export function OptionTile({
       {!emblem && icon && (
         <span
           className={cx(
-            "flex size-12 shrink-0 items-center justify-center rounded-2xl transition",
+            "flex size-10 shrink-0 items-center justify-center rounded-2xl transition",
             selected ? "bg-gradient-to-br from-accent to-accent-2 text-accent-ink" : "bg-white/5 text-accent",
           )}
         >
-          <Icon name={icon} className="size-6" />
+          <Icon name={icon} className="size-5" />
         </span>
       )}
       <span className="min-w-0 flex-1">
         <span className="flex items-center justify-between gap-2">
-          <span className="text-lg font-semibold">{title}</span>
+          <span className="text-base font-semibold leading-tight">{title}</span>
           {badge}
         </span>
-        {description && <span className="mt-0.5 block text-sm text-muted">{description}</span>}
+        {description && <span className="mt-0.5 block text-[0.8125rem] leading-snug text-muted">{description}</span>}
       </span>
       <span
         aria-hidden
@@ -319,9 +330,14 @@ export function Dialog({
   );
 }
 
-export function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
+export function Toggle({ checked, onChange, label, hint, compact }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string; compact?: boolean }) {
   return (
-    <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border border-line bg-white/5 p-3 transition hover:bg-white/10">
+    <label
+      className={cx(
+        "flex cursor-pointer items-center gap-3 rounded-2xl border border-line bg-white/5 transition hover:bg-white/10",
+        compact ? "min-h-10 px-2.5 py-1.5 text-sm" : "min-h-12 p-3",
+      )}
+    >
       <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       <span
         aria-hidden
@@ -337,5 +353,28 @@ export function Toggle({ checked, onChange, label, hint }: { checked: boolean; o
         {hint && <span className="block text-sm text-muted">{hint}</span>}
       </span>
     </label>
+  );
+}
+
+/** Botón «?» que abre una explicación en un diálogo (para no ocupar pantalla con textos fijos). */
+export function InfoButton({ title, children, label, className }: { title: string; children: ReactNode; label?: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={label ?? `Cómo se juega: ${title}`}
+        onClick={() => setOpen(true)}
+        className={cx("flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-white/5 text-muted transition hover:text-ink active:scale-95", className)}
+      >
+        <Icon name="help" className="size-5" />
+      </button>
+      <Dialog open={open} title={title} onClose={() => setOpen(false)}>
+        <div className="space-y-3 text-muted">{children}</div>
+        <Button block onClick={() => setOpen(false)}>
+          Entendido
+        </Button>
+      </Dialog>
+    </>
   );
 }

@@ -6,14 +6,15 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/stores/session";
 import { loadSettings, saveSettings, type AppSettings } from "@/storage/settings";
 import { applySettingsToDocument } from "@/features/session/Providers";
-import { Button, Card, Dialog, LinkButton, Notice, Screen, Title, Toggle, cx } from "@/components/ui";
+import { Button, Card, Dialog, LinkButton, Notice, Toggle, cx } from "@/components/ui";
 import { MusicSettings } from "@/music/ui";
+import { MenuPage, type MenuSection } from "@/components/ui/menu";
 import { CATALOG, CONTENT_VERSION } from "@/data/catalog";
 import { OfflineBadge } from "@/features/session/OfflineBadge";
 import { applyUpdate } from "@/pwa/register";
 import { sfx } from "@/sound/sfx";
 
-export const APP_VERSION = "1.8.0";
+export const APP_VERSION = "1.9.0";
 
 export function Settings() {
   const wipeAll = useSession((s) => s.wipeAll);
@@ -34,97 +35,105 @@ export function Settings() {
     applySettingsToDocument();
   };
 
-  return (
-    <Screen>
-      <div>
-        <LinkButton href="/" variant="ghost">
-          ← Inicio
-        </LinkButton>
-      </div>
-      <Title>Ajustes</Title>
-
-      <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Accesibilidad</h2>
-        {settings && (
-          <>
+  const sections: MenuSection[] = [
+    {
+      id: "accesibilidad",
+      icon: "eye",
+      title: "Accesibilidad",
+      sub: "Tamaño del texto y animaciones",
+      content: settings && (
+        <Card className="space-y-4">
             <fieldset className="space-y-2">
-              <legend className="font-semibold">Tamaño del texto</legend>
-              <div className="grid grid-cols-3 gap-2">
-                {([1, 1.15, 1.3] as const).map((v) => (
-                  <Button key={v} variant={settings.textScale === v ? "primary" : "secondary"} aria-pressed={settings.textScale === v} onClick={() => update({ textScale: v })}>
-                    {v === 1 ? "Normal" : v === 1.15 ? "Grande" : "Muy grande"}
-                  </Button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className="space-y-2">
-              <legend className="font-semibold">Animaciones</legend>
-              <div className="grid grid-cols-3 gap-2">
-                {(
-                  [
-                    ["system", "Según el sistema"],
-                    ["on", "Reducidas"],
-                    ["off", "Normales"],
-                  ] as const
-                ).map(([v, label]) => (
-                  <Button key={v} variant={settings.reducedMotion === v ? "primary" : "secondary"} aria-pressed={settings.reducedMotion === v} onClick={() => update({ reducedMotion: v })}>
-                    {label}
-                  </Button>
-                ))}
-              </div>
-            </fieldset>
-            <Toggle
-              checked={settings.sfx}
-              onChange={(v) => update({ sfx: v })}
-              label="Efectos de sonido"
-              hint="Dados, cartas, fichas y suspenso. Se generan en el teléfono, sin internet."
-            />
-            {settings.sfx && (
-              <>
-                <Toggle
-                  checked={settings.sfxOverSilent}
-                  onChange={(v) => update({ sfxOverSilent: v })}
-                  label="Sonar aunque el iPhone esté en silencio"
-                  hint="Si escuchas Spotify en este mismo iPhone y los efectos pausan la música, apágalo (entonces el interruptor de silencio los apaga)."
-                />
-                <Button variant="secondary" icon="sound" block data-sfx="test" onClick={() => sfx("win")}>
-                  Probar sonido
+            <legend className="font-semibold">Tamaño del texto</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {([1, 1.15, 1.3] as const).map((v) => (
+                <Button key={v} variant={settings.textScale === v ? "primary" : "secondary"} aria-pressed={settings.textScale === v} onClick={() => update({ textScale: v })}>
+                  {v === 1 ? "Normal" : v === 1.15 ? "Grande" : "Muy grande"}
                 </Button>
-                <fieldset className="space-y-2">
-                  <legend className="font-semibold">Volumen de los efectos</legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(
-                      [
-                        ["bajo", "Bajo"],
-                        ["medio", "Medio"],
-                        ["alto", "Alto"],
-                      ] as const
-                    ).map(([v, label]) => (
-                      <Button
-                        key={v}
-                        variant={settings.sfxVolume === v ? "primary" : "secondary"}
-                        aria-pressed={settings.sfxVolume === v}
-                        onClick={() => {
-                          update({ sfxVolume: v });
-                          sfx("reveal");
-                        }}
-                      >
-                        {label}
-                      </Button>
-                    ))}
-                  </div>
-                </fieldset>
-              </>
-            )}
-            <Toggle checked={settings.vibration} onChange={(v) => update({ vibration: v })} label="Vibración" hint="Apagada por defecto; solo si el dispositivo la admite." />
-          </>
-        )}
-      </Card>
-
-      <Card className="space-y-3" >
-        <h2 id="privacidad" className="text-xl font-bold">
-          Privacidad
-        </h2>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="space-y-2">
+            <legend className="font-semibold">Animaciones</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  ["system", "Según el sistema"],
+                  ["on", "Reducidas"],
+                  ["off", "Normales"],
+                ] as const
+              ).map(([v, label]) => (
+                <Button key={v} variant={settings.reducedMotion === v ? "primary" : "secondary"} aria-pressed={settings.reducedMotion === v} onClick={() => update({ reducedMotion: v })}>
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+        </Card>
+      ),
+    },
+    {
+      id: "sonido",
+      icon: "sound",
+      title: "Sonido y vibración",
+      sub: settings ? (settings.sfx ? `Efectos encendidos · volumen ${settings.sfxVolume}` : "Efectos apagados") : undefined,
+      content: settings && (
+        <Card className="space-y-3">
+            <Toggle
+            checked={settings.sfx}
+            onChange={(v) => update({ sfx: v })}
+            label="Efectos de sonido"
+            hint="Dados, cartas, fichas y suspenso. Se generan en el teléfono, sin internet."
+          />
+          {settings.sfx && (
+            <>
+              <Toggle
+                checked={settings.sfxOverSilent}
+                onChange={(v) => update({ sfxOverSilent: v })}
+                label="Sonar aunque el iPhone esté en silencio"
+                hint="Si escuchas Spotify en este mismo iPhone y los efectos pausan la música, apágalo (entonces el interruptor de silencio los apaga)."
+              />
+              <Button variant="secondary" icon="sound" block data-sfx="test" onClick={() => sfx("win")}>
+                Probar sonido
+              </Button>
+              <fieldset className="space-y-2">
+                <legend className="font-semibold">Volumen de los efectos</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      ["bajo", "Bajo"],
+                      ["medio", "Medio"],
+                      ["alto", "Alto"],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <Button
+                      key={v}
+                      variant={settings.sfxVolume === v ? "primary" : "secondary"}
+                      aria-pressed={settings.sfxVolume === v}
+                      onClick={() => {
+                        update({ sfxVolume: v });
+                        sfx("reveal");
+                      }}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </fieldset>
+            </>
+          )}
+          <Toggle checked={settings.vibration} onChange={(v) => update({ vibration: v })} label="Vibración" hint="Apagada por defecto; solo si el dispositivo la admite." />
+        </Card>
+      ),
+    },
+    { id: "musica", icon: "sparkle", title: "Música con Spotify", sub: "Listas que cambian con el juego", content: <MusicSettings /> },
+    {
+      id: "privacidad",
+      icon: "shield",
+      title: "Privacidad",
+      sub: "Qué se guarda y qué no",
+      content: (
+        <Card className="space-y-3">
         <p className="font-semibold">Tus sesiones permanecen en este dispositivo.</p>
         <ul className="list-disc space-y-1 pl-5 text-muted">
           <li>Sin cuentas, publicidad, analítica ni rastreadores. Ningún dato de juego se envía a internet ni a servicios de IA.</li>
@@ -137,10 +146,17 @@ export function Settings() {
           <li>En un teléfono compartido alguien puede mirar o deducir respuestas. {APP_NAME} no puede impedir capturas de pantalla ni grabaciones.</li>
           <li>El navegador puede borrar datos locales; guardar aquí no es un respaldo permanente. Cambiar de dirección web no traslada los datos.</li>
         </ul>
-      </Card>
-
-      <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Borrar datos</h2>
+        </Card>
+      ),
+    },
+    {
+      id: "datos",
+      icon: "x",
+      tone: "danger",
+      title: "Borrar datos",
+      sub: "Eliminar todo de este dispositivo",
+      content: (
+        <Card className="space-y-3">
         <p className="text-muted">
           Elimina sesiones, límites, favoritas y ajustes de {APP_NAME} en este dispositivo, también en otras pestañas abiertas. Los archivos públicos de la app que permiten usarla sin
           conexión se conservan.
@@ -149,20 +165,30 @@ export function Settings() {
           Eliminar todos mis datos
         </Button>
         {result && <Notice>{result}</Notice>}
-      </Card>
-
-      <MusicSettings />
-
-      <Card className="space-y-2">
-        <h2 className="text-xl font-bold">Administración</h2>
+        </Card>
+      ),
+    },
+    {
+      id: "administracion",
+      icon: "lock",
+      title: "Administración",
+      sub: "Panel para editar las cartas",
+      content: (
+        <Card className="space-y-3">
         <p className="text-sm text-muted">Solo para quien administra las cartas: agregar, editar, ocultar o borrar. Requiere una llave de GitHub con permiso de escritura.</p>
         <LinkButton href="/admin/" variant="secondary" icon="lock" block>
           Panel de administración
         </LinkButton>
-      </Card>
-
-      <Card className="space-y-2">
-        <h2 className="text-xl font-bold">Instalación y versión</h2>
+        </Card>
+      ),
+    },
+    {
+      id: "version",
+      icon: "download",
+      title: "Instalación y versión",
+      sub: `Versión ${APP_VERSION}${updateReady ? " · actualización lista" : ""}`,
+      content: (
+        <Card className="space-y-3">
         <OfflineBadge />
         <p className="text-sm text-muted">
           Versión {APP_VERSION} · catálogo v{CONTENT_VERSION} · {CATALOG.length} actividades
@@ -172,8 +198,14 @@ export function Settings() {
             Aplicar actualización disponible
           </Button>
         )}
-      </Card>
+        </Card>
+      ),
+    },
+  ];
 
+  return (
+    <>
+      <MenuPage title="Ajustes" sub={`${APP_NAME} · versión ${APP_VERSION}`} sections={sections} />
       <Dialog open={confirm} title="¿Eliminar todos tus datos?" onClose={() => setConfirm(false)}>
         <p className="text-muted">Esta acción no se puede deshacer. Se cerrará cualquier sesión en curso.</p>
         <div className={cx("grid grid-cols-2 gap-3")}>
@@ -200,6 +232,6 @@ export function Settings() {
           </Button>
         </div>
       </Dialog>
-    </Screen>
+    </>
   );
 }

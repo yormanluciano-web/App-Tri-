@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0 — 2026-10-09
+- **Toda la app cabe en la pantalla, como una app de teléfono**: ya no hay que subir y bajar. Probado en 375×667 (iPhone SE) y 390×760.
+- **Mesa de juego**: barra superior compacta con botones redondos (sonido, pausa, detener) y nivel y juego sin cortarse. La carta ocupa el espacio libre y su texto se ajusta solo al tamaño. Favoritas pasa a una estrella en la esquina. El reloj es más compacto y Cumplido/Pasar/Cambiar quedan fijos abajo sin tapar nada.
+- **Juegos**: el encabezado grande se reemplaza por el nombre y un botón «?» con las reglas. El Parqués usa todo el espacio libre para el tablero, que sigue cuadrado; la leyenda de casillas pasa al «?». La torre, la botella y la ruleta se ajustan al alto disponible.
+- **Inicio** en una sola pantalla, con una barra inferior (Favoritas, Ajustes, Instalar).
+- **Ajustes y Ayuda** ahora son menús: una lista de secciones y cada una se abre en su propia pantalla con «Atrás». Ayuda actualizada con «Sin miedo».
+- **Crear sesión**: barra de pasos fija arriba y botón «Continuar» fijo abajo. Alias más compactos (hombre/mujer y «Soy mayor de 18 años» en la misma fila). Límites por tema en una sola fila. Juegos en una cuadrícula de tres columnas con «Modos» aparte y un «?» que explica cada uno.
+- **Panel de administración** con las pestañas fijas abajo.
+
 ## 1.8.0 — 2026-10-09
 - Nuevo modo **«Sin miedo»**: sin límite de tiempo y el nivel sube solo con el tiempo jugado. Son 15 minutos en Leve, 20 en Picante y luego Perverso hasta el final. Las pausas no cuentan.
 - Se acepta por adelantado: en el consentimiento inicial, que es privado, cada persona ve que el nivel subirá solo sin volver a preguntar. Si alguien no acepta, no se empieza y nadie sabe quién fue. Siempre empieza en Leve, aunque se haya elegido otra intensidad.

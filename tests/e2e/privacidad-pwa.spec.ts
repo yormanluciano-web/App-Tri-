@@ -7,7 +7,7 @@ test("borrar datos elimina la sesión y otra pestaña no la vuelve a escribir", 
   await expect(page.getByTestId("activity-text")).toBeVisible();
 
   const other = await context.newPage();
-  await other.goto("/ajustes/");
+  await other.goto("/ajustes/#datos");
   await other.getByRole("button", { name: "Eliminar todos mis datos" }).click();
   await other.getByRole("dialog").getByRole("button", { name: "Eliminar" }).click();
   await expect(other.getByText(/se eliminaron|Cierra las demás pestañas/)).toBeVisible();
@@ -94,7 +94,7 @@ test("navegación por teclado en el inicio y diálogos", async ({ page }) => {
   await page.keyboard.press("Tab");
   const focused = await page.evaluate(() => document.activeElement?.textContent ?? "");
   expect(focused.length).toBeGreaterThan(0);
-  await page.goto("/ajustes/");
+  await page.goto("/ajustes/#datos");
   await page.getByRole("button", { name: "Eliminar todos mis datos" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();

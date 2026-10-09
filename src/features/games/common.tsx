@@ -9,6 +9,7 @@ import { activityPermissions } from "@/domain/consent/limits";
 import { useSession } from "@/stores/session";
 import { Button, GameEmblem, Icon, ParticipantTag, cx } from "@/components/ui";
 import { Tilt } from "@/components/ui/tilt";
+import { FitText } from "@/components/ui/fit";
 import { GAME_THEME, LEVEL_MARK, themeStyle, type ThemeKey } from "@/components/ui/visuals";
 import { haptic, sfx } from "@/sound/sfx";
 
@@ -89,57 +90,58 @@ export function ActivityCard({
     </span>
   );
   return (
-    <Tilt max={6} ignoreInteractive>
-      <div className="flip-3d" key={turn.id} style={themeStyle(theme)}>
-        <div className="face-front">
-          <section className="play-card space-y-5 px-6 pb-12 pt-6">
+    <Tilt max={6} ignoreInteractive fill className="flex min-h-0 flex-1 flex-col">
+      <div className="flip-3d h-full" key={turn.id} style={themeStyle(theme)}>
+        <div className="face-front h-full">
+          <section className="play-card flex h-full flex-col gap-2 px-5 pb-3 pt-4">
             {corner("tl")}
             {corner("br")}
             {cover}
-            <div className="flex flex-col items-center gap-2 text-center">
-              <GameEmblem theme={theme} className="size-16 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]" />
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--g3)]">
-                {theme === "verdad" ? "Verdad" : theme === "reto" ? "Reto" : GAME_LABEL[turn.game]}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
-                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-muted">{CATEGORY_LABEL[activity.categoria]}</span>
+            <button
+              type="button"
+              onClick={() => void toggleFavorite(activity.id)}
+              aria-pressed={isFav}
+              aria-label={isFav ? "En favoritas (toca para quitarla)" : favoritesMode === "temporary" ? "Guardar en favoritas (temporal)" : "Guardar en favoritas"}
+              className={cx("absolute right-3 top-3 z-[2] flex size-11 items-center justify-center rounded-full transition hover:text-ink", isFav ? "text-gold" : "text-muted")}
+            >
+              <Icon name="star" className={cx("size-6 transition", isFav && "fill-current animate-pop")} />
+            </button>
+            <div className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+              <GameEmblem theme={theme} className="size-11 drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)]" />
+              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em]">
+                <span className="text-[var(--g3)]">{theme === "verdad" ? "Verdad" : theme === "reto" ? "Reto" : GAME_LABEL[turn.game]}</span>
+                <span className="text-faint">·</span>
+                <span className="text-muted">{CATEGORY_LABEL[activity.categoria]}</span>
+                <span className="text-faint">·</span>
                 <span className="foil-text">{INTENSITY_LABEL[activity.intensidad]}</span>
-                {turn.chainStage !== undefined && <span className="text-muted">Etapa {turn.chainStage + 1} de 3</span>}
+                {turn.chainStage !== undefined && <span className="text-muted">· Etapa {turn.chainStage + 1} de 3</span>}
               </div>
             </div>
-            <h2 ref={headingRef} tabIndex={-1} className="text-center text-3xl font-semibold italic leading-tight">
+            <h2 ref={headingRef} tabIndex={-1} className="shrink-0 px-6 text-center text-[1.65rem] font-semibold italic leading-tight">
               <RoleText text={activity.titulo} session={session} turn={turn} />
             </h2>
-            <p className="card-ornament text-sm" aria-hidden>
+            <p className="card-ornament shrink-0 text-xs" aria-hidden>
               {suit}
             </p>
-            {!hideText && (
-              <p className="text-center text-[1.375rem] leading-relaxed text-ink" data-testid="activity-text">
-                <RoleText text={activity.texto} session={session} turn={turn} />
-              </p>
-            )}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted">
-              <span>Participan:</span>
-              {activity.tipoInteraccion === "group" ? (
-                <span>todas las personas</span>
-              ) : (
-                implicated.map((p) => <ParticipantTag key={p.id} alias={p.alias} slot={p.slot} />)
-              )}
-            </div>
-            <SafetyNotes activity={activity} />
-            {children}
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => void toggleFavorite(activity.id)}
-                aria-pressed={isFav}
-                className={cx("inline-flex min-h-11 items-center gap-2 text-sm transition hover:text-ink", isFav ? "text-gold" : "text-muted")}
-              >
-                <Icon name="star" className={cx("size-5 transition", isFav && "fill-current animate-pop")} />
-                {isFav ? "En favoritas" : "Guardar en favoritas"}
-                {favoritesMode === "temporary" && <span className="text-faint"> (temporal)</span>}
-              </button>
-            </div>
+            <FitText className="-mx-1 px-1" max={1.75} deps={[turn.id, hideText]}>
+              <div className="space-y-3">
+                {!hideText && (
+                  <p className="text-center leading-snug text-ink" data-testid="activity-text">
+                    <RoleText text={activity.texto} session={session} turn={turn} />
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center justify-center gap-2 text-[0.8125rem] text-muted">
+                  <span>Participan:</span>
+                  {activity.tipoInteraccion === "group" ? (
+                    <span>todas las personas</span>
+                  ) : (
+                    implicated.map((p) => <ParticipantTag key={p.id} alias={p.alias} slot={p.slot} />)
+                  )}
+                </div>
+                <SafetyNotes activity={activity} />
+              </div>
+            </FitText>
+            {children && <div className="shrink-0 px-4">{children}</div>}
           </section>
         </div>
         <div className="face-back card-back flex flex-col items-center justify-center gap-3" aria-hidden>
@@ -161,10 +163,10 @@ function SafetyNotes({ activity }: { activity: Activity }) {
   if (perms.includes("beso_intenso") || perms.includes("caricias")) notes.push("Cualquiera puede parar en cualquier momento.");
   if (notes.length === 0) return null;
   return (
-    <ul className="space-y-1 rounded-2xl border border-line bg-white/5 px-4 py-3 text-sm text-muted">
+    <ul className="space-y-1 rounded-2xl border border-line bg-white/5 px-3 py-2 text-[0.75rem] leading-snug text-muted">
       {notes.map((n) => (
         <li key={n} className="flex gap-2">
-          <Icon name="shield" className="mt-0.5 size-4 shrink-0 text-accent" />
+          <Icon name="shield" className="mt-px size-3.5 shrink-0 text-accent" />
           {n}
         </li>
       ))}
@@ -178,13 +180,13 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
   const pass = useSession((s) => s.pass);
   const change = useSession((s) => s.change);
   return (
-    <div className="glass safe-bottom sticky bottom-0 z-10 -mx-4 mt-auto grid grid-cols-[1fr_1fr_1.4fr] gap-2 rounded-t-[28px] px-4 pt-3">
+    <div className="glass z-10 -mx-4 -mb-3 mt-auto grid shrink-0 grid-cols-[1fr_1fr_1.4fr] gap-2 rounded-t-[28px] px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2.5">
       {extra}
       <Button
         variant="secondary"
         icon="skip"
         data-sfx="pass"
-        className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm"
+        className="!min-h-12 flex-col !gap-0 !px-2 !py-1 !text-sm"
         onClick={() => {
           sfx("pass");
           pass();
@@ -196,7 +198,7 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
         variant="secondary"
         icon="refresh"
         data-sfx="swap"
-        className="!min-h-14 flex-col !gap-0.5 !px-2 !text-sm"
+        className="!min-h-12 flex-col !gap-0 !px-2 !py-1 !text-sm"
         onClick={() => {
           sfx("swap");
           change();
@@ -208,7 +210,7 @@ export function ActionBar({ extra, canComplete = true, completeLabel = "Cumplido
         icon="check"
         size="lg"
         data-sfx="done"
-        className="!min-h-14 pulse-glow"
+        className="!min-h-12 pulse-glow"
         onClick={() => {
           sfx("done");
           haptic([20, 40, 20]);
@@ -292,14 +294,14 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
   const authorized = session.currentTurn?.authorized && session.status === "playing";
 
   return (
-    <div className="space-y-4 rounded-3xl border border-line bg-white/5 p-4">
+    <div className="space-y-2 rounded-2xl border border-line bg-white/5 p-2.5">
       <p className="sr-only" aria-live="polite">
         {announce}
       </p>
       {!timer && prep === null && (
         <>
           {autoChoices && choices.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Duración del reloj">
+            <div className="flex flex-wrap justify-center gap-1.5" role="radiogroup" aria-label="Duración del reloj">
               {choices.map((c) => (
                 <button
                   key={c}
@@ -307,7 +309,7 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
                   aria-checked={choice === c}
                   onClick={() => setChoice(c)}
                   className={cx(
-                    "min-h-11 rounded-full border px-4 transition active:scale-95",
+                    "min-h-9 rounded-full border px-3 text-sm transition active:scale-95",
                     choice === c ? "border-transparent bg-gradient-to-r from-accent to-accent-2 font-semibold text-accent-ink" : "border-line hover:bg-white/10",
                   )}
                 >
@@ -316,20 +318,20 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
               ))}
             </div>
           )}
-          <Button block variant="secondary" icon="timer" disabled={!authorized} onClick={() => setPrep(3)}>
+          <Button block variant="secondary" icon="timer" className="!min-h-10 !py-1.5 !text-sm" disabled={!authorized} onClick={() => setPrep(3)}>
             Comenzar reloj ({fmt(choice * 1000)})
           </Button>
         </>
       )}
       {prep !== null && (
-        <p className="text-center font-display text-5xl italic text-gradient animate-pop" key={prep} aria-hidden>
+        <p className="text-center font-display text-4xl italic text-gradient animate-pop" key={prep} aria-hidden>
           {prep}
         </p>
       )}
       {timer && (
-        <div className="space-y-2 text-center">
-          <div className="relative mx-auto size-40" aria-hidden>
-            <svg viewBox="0 0 100 100" className="size-40 -rotate-90">
+        <div className="flex items-center justify-center gap-4 text-center">
+          <div className="relative size-24 shrink-0" aria-hidden>
+            <svg viewBox="0 0 100 100" className="size-24 -rotate-90">
               <defs>
                 <linearGradient id="timer-g" x1="0" x2="1" y1="0" y2="1">
                   <stop offset="0" stopColor="var(--accent)" />
@@ -350,12 +352,12 @@ export function TimerControl({ session, activity, autoChoices = true }: { sessio
                 style={{ transition: "stroke-dashoffset 250ms linear", filter: "drop-shadow(0 0 6px var(--glow))" }}
               />
             </svg>
-            <span className={cx("absolute inset-0 flex items-center justify-center text-4xl font-semibold tabular-nums", remaining <= 0 && "text-faint")}>
+            <span className={cx("absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums", remaining <= 0 && "text-faint")}>
               {fmt(remaining)}
             </span>
           </div>
           {remaining <= 0 ? (
-            <p className="text-muted">Tiempo terminado. Pueden marcar Cumplido o Pasar; no hay obligación de seguir.</p>
+            <p className="text-sm text-muted">Tiempo terminado. Pueden marcar Cumplido o Pasar; no hay obligación de seguir.</p>
           ) : timer.running ? (
             <Button variant="secondary" icon="pause" onClick={pauseTimer}>
               Pausar reloj

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button, Dialog } from "@/components/ui";
 import { isIos, isStandalone, onInstallAvailability, promptInstall } from "@/pwa/install";
 
-export function InstallButton() {
+export function InstallButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [native, setNative] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -21,7 +21,7 @@ export function InstallButton() {
   if (standalone) return null;
   return (
     <>
-      <Button variant="secondary" icon="download" className="!min-h-16 flex-col !gap-1 rounded-3xl !px-2 !text-sm" onClick={() => setOpen(true)}>
+      <Button variant="secondary" icon="download" className={className ?? "!min-h-16 flex-col !gap-1 rounded-3xl !px-2 !text-sm"} onClick={() => setOpen(true)}>
         Instalar
       </Button>
       <Dialog open={open} title={`Instalar ${APP_NAME}`} onClose={() => setOpen(false)}>

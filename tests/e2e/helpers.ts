@@ -29,7 +29,7 @@ export async function setupSession(page: Page, o: SetupOptions = {}) {
   await page.getByRole("button", { name: "Continuar" }).click();
   for (let i = 0; i < count; i++) {
     await page.getByLabel(`Alias de la persona ${i + 1}`).fill(aliases[i]);
-    await page.getByText("Declaro que soy mayor de 18 años").nth(i).click();
+    await page.getByText("Soy mayor de 18 años", { exact: true }).nth(i).click();
     const gender = o.genders?.[i] ?? (i % 2 === 0 ? "Mujer" : "Hombre");
     await page.getByRole("radiogroup", { name: `Género de la persona ${i + 1}` }).getByRole("radio", { name: gender }).click();
   }

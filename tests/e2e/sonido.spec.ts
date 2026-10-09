@@ -37,7 +37,7 @@ test("los efectos suenan al jugar y se pueden silenciar en la mesa sin guardar n
 });
 
 test("Ajustes: efectos encendidos por defecto, con volumen", async ({ page }) => {
-  await page.goto("/ajustes/");
+  await page.goto("/ajustes/#sonido");
   const toggle = page.getByRole("checkbox", { name: /Efectos de sonido/ });
   await expect(toggle).toBeChecked();
   await page.getByRole("button", { name: "Alto", exact: true }).click();
@@ -48,7 +48,7 @@ test("Ajustes: efectos encendidos por defecto, con volumen", async ({ page }) =>
 });
 
 test("Ajustes: «Probar sonido» suena con un toque en la pantalla", async ({ page }) => {
-  await page.goto("/ajustes/");
+  await page.goto("/ajustes/#sonido");
   await page.getByRole("button", { name: "Probar sonido" }).tap();
   await expect.poll(() => played(page)).toBeGreaterThan(0);
   await expect(page.getByRole("checkbox", { name: /Sonar aunque el iPhone esté en silencio/ })).toBeChecked();

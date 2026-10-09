@@ -19,12 +19,15 @@ export function Tilt({
   className,
   max = 9,
   ignoreInteractive = false,
+  fill = false,
 }: {
   children: ReactNode;
   className?: string;
   max?: number;
   /** No inclina mientras el dedo está sobre un control interno (evita mover el botón al tocarlo). */
   ignoreInteractive?: boolean;
+  /** Ocupa todo el alto disponible (la carta llena la mesa). */
+  fill?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef<number | null>(null);
@@ -68,7 +71,7 @@ export function Tilt({
     <div className={"scene-3d " + (className ?? "")}>
       <div
         ref={ref}
-        className="tilt-3d relative rounded-[28px]"
+        className={"tilt-3d relative rounded-[28px]" + (fill ? " h-full" : "")}
         onPointerMove={update}
         onPointerDown={() => (pressed.current = true)}
         onPointerLeave={() => {

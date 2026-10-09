@@ -7,8 +7,9 @@ import { GAME_LABEL, MINI_GAMES, PARTICIPANT_COLORS, type Format, type GameId, t
 import { BOARD, BOARD_SIZE, GRID, SQUARE_STYLE, cardFor, gridCell, move, squareAnnouncement, type SquareKind } from "./parques-logic";
 import type { SessionState, Turn } from "@/domain/models/session";
 import { useSession } from "@/stores/session";
-import { GameEmblem, Notice, ParticipantTag, cx } from "@/components/ui";
+import { GameEmblem, ParticipantTag, cx } from "@/components/ui";
 import { GAME_THEME, themeStyle } from "@/components/ui/visuals";
+import { FitScale } from "@/components/ui/fit";
 import { ActionBar, ActivityCard, TimerControl, peopleOf } from "./common";
 import { haptic, sfx, spinTicks } from "@/sound/sfx";
 
@@ -214,17 +215,17 @@ export function TowerLauncher({ session }: { session: SessionState }) {
   };
 
   return (
-    <div className="space-y-4">
-      <p className="text-center text-lg" aria-live="polite">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <p className="shrink-0 text-center text-base" aria-live="polite">
         {falling ? (
-          <span className="font-display text-2xl font-semibold italic text-gradient">¡{current.alias} tumbó la torre!</span>
+          <span className="font-display text-xl font-semibold italic text-gradient">¡{current.alias} tumbó la torre!</span>
         ) : (
           <>
             Turno de <ParticipantTag alias={current.alias} slot={current.slot} />: saca un bloque
           </>
         )}
       </p>
-      <div className="flex justify-center gap-3 text-xs font-semibold uppercase tracking-widest" aria-hidden>
+      <div className="flex shrink-0 justify-center gap-3 text-[0.7rem] font-semibold uppercase tracking-widest" aria-hidden>
         {(Object.keys(BLOCK_COLOR) as BlockKind[]).map((k) => (
           <span key={k} className="flex items-center gap-1.5 text-muted">
             <span className="size-3 rounded-sm" style={{ background: `linear-gradient(135deg, ${BLOCK_COLOR[k].from}, ${BLOCK_COLOR[k].to})` }} />
@@ -232,6 +233,7 @@ export function TowerLauncher({ session }: { session: SessionState }) {
           </span>
         ))}
       </div>
+      <FitScale>
       <div className="scene-3d flex justify-center py-2">
         <div
           className={cx("tower", falling && "tower-fall", !falling && shake && "tower-shake", !falling && !shake && risk > 0.25 && "tower-wobble")}
@@ -275,10 +277,9 @@ export function TowerLauncher({ session }: { session: SessionState }) {
           <div className="tower-base" aria-hidden />
         </div>
       </div>
-      <p className="text-center text-sm text-muted">
-        {pulled.length === 0
-          ? "Saquen bloques por turnos. A quien tumbe la torre le toca carta: el color del bloque decide verdad, reto o comodín."
-          : `Bloques fuera: ${pulled.length}. La torre tiembla cada vez más…`}
+      </FitScale>
+      <p className="shrink-0 text-center text-xs text-muted">
+        {pulled.length === 0 ? "Toca un bloque para sacarlo. Quien tumbe la torre recibe la carta." : `Bloques fuera: ${pulled.length}. La torre tiembla cada vez más…`}
       </p>
     </div>
   );
@@ -291,7 +292,7 @@ export function TowerRound({ session, turn, activity }: { session: SessionState;
   return (
     <>
       {collapsed && (
-        <p className="text-center font-display text-2xl font-semibold italic text-gradient animate-pop" role="status">
+        <p className="shrink-0 text-center font-display text-xl font-semibold italic text-gradient animate-pop" role="status">
           {toppledBy ? `¡${toppledBy} tumbó la torre!` : "¡La torre se cayó!"}
         </p>
       )}
@@ -408,11 +409,13 @@ export function BottleLauncher({ session }: { session: SessionState }) {
   const people = peopleOf(session);
   const spin = () => draw({ game: "botella", strictGame: true });
   return (
-    <div className="space-y-4">
-      <BottleScene people={people} rotation={null} spinning={false} highlight={null} onSpin={spin} />
-      <p className="text-center text-sm text-muted">Toca la botella o deslízala con el dedo para girarla.</p>
-      <div className="deck" style={themeStyle("botella")}>
-        <button type="button" onClick={spin} className="deck-face w-full px-5 py-4 font-display text-2xl font-semibold italic">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <FitScale>
+        <BottleScene people={people} rotation={null} spinning={false} highlight={null} onSpin={spin} />
+      </FitScale>
+      <p className="shrink-0 text-center text-xs text-muted">Toca la botella o deslízala con el dedo para girarla.</p>
+      <div className="deck shrink-0" style={themeStyle("botella")}>
+        <button type="button" onClick={spin} className="deck-face w-full px-5 py-3.5 font-display text-2xl font-semibold italic">
           ¡Girar la botella!
         </button>
       </div>
@@ -463,8 +466,8 @@ export function BottleRound({ session, turn, activity }: { session: SessionState
   const fromP = people.find((p) => p.id === from);
   const targetP = people[targetIndex];
   return (
-    <div className="flex flex-1 flex-col justify-center gap-4">
-      <p className="text-center font-display text-2xl italic" aria-live="polite">
+    <div className="flex min-h-0 flex-1 flex-col justify-center gap-3">
+      <p className="shrink-0 text-center font-display text-2xl italic" aria-live="polite">
         {phase === "landed" ? (
           <span className="text-gradient animate-pop">¡Le toca a {targetP.alias}!</span>
         ) : fromP ? (
@@ -473,7 +476,9 @@ export function BottleRound({ session, turn, activity }: { session: SessionState
           "La botella gira…"
         )}
       </p>
-      <BottleScene people={people} rotation={rotation} spinning={phase === "spinning"} highlight={phase === "landed" ? targetP.id : null} />
+      <FitScale>
+        <BottleScene people={people} rotation={rotation} spinning={phase === "spinning"} highlight={phase === "landed" ? targetP.id : null} />
+      </FitScale>
     </div>
   );
 }
@@ -634,7 +639,7 @@ export function ScratchRound({ session, turn, activity }: { session: SessionStat
       <ActivityCard session={session} turn={turn} activity={activity} cover={revealed ? undefined : <ScratchCover onReveal={() => setRevealed(true)} />}>
         {revealed && activity.duracion && <TimerControl session={session} activity={activity} />}
       </ActivityCard>
-      {!revealed && <Notice>Raspa la carta para descubrir qué te toca. Puedes pasarla sin descubrirla.</Notice>}
+      {!revealed && <p className="shrink-0 text-center text-xs text-muted">Raspa la carta para descubrir qué te toca. Puedes pasarla sin descubrirla.</p>}
       <ActionBar />
     </>
   );
@@ -969,28 +974,29 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
 
   const busy = phase !== "idle";
   return (
-    <div className="space-y-3">
-      <div className="min-h-[3.5rem] text-center" aria-live="polite">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="min-h-[2.75rem] shrink-0 text-center" aria-live="polite">
         {phase === "winner" ? (
-          <p className="font-display text-2xl font-semibold italic text-gradient">¡{current.alias} llegó al corazón!</p>
+          <p className="font-display text-xl font-semibold italic text-gradient">¡{current.alias} llegó al corazón!</p>
         ) : status ? (
-          <p className="font-display text-2xl font-semibold italic text-gradient">{status}</p>
+          <p className="font-display text-xl font-semibold italic text-gradient">{status}</p>
         ) : (
-          <p className="text-lg">
+          <p className="text-base">
             Turno de <ParticipantTag alias={current.alias} slot={current.slot} />
           </p>
         )}
-        {phase === "idle" && <p className="text-sm text-muted">{info ?? "Toca el dado y que la suerte decida"}</p>}
+        {phase === "idle" && <p className="text-xs text-muted">{info ?? "Toca el dado y que la suerte decida"}</p>}
       </div>
 
-      <div className="relative">
+      {/* El tablero toma todo el espacio libre y se mantiene cuadrado. */}
+      <div className="parques-fit relative min-h-0 flex-1">
         <ParquesBoard people={people} pos={pos} active={phase === "winner" ? null : current.id} hot={hot} center={center} />
         {reveal && <RevealTile key={`${reveal.square}-${phase === "bonus" ? "b" : "f"}`} {...reveal} />}
       </div>
 
       {phase === "winner" ? (
-        <div className="glass space-y-3 rounded-3xl p-4 text-center animate-deal">
-          <p className="font-semibold">Premio: elige a quién le toca el próximo reto</p>
+        <div className="glass shrink-0 space-y-2 rounded-3xl p-3 text-center animate-deal">
+          <p className="text-sm font-semibold">Premio: elige a quién le toca el próximo reto</p>
           <div className="grid gap-2">
             {people
               .filter((p) => p.id !== current.id)
@@ -1010,7 +1016,7 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
           </div>
         </div>
       ) : phase === "decide" ? (
-        <div className="deck animate-deal" style={themeStyle("parques")}>
+        <div className="deck shrink-0 animate-deal" style={themeStyle("parques")}>
           <button
             type="button"
             data-sfx="deal"
@@ -1018,32 +1024,43 @@ export function ParquesLauncher({ session }: { session: SessionState }) {
               sfx("deal");
               proceed();
             }}
-            className="deck-face w-full px-5 py-4 font-display text-xl font-semibold italic">
+            className="deck-face w-full px-5 py-3.5 font-display text-xl font-semibold italic">
             {proceedLabel}
           </button>
         </div>
       ) : (
-        <div className="flex items-center justify-center gap-5">
-          <button type="button" aria-label="Tirar el dado" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="transition active:scale-95">
+        <div className="flex shrink-0 items-center justify-center gap-5">
+          <button type="button" aria-label="Tirar el dado" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="pdie-sm transition active:scale-95">
             <Die3D value={die} rolling={phase === "rolling"} rollKey={rollKey} />
           </button>
           <div className="deck" style={themeStyle("parques")}>
-            <button type="button" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-4 font-display text-xl font-semibold italic disabled:opacity-70">
+            <button type="button" data-sfx="dice" disabled={busy} onClick={() => void roll()} className="deck-face px-5 py-3.5 font-display text-xl font-semibold italic disabled:opacity-70">
               {busy ? "Tirando…" : "¡Tirar el dado!"}
             </button>
           </div>
         </div>
       )}
-
-      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted" aria-hidden>
-        {(["verdad", "reto", "pareja", "comodin", "avanza", "retrocede", "descanso"] as SquareKind[]).map((k) => (
-          <span key={k} className="flex items-center gap-1">
-            <span className="size-3 rounded-sm" style={{ background: `linear-gradient(135deg, ${SQUARE_STYLE[k].from}, ${SQUARE_STYLE[k].to})` }} />
-            {SQUARE_STYLE[k].label}
-          </span>
-        ))}
-      </div>
     </div>
+  );
+}
+
+/** Qué significa cada casilla (va en la ayuda «?» del juego). */
+export function ParquesLegend() {
+  return (
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      {(["verdad", "reto", "pareja", "comodin", "avanza", "retrocede", "descanso"] as SquareKind[]).map((k) => (
+        <li key={k} className="flex items-center gap-2">
+          <span
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+            style={{ background: `linear-gradient(135deg, ${SQUARE_STYLE[k].from}, ${SQUARE_STYLE[k].to})` }}
+            aria-hidden
+          >
+            {SQUARE_STYLE[k].glyph}
+          </span>
+          {SQUARE_STYLE[k].label}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -1053,7 +1070,7 @@ export function ParquesRound({ session, turn, activity }: { session: SessionStat
   return (
     <>
       {last && (
-        <p className="text-center font-display text-xl font-semibold italic text-gradient animate-pop" role="status">
+        <p className="shrink-0 text-center font-display text-lg font-semibold italic text-gradient animate-pop" role="status">
           {last}
         </p>
       )}
