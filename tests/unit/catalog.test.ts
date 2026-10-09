@@ -12,10 +12,10 @@ describe("catálogo de producción", () => {
     expect(r.errors).toEqual([]);
   });
 
-  it("las cartas base cumplen la meta editorial 296/403/389 por familia", () => {
+  it("las cartas base cumplen la meta editorial 296/403/231 por familia", () => {
     // Solo las del código: las cartas propias y ocultas del panel no cuentan para la meta.
     const r = catalogReport(BASE_ACTIVITIES);
-    expect(r.byLevel).toEqual({ leve: 296, picante: 403, perverso: 389 });
+    expect(r.byLevel).toEqual({ leve: 296, picante: 403, perverso: 231 });
     for (const lvl of INTENSITIES) EDITORIAL_FAMILIES.forEach((f, i) => expect(r.byFamily[lvl][f], `${lvl} ${f}`).toBe(EDITORIAL_TARGETS[lvl][i]));
   });
 

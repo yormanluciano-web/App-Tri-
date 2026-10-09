@@ -6,7 +6,7 @@ import customRaw from "./custom/cartas.json";
 import { customCardsToActivities, parseCustomFile } from "./custom";
 
 /** Versión del catálogo. Súbela al cambiar cartas; invalida autorizaciones restauradas. */
-export const CONTENT_VERSION = 2;
+export const CONTENT_VERSION = 3;
 
 /** Cartas escritas en el código (antes de ocultar ninguna). */
 export const BASE_ACTIVITIES: readonly Activity[] = [...leveAll, ...picanteAll, ...perversoAll];

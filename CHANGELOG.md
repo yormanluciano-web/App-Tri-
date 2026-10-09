@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.0 — 2026-10-09
+- **Nuevas cartas de Perverso**: los lotes 01–09 se reescribieron por completo (231 cartas en el nivel, con nuevos lotes «suave», «explícito», «muy perverso» y «cierre»). Las sesiones guardadas con las cartas anteriores las reemplazan de forma segura (catálogo v3).
+- Las cartas más explícitas solo aparecen entre personas que eligieron **«Acepto todo»** al empezar.
+- Cada carta pide los permisos que corresponden a lo que describe (besos intensos, ojos cerrados, prendas, caricias) y nombra a quién va dirigida.
+- Se conservan las cartas sorpresa de Perverso y las cartas editadas desde el panel.
+- Las cartas repetidas con el mismo texto quedan desactivadas (comentadas en el código) para revisarlas.
+
 ## 1.10.0 — 2026-10-09
 - **DJ Cómplice**: ya no hacen falta listas de Spotify. La app trae su propia selección de canciones **solo en español**, de artistas muy escuchados en Colombia y Venezuela (Karol G, Feid, Bad Bunny, Danny Ocean, Manuel Turizo, Kapo…), para cada momento:
   - **Leve**: pop urbano y romántico para coquetear.

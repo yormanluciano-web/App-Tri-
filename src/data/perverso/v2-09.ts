@@ -1,15 +1,29 @@
 import { defineCards } from "../define";
 
-// Perverso v2 · lote 09: cartas solo para una pareja hombre y mujer (`mixta: true`).
-export const perversoV2_09 = defineCards("perverso", "v2", "base", [
-  { id: "451", t: "Beso de película", x: "{p1}, dale a {p2} el beso más de película que sepas dar, en la boca, como si fuera el final de la historia.", c: "retos", f: "reto", s: 88, i: "directed_pair", pair: ["beso_intenso"], mixta: true },
-  { id: "452", t: "Cuello lento", x: "{p1}, besa despacio el cuello de {p2} durante veinte segundos. {p2} puede pedir que pares cuando quiera.", c: "retos", f: "reto", s: 90, i: "directed_pair", pair: ["beso_intenso"], mixta: true, d: [20, 10, 30] },
-  { id: "453", t: "Caricia por la espalda", x: "{p1}, recorre con tus manos la espalda de {p2}, por encima de la ropa, durante treinta segundos.", c: "retos", f: "reto", s: 84, i: "directed_pair", pair: ["caricias"], mixta: true, d: [30, 20, 60] },
-  { id: "454", t: "Prenda elegida", x: "{p1}, elige una prenda exterior de {p2} (nunca ropa interior) para que se la quite ahora mismo. {p2} puede pasar.", c: "retos", f: "reto", s: 86, i: "directed_pair", req: ["quitarse_prenda"], aud: ["quitarse_prenda"], audScope: "sesion", pair: ["coqueteo"], mixta: true },
-  { id: "455", t: "Fantasía entre los dos", x: "{p1}, cuéntale a {p2} una fantasía que tengas con alguien como {p2}, sin nombres ni detalles que no quieras dar.", c: "secretos", f: "pregunta", s: 80, i: "directed_pair", req: ["fantasias"], pair: ["coqueteo"], mixta: true },
-  { id: "456", t: "Baile muy pegado", x: "{p1} y {p2}, bailen pegados una canción entera, con las manos donde ambos quieran por encima de la ropa.", c: "baile", f: "reto", s: 82, req: ["musica"], pair: ["baile_cercano", "caricias"], mixta: true, d: [90, 45, 180], tags: ["movimiento"] },
-  { id: "457", t: "Cinco minutos a solas", x: "{p1} y {p2}, váyanse cinco minutos a solas a otra habitación. Lo que pase allí lo deciden entre los dos, y cualquiera puede volver cuando quiera.", c: "retos", f: "reto", s: 95, pair: ["tiempo_a_solas"], mixta: true, d: [300, 120, 600], sizes: [3] },
-  { id: "458", t: "Ojos vendados", x: "{p1}, con los ojos cerrados, deja que {p2} te dé tres besos donde quiera, en la cara o el cuello.", c: "retos", f: "reto", s: 92, rol: { p1: ["ojos_cerrados"] }, pair: ["beso_intenso"], mixta: true },
-  { id: "459", t: "Lo que me provocas", x: "{p1}, dile a {p2} al oído, con todo detalle, lo que te provoca tenerle tan cerca.", c: "retos", f: "reto", s: 78, i: "directed_pair", pair: ["coqueteo", "miradas"], mixta: true, tags: ["voz"] },
-  { id: "460", t: "Abrazo sin prisa", x: "{p1} y {p2}, abrácense un minuto, muy juntos, con las manos en la cintura del otro.", c: "retos", f: "reto", s: 76, pair: ["abrazo", "caricias"], mixta: true, d: [60, 30, 90], tags: ["calma"] },
+// Perverso v2 · lote 09: cierre, preguntas finales, despedida sensual.
+// Intensidad máxima, recapitulación, despedida.
+export const perversoV2_09 = defineCards("perverso", "v2", "cierre", [
+  { id: "09001", t: "Frase memorable", x: "{p1}, ¿de esta noche, qué frase te impactó más.", c: "preguntas", f: "pregunta", s: 88, req: ["confesiones", "coqueteo"], tags: ["cierre", "cumplido"] },
+  { id: "09002", t: "Nivel futuro", x: "{p1}, ¿qué nivel de intensidad deseas próxima vez y por qué.", c: "rompehielo", f: "pregunta", s: 72, req: ["preguntas_personales"], tags: ["apertura"] },
+  { id: "09003", t: "Disfraz ideal", x: "{p1}, en fiesta de disfraces, ¿qué papel te gusta y para quién.", c: "preguntas", f: "pregunta", s: 84, req: ["fantasias", "roles_juego"], tags: ["creatividad"] },
+  { id: "09004", t: "Confesión o prenda", x: "{p1}, confiesa último pensamiento atrevido o quítate prenda.", c: "preguntas", f: "pregunta", s: 95, req: ["confesiones", "quitarse_prenda"], aud: ["quitarse_prenda"], audScope: "sesion", d: [60, 30, 90], tags: ["cierre"] },
+  { id: "09005", t: "Mirada intensa", x: "{p1}, ¿qué dijiste mirando ojos sin hablar. Repite sin nombres.", c: "preguntas", f: "pregunta", s: 77, req: ["confesiones"], tags: ["voz"] },
+  { id: "09006", t: "Medianoche ideal", x: "{p1}, describe en frase la noche más intensa posible esta vez.", c: "preguntas", f: "pregunta", s: 92, req: ["fantasias"], d: [30, 15, 60], tags: ["cumplido"] },
+  { id: "09007", t: "Último sonrojo", x: "{p1}, ¿qué momento te hizo sonrojar más hoy.", c: "rompehielo", f: "pregunta", s: 70, req: ["confesiones"], d: [30, 15, 60] },
+  { id: "09008", t: "Palabra seductora", x: "{p1} y {p2}, una palabra cada uno para describir cómo se desea.", c: "rompehielo", f: "reto", s: 83, req: ["adivinanzas"], pair: ["coqueteo"], tags: ["risas"] },
+  { id: "09009", t: "Verdad o prenda", x: "{p1}, verdad: lo más intenso en frase, o quítate prenda.", c: "preguntas", f: "pregunta", s: 94, req: ["confesiones", "quitarse_prenda"], aud: ["quitarse_prenda"], audScope: "sesion", tags: ["cierre"] },
+  { id: "09010", t: "Lo que atreves", x: "{p1}, con más valentía, ¿qué harías ahora sin miedo.", c: "preguntas", f: "pregunta", s: 88, req: ["fantasias", "confesiones"], tags: ["cumplido"] },
+  { id: "09011", t: "Atracción física", x: "{p1}, describe qué te atrae de alguien sin nombres.", c: "preguntas", f: "pregunta", s: 76, req: ["preguntas_personales"], d: [30, 15, 60] },
+  { id: "09012", t: "Lectura grupo", x: "{p1}, mira a todos 5s y di cómo les ves ahora.", c: "rompehielo", f: "reto", s: 85, i: "group", req: ["coqueteo", "miradas", "adivinanzas"], d: [30, 15, 60] },
+  { id: "09013", t: "Minuto intensidad", x: "Cada uno pregunta intensa; responder o pasar.", c: "preguntas", f: "reto", s: 93, req: ["preguntas_personales", "confesiones"], d: [60, 45, 120] },
+  { id: "09014", t: "Pensamiento oculto", x: "{p1}, ¿qué te prohibes cuando alguien te atrae afuera.", c: "preguntas", f: "pregunta", s: 80, req: ["confesiones"], tags: ["cumplido"] },
+  { id: "09015", t: "Pensamiento final", x: "{p1}, ¿qué pensamiento atrevido te llevas de esta noche.", c: "preguntas", f: "pregunta", s: 96, req: ["confesiones"], tags: ["cierre"] },
+  { id: "09016", t: "Pregunta intensa", x: "{p1}, haz pregunta intensa a quien elijas; responder o pasar.", c: "rompehielo", f: "reto", s: 71, i: "group", req: ["preguntas_personales", "confesiones"], tags: ["apertura", "voz"] },
+  { id: "09017", t: "Tono que me altera", x: "{p1}, ¿qué tono te provoca reacción hoy. ¿Qué te imaginas diciendo.", c: "preguntas", f: "pregunta", s: 78, req: ["coqueteo", "roles_juego"], tags: ["voz", "risas"] },
+  { id: "09018", t: "Tensión secreta", x: "Cada uno dice quiénes tienen más tensión eléctrica.", c: "rompehielo", f: "reto", s: 86, i: "group", sizes: [3], req: ["coqueteo", "confesiones"] },
+  { id: "09019", t: "Canción intensa", x: "{p1}, ¿qué canción pondrías para noche intensa y por qué.", c: "rompehielo", f: "reto", s: 74, req: ["musica", "conversacion_ligera"], tags: ["voz"] },
+  { id: "09020", t: "Palabra intensa", x: "{p1}, piensa palabra y da pistas; el resto adivina en 30s.", c: "rompehielo", f: "reto", s: 81, i: "group", req: ["adivinanzas", "coqueteo"], d: [30, 20, 60], tags: ["risas"] },
+  { id: "09021", t: "Lo que guardaré", x: "{p1}, ¿qué recuerdo de esta noche guardarás con más cariño.", c: "rompehielo", f: "pregunta", s: 85, req: ["preguntas_personales"], tags: ["cierre", "cumplido"] },
+  { id: "09022", t: "Gratitud", x: "¿Qué te agradeció más de esta noche. Voto mayoritario.", c: "rompehielo", f: "pregunta", s: 82, req: ["conversacion_ligera"], tags: ["cierre"] },
+  { id: "09023", t: "Cierre suave", x: "¿Todo bien para terminar sesión o seguir jugando.", c: "rompehielo", f: "pregunta", s: 74, req: ["conversacion_ligera"], tags: ["cierre", "calma"] },
 ]);
